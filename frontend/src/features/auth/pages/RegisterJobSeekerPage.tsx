@@ -120,6 +120,10 @@ export default function RegisterJobSeekerPage() {
         {t('alreadyHaveAccount')}{' '}
         <Link to="/login" className="text-primary">
           {t('loginLink')}
+        </Link>{' '}
+        ·{' '}
+        <Link to="/register/employer" className="text-primary">
+          {t('registerEmployerLink')}
         </Link>
       </p>
     </div>

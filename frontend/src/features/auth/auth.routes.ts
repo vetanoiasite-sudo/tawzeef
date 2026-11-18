@@ -9,6 +9,11 @@ export const authRoutes: AppRouteDef[] = [
     access: { public: true },
   },
   {
+    path: '/register/employer',
+    Component: lazy(() => import('./pages/RegisterEmployerPage')),
+    access: { public: true },
+  },
+  {
     path: '/login',
     Component: lazy(() => import('./pages/LoginPage')),
     access: { public: true },

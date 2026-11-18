@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Tawzeef.Domain.Entities.Auth;
+using Tawzeef.Domain.Entities.Employers;
 using Tawzeef.Domain.Entities.JobSeekers;
 using Tawzeef.Domain.Entities.Offices;
 using Tawzeef.Domain.Identity;
@@ -21,6 +22,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityUser
     public DbSet<PermissionDefinition> PermissionDefinitions => Set<PermissionDefinition>();
     public DbSet<OtpVerification> OtpVerifications => Set<OtpVerification>();
     public DbSet<JobSeekerProfile> JobSeekerProfiles => Set<JobSeekerProfile>();
+    public DbSet<Employer> Employers => Set<Employer>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

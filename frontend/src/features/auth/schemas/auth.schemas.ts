@@ -29,6 +29,16 @@ export const jobSeekerDetailsSchema = z.object({
 })
 export type JobSeekerDetailsFormValues = z.infer<typeof jobSeekerDetailsSchema>
 
+export const employerDetailsSchema = z.object({
+  representativeName: z.string().trim().min(2, 'validation:required').max(200, 'validation:tooLong'),
+  legalName: z.string().trim().min(2, 'validation:required').max(250, 'validation:tooLong'),
+  displayName: z.string().trim().min(2, 'validation:required').max(250, 'validation:tooLong'),
+  email: z.union([z.literal(''), z.email('validation:emailFormat')]),
+  password: z.string().min(8, 'validation:passwordTooShort'),
+  officeId: z.string().min(1, 'validation:required'),
+})
+export type EmployerDetailsFormValues = z.infer<typeof employerDetailsSchema>
+
 export const loginSchema = z.object({
   identifier: phoneSchema,
   password: z.string().min(1, 'validation:required'),

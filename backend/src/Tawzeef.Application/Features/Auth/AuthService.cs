@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Tawzeef.Application.Common;
 using Tawzeef.Domain.Contracts;
 using Tawzeef.Domain.Entities.Auth;
+using Tawzeef.Domain.Entities.Employers;
 using Tawzeef.Domain.Entities.JobSeekers;
 using Tawzeef.Domain.Entities.Offices;
 using Tawzeef.Domain.Enums;
@@ -130,6 +131,69 @@ public class AuthService(
         });
     }
 
+    public async Task<ServiceResult<AuthResultDto>> RegisterEmployerAsync(RegisterEmployerDto dto, CancellationToken ct = default)
+    {
+        var phoneNumber = dto.MobileNumber.Trim();
+
+        var otpMatches = await uow.Repository<OtpVerification>().ListAsync(
+            o => o.PhoneNumber == phoneNumber && o.Purpose == OtpPurpose.Registration
+                 && o.VerifiedToken == dto.OtpToken && o.VerifiedTokenUsedAt == null
+                 && o.VerifiedTokenExpiresAt > DateTime.UtcNow,
+            ct: ct);
+        var verifiedOtp = otpMatches.FirstOrDefault();
+        if (verifiedOtp is null)
+            return ServiceResult<AuthResultDto>.Invalid("Phone verification has expired — verify the number again.");
+
+        var office = await uow.Repository<EmploymentOffice>().FindAsync(o => o.Id == dto.OfficeId && o.Status == OfficeStatus.Active, ct: ct);
+        if (office is null) return ServiceResult<AuthResultDto>.Invalid("Select a valid office.");
+
+        if (await userManager.FindByNameAsync(phoneNumber) is not null)
+            return ServiceResult<AuthResultDto>.Conflict("This mobile number is already registered.");
+
+        var user = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            UserName = phoneNumber,
+            PhoneNumber = phoneNumber,
+            PhoneNumberConfirmed = true, // just proved via OTP
+            Email = dto.Email,
+            FullName = dto.RepresentativeName.Trim(),
+        };
+
+        var createResult = await userManager.CreateAsync(user, dto.Password);
+        if (!createResult.Succeeded)
+            return ServiceResult<AuthResultDto>.Invalid(createResult.Errors.Select(e => e.Description));
+
+        var employer = new Employer
+        {
+            Id = Guid.NewGuid(),
+            OfficeId = office.Id,
+            UserId = user.Id,
+            LegalName = dto.LegalName.Trim(),
+            DisplayName = dto.DisplayName.Trim(),
+            RepresentativeName = user.FullName,
+            VerificationStatus = EmployerVerificationStatus.Draft,
+            CooperationStatus = EmployerCooperationStatus.Active,
+        };
+        await uow.Repository<Employer>().AddAsync(employer, ct);
+
+        verifiedOtp.VerifiedTokenUsedAt = DateTime.UtcNow;
+        uow.Repository<OtpVerification>().Update(verifiedOtp);
+
+        await uow.SaveChangesAsync(ct);
+
+        var (accessToken, expiresAt) = tokenGenerator.GenerateToken(user.Id, user.FullName, isSuperAdmin: false, officeId: null);
+        return ServiceResult<AuthResultDto>.Success(new AuthResultDto
+        {
+            UserId = user.Id,
+            FullName = user.FullName,
+            EmployerId = employer.Id,
+            Role = "Employer",
+            AccessToken = accessToken,
+            ExpiresAt = expiresAt,
+        });
+    }
+
     public async Task<ServiceResult<AuthResultDto>> LoginAsync(LoginDto dto, CancellationToken ct = default)
     {
         var user = await userManager.FindByNameAsync(dto.Identifier.Trim());
@@ -144,6 +208,7 @@ public class AuthService(
 
         string role;
         Guid? jobSeekerProfileId = null;
+        Guid? employerId = null;
         if (user.IsSuperAdmin)
         {
             role = "SuperAdmin";
@@ -155,8 +220,17 @@ public class AuthService(
         else
         {
             var profile = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.UserId == user.Id, ct: ct);
-            role = "JobSeeker";
-            jobSeekerProfileId = profile?.Id;
+            if (profile is not null)
+            {
+                role = "JobSeeker";
+                jobSeekerProfileId = profile.Id;
+            }
+            else
+            {
+                var employer = await uow.Repository<Employer>().FindAsync(e => e.UserId == user.Id, ct: ct);
+                role = "Employer";
+                employerId = employer?.Id;
+            }
         }
 
         var (accessToken, expiresAt) = tokenGenerator.GenerateToken(user.Id, user.FullName, user.IsSuperAdmin, membership?.OfficeId);
@@ -165,6 +239,7 @@ public class AuthService(
             UserId = user.Id,
             FullName = user.FullName,
             JobSeekerProfileId = jobSeekerProfileId,
+            EmployerId = employerId,
             Role = role,
             OfficeId = membership?.OfficeId,
             AccessToken = accessToken,

@@ -21,6 +21,10 @@ public class AuthController(IAuthService service) : ApiControllerBase
     public async Task<IActionResult> RegisterJobSeeker([FromBody] RegisterJobSeekerDto dto, CancellationToken ct)
         => Respond(await service.RegisterJobSeekerAsync(dto, ct));
 
+    [HttpPost("register/employer")]
+    public async Task<IActionResult> RegisterEmployer([FromBody] RegisterEmployerDto dto, CancellationToken ct)
+        => Respond(await service.RegisterEmployerAsync(dto, ct));
+
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto dto, CancellationToken ct)
         => Respond(await service.LoginAsync(dto, ct));

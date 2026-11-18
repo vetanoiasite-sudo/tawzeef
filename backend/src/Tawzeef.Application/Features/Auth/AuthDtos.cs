@@ -48,6 +48,33 @@ public class RegisterJobSeekerDto
     public Guid OfficeId { get; set; }
 }
 
+public class RegisterEmployerDto
+{
+    [Required, MaxLength(200)]
+    public string RepresentativeName { get; set; } = string.Empty;
+
+    [Required, MaxLength(30)]
+    public string MobileNumber { get; set; } = string.Empty;
+
+    [Required]
+    public string OtpToken { get; set; } = string.Empty;
+
+    [MaxLength(200), EmailAddress]
+    public string? Email { get; set; }
+
+    [Required, MinLength(8)]
+    public string Password { get; set; } = string.Empty;
+
+    [Required]
+    public Guid OfficeId { get; set; }
+
+    [Required, MaxLength(250)]
+    public string LegalName { get; set; } = string.Empty;
+
+    [Required, MaxLength(250)]
+    public string DisplayName { get; set; } = string.Empty;
+}
+
 public class LoginDto
 {
     [Required]
@@ -62,8 +89,9 @@ public class AuthResultDto
     public Guid UserId { get; set; }
     public string FullName { get; set; } = string.Empty;
     public Guid? JobSeekerProfileId { get; set; }
+    public Guid? EmployerId { get; set; }
 
-    /// <summary>"SuperAdmin" | "OfficeAdmin" | "OfficeStaff" | "JobSeeker" — API_DOCUMENTATION.md §3.1,
+    /// <summary>"SuperAdmin" | "OfficeAdmin" | "OfficeStaff" | "JobSeeker" | "Employer" — API_DOCUMENTATION.md §3.1,
     /// what the frontend router uses to pick a landing page.</summary>
     public string Role { get; set; } = string.Empty;
     public Guid? OfficeId { get; set; }

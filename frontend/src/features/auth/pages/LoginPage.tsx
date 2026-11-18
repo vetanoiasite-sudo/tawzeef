@@ -91,6 +91,10 @@ export default function LoginPage() {
         {t('auth:noAccount')}{' '}
         <Link to="/register/job-seeker" className="text-primary">
           {t('auth:registerLink')}
+        </Link>{' '}
+        ·{' '}
+        <Link to="/register/employer" className="text-primary">
+          {t('auth:registerEmployerLink')}
         </Link>
       </p>
     </div>

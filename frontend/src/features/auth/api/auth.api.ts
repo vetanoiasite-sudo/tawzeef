@@ -4,6 +4,7 @@ import type {
   LoginPayload,
   OtpVerifiedResult,
   PublicOffice,
+  RegisterEmployerPayload,
   RegisterJobSeekerPayload,
   RequestOtpPayload,
   VerifyOtpPayload,
@@ -15,6 +16,8 @@ export const authApi = {
     httpClient.post<OtpVerifiedResult>('/api/auth/otp/verify', payload),
   registerJobSeeker: (payload: RegisterJobSeekerPayload) =>
     httpClient.post<AuthResult>('/api/auth/register/job-seeker', payload),
+  registerEmployer: (payload: RegisterEmployerPayload) =>
+    httpClient.post<AuthResult>('/api/auth/register/employer', payload),
   login: (payload: LoginPayload) => httpClient.post<AuthResult>('/api/auth/login', payload),
   // Belongs here rather than a standalone offices feature — nothing beyond this dropdown needs
   // the office list yet (RBAC_PERMISSIONS.md §0 item 3).
