@@ -1,0 +1,21 @@
+# .NET
+backend/**/bin/
+backend/**/obj/
+*.user
+*.suo
+
+# Node / Vite
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+npm-debug.log*
+
+# Env secrets
+*.env.*.local
+.env.local
+
+# Editor / OS
+.vs/
+.idea/
+.DS_Store
+Thumbs.db

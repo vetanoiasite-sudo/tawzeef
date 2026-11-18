@@ -1,0 +1,12 @@
+/* Minimal base reset. Design tokens (app/styles/theme.ts) land in Phase 2 Foundation. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, 'Segoe UI', Tahoma, sans-serif;
+  color-scheme: light;
+}

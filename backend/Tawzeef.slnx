@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Tawzeef.Api/Tawzeef.Api.csproj" />
+    <Project Path="src/Tawzeef.Application/Tawzeef.Application.csproj" />
+    <Project Path="src/Tawzeef.Domain/Tawzeef.Domain.csproj" />
+    <Project Path="src/Tawzeef.Infrastructure/Tawzeef.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Tawzeef.Tests/Tawzeef.Tests.csproj" />
+  </Folder>
+</Solution>
