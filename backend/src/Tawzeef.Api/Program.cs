@@ -11,6 +11,15 @@ using Tawzeef.Domain.Contracts;
 using Tawzeef.Domain.Identity;
 using Tawzeef.Infrastructure.DependencyInjection;
 
+// One-time operator bootstrap — never an HTTP endpoint, never auto-seeded (BACKEND_GUIDELINES.md
+// §14: no placeholder credential is ever created automatically).
+// Usage: ASPNETCORE_ENVIRONMENT=Development dotnet run -- seed-superadmin <phone> <password> <full name>
+if (args.Length > 0 && args[0] == "seed-superadmin")
+{
+    await SeedSuperAdminAsync(args);
+    return;
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Configuration guards — fail fast (BACKEND_GUIDELINES.md §14).
@@ -72,6 +81,7 @@ builder.Services.AddCors(options =>
 
 // 6. Controllers + global permission filter, Swagger.
 builder.Services.AddControllers(o => o.Filters.Add<PermissionAuthorizationFilter>())
+    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()))
     .ConfigureApiBehaviorOptions(o => o.InvalidModelStateResponseFactory = ctx =>
     {
         var errors = ctx.ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToArray();
@@ -109,3 +119,59 @@ app.MapControllers();
 app.MapGet("/health", () => Results.Ok(new { status = "ok" })).AllowAnonymous();
 
 app.Run();
+
+static async Task SeedSuperAdminAsync(string[] cliArgs)
+{
+    if (cliArgs.Length < 4)
+    {
+        Console.WriteLine("Usage: seed-superadmin <phoneNumber> <password> <fullName...>");
+        return;
+    }
+
+    var phoneNumber = cliArgs[1];
+    var password = cliArgs[2];
+    var fullName = string.Join(' ', cliArgs.Skip(3));
+
+    // Host.CreateApplicationBuilder reads DOTNET_ENVIRONMENT, not ASPNETCORE_ENVIRONMENT — accept
+    // either, so "ASPNETCORE_ENVIRONMENT=Development" (what the rest of this app's docs say) works.
+    var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
+        ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")
+        ?? "Production";
+    var hostBuilder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = environmentName });
+    hostBuilder.Services.AddInfrastructure(hostBuilder.Configuration);
+    hostBuilder.Services.AddScoped<ICurrentUser, SystemCurrentUser>(); // the audit interceptor needs one — BACKEND_GUIDELINES.md §13
+    using var host = hostBuilder.Build();
+    using var scope = host.Services.CreateScope();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+    if (await userManager.FindByNameAsync(phoneNumber) is not null)
+    {
+        Console.WriteLine("A user with that phone number already exists.");
+        return;
+    }
+
+    var user = new ApplicationUser
+    {
+        Id = Guid.NewGuid(),
+        UserName = phoneNumber,
+        PhoneNumber = phoneNumber,
+        PhoneNumberConfirmed = true,
+        FullName = fullName,
+        IsSuperAdmin = true,
+    };
+
+    var result = await userManager.CreateAsync(user, password);
+    Console.WriteLine(result.Succeeded
+        ? $"SuperAdmin created: {user.Id}"
+        : string.Join("; ", result.Errors.Select(e => e.Description)));
+}
+
+/// <summary>The audit-stamping actor for CLI bootstrap work (BACKEND_GUIDELINES.md §13 — "a
+/// background job registers an implementation that returns a well-known system id").</summary>
+file sealed class SystemCurrentUser : ICurrentUser
+{
+    public Guid? Id => null;
+    public string? FullName => "System (CLI)";
+    public bool IsSuperAdmin => true;
+    public Guid? OfficeId => null;
+}

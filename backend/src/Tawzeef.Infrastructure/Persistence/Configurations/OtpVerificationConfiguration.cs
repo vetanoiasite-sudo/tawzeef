@@ -13,7 +13,9 @@ public class OtpVerificationConfiguration : IEntityTypeConfiguration<OtpVerifica
 
         b.Property(x => x.PhoneNumber).IsRequired().HasMaxLength(30);
         b.Property(x => x.CodeHash).IsRequired().HasMaxLength(200);
+        b.Property(x => x.VerifiedToken).HasMaxLength(100);
 
         b.HasIndex(x => new { x.PhoneNumber, x.Purpose, x.ExpiresAt });
+        b.HasIndex(x => x.VerifiedToken);
     }
 }

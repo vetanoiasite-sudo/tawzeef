@@ -1,4 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
+using Tawzeef.Application.Features.Auth;
+using Tawzeef.Application.Features.Offices;
 
 namespace Tawzeef.Application.DependencyInjection;
 
@@ -6,7 +8,8 @@ public static class ApplicationDI
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        // Feature services are registered here as they're added (none yet — Phase 2 Foundation only).
+        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IOfficeService, OfficeService>();
         return services;
     }
 }

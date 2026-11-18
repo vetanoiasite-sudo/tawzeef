@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 
@@ -15,7 +16,10 @@ public static class PermissionEndpointAudit
         var provider = services.GetRequiredService<IActionDescriptorCollectionProvider>();
         var unresolved = provider.ActionDescriptors.Items
             .OfType<ControllerActionDescriptor>()
-            .Where(a => !a.MethodInfo.GetCustomAttributes(typeof(Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute), true).Any())
+            // EndpointMetadata aggregates controller-level AND action-level attributes — unlike
+            // MethodInfo.GetCustomAttributes, which misses a class-level [AllowAnonymous] (the
+            // bug this fixes: AuthController declares it once, on the class).
+            .Where(a => !a.EndpointMetadata.OfType<IAllowAnonymous>().Any())
             .Where(a => PermissionResolver.Resolve(a) is null)
             .Select(a => $"{a.ControllerName}.{a.ActionName}")
             .ToList();

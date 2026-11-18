@@ -13,12 +13,29 @@ void i18n.use(initReactI18next).init({
   ns: ['common', 'validation', 'nav'],
   resources: {
     ar: {
-      common: {},
-      validation: {},
+      common: {
+        logout: 'تسجيل الخروج',
+        welcomeUser: 'مرحبًا، {{name}}',
+      },
+      validation: {
+        required: 'هذا الحقل مطلوب',
+        phoneFormat: 'رقم الهاتف غير صالح',
+        otpCodeFormat: 'أدخل الرمز المكوّن من 6 أرقام',
+        emailFormat: 'البريد الإلكتروني غير صالح',
+        passwordTooShort: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل',
+        tooLong: 'هذا النص طويل جدًا',
+      },
       nav: {},
     },
   },
   interpolation: { escapeValue: false },
 })
+
+// A feature registers its own namespace by calling this once, at module scope, from its own
+// `i18n/` folder (PROJECT_ARCHITECTURE_FRONTEND.md §5) — this module stays feature-agnostic
+// (§6) and never imports a feature's content itself.
+export function registerNamespace(ns: string, resources: Record<string, unknown>) {
+  i18n.addResourceBundle('ar', ns, resources, true, true)
+}
 
 export default i18n

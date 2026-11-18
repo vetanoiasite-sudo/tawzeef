@@ -4,7 +4,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Tawzeef.Domain.Contracts;
 using Tawzeef.Domain.Identity;
+using Tawzeef.Infrastructure.Authentication;
 using Tawzeef.Infrastructure.Authorization;
+using Tawzeef.Infrastructure.Notifications;
 using Tawzeef.Infrastructure.Persistence;
 using Tawzeef.Infrastructure.Storage;
 using Tawzeef.Infrastructure.Persistence.Initializers;
@@ -35,6 +37,8 @@ public static class InfrastructureDI
         services.AddScoped<IDbInitializer, DbInitializer>();
         services.AddScoped<IPermissionChecker, PermissionChecker>();
         services.AddSingleton<IFileStorage, LocalFileStorage>();
+        services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+        services.AddScoped<IOtpSender, DevLogOtpSender>();
 
         return services;
     }

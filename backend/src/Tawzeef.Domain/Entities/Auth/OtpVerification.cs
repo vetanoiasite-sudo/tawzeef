@@ -17,4 +17,12 @@ public class OtpVerification
     public DateTime ExpiresAt { get; set; }
     public DateTime? ConsumedAt { get; set; }
     public byte AttemptCount { get; set; }
+
+    /// <summary>
+    /// Set once the code is verified — the opaque, single-use proof a register/reset call must
+    /// present (API_DOCUMENTATION.md §3.1). Not the OTP code itself.
+    /// </summary>
+    public string? VerifiedToken { get; set; }
+    public DateTime? VerifiedTokenExpiresAt { get; set; }
+    public DateTime? VerifiedTokenUsedAt { get; set; }
 }
