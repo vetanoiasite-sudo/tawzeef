@@ -5,6 +5,10 @@ export type SessionUser = {
   fullName: string
   officeId: string | null
   isSuperAdmin: boolean
+  /** "SuperAdmin" | "OfficeAdmin" | "OfficeStaff" | "JobSeeker" | "Employer" — API_DOCUMENTATION.md
+   * §3.1. Drives the role-implied "...own" permissions in useAccess(); office-staff grants still
+   * come from `permissions` below. */
+  role: string
   /** Permission codes the UI gates on — "module.action", RBAC_PERMISSIONS.md §2. */
   permissions: string[]
 }

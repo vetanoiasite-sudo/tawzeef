@@ -7,17 +7,29 @@ namespace Tawzeef.Infrastructure.Authorization;
 
 /// <summary>
 /// Covers SuperAdmin, OfficeAdmin (full set within their office) and OfficeStaff (data-driven
-/// grants) — RBAC_PERMISSIONS.md §3. Employer/JobSeeker permission resolution is deliberately not
-/// implemented yet: those roles have no <see cref="Tawzeef.Domain.Entities.Offices.UserOfficeMembership"/>
-/// row, and their fixed per-feature capabilities are not yet codified because the features
-/// themselves (JobAdvertisement, JobApplication, …) don't exist yet. Revisit this method, not the
-/// matrix in RBAC_PERMISSIONS.md §3, when those land.
+/// grants) — RBAC_PERMISSIONS.md §3. Employer permission resolution is deliberately not
+/// implemented yet: that role's fixed per-feature capabilities aren't codified because the
+/// features themselves (JobAdvertisement, JobApplication, …) don't exist yet. Revisit this
+/// method, not the matrix in RBAC_PERMISSIONS.md §3, when those land.
 /// </summary>
 public class PermissionChecker(AppDbContext context) : IPermissionChecker
 {
+    /// <summary>The "...own" verbs (RBAC_PERMISSIONS.md §2) a JobSeeker holds simply by having a
+    /// JobSeekerProfile — no UserOfficeMembership/StaffPermissionGrant involved. §4's ownership
+    /// scoping (which row) is still enforced separately, in the service layer.</summary>
+    private static readonly HashSet<string> JobSeekerOwnPermissions =
+        ["jobseekers.viewown", "jobseekers.editown", "jobseekers.uploaddocuments", "jobseekers.submit"];
+
     public async Task<bool> HasPermissionAsync(ICurrentUser user, string permissionCode, CancellationToken ct = default)
     {
         if (user.IsSuperAdmin) return true;
+
+        if (JobSeekerOwnPermissions.Contains(permissionCode))
+        {
+            if (user.Id is null) return false;
+            return await context.JobSeekerProfiles.AnyAsync(p => p.UserId == user.Id, ct);
+        }
+
         if (user.Id is null || user.OfficeId is null) return false;
 
         var membership = await context.UserOfficeMemberships

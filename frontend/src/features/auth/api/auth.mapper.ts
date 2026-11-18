@@ -10,6 +10,7 @@ export function toSessionUser(result: AuthResult): SessionUser {
     fullName: result.fullName,
     officeId: result.officeId,
     isSuperAdmin: result.role === 'SuperAdmin',
+    role: result.role,
     permissions: [],
   }
 }

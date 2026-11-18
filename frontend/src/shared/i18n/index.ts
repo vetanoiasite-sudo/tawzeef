@@ -24,6 +24,7 @@ void i18n.use(initReactI18next).init({
         emailFormat: 'البريد الإلكتروني غير صالح',
         passwordTooShort: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل',
         tooLong: 'هذا النص طويل جدًا',
+        invalidNumber: 'أدخل رقمًا صحيحًا',
       },
       nav: {},
     },

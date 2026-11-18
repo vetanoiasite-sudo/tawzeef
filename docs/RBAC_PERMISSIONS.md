@@ -42,6 +42,7 @@ of this document treats them as settled — not as an assumption pending review.
 | 21 | §24.F.38–40/F.42/F.44/F.45 — interviews & reports | **Confirmed:** the Employer schedules the interview and writes the first (`InterviewReport`) report. The one-month `HiringFollowUpReport` is completed by the **office**, who follows up with both sides. It is **mandatory** for every hire; an unfiled report past its due date becomes `Overdue` and notifies the responsible staff — there is no harder enforcement than that notification. |
 | 22 | §24.H.55–57/H.61 | **Confirmed:** in-app notifications only for v1 (no SMS/email channel yet); UI is **Arabic-only**, RTL; data is **retained permanently**, never hard-deleted — soft `IsActive` only. |
 | 23 | §24.H.58 | **Confirmed:** responsive web for v1; a **separate native mobile app is planned for later** — the API must stay client-agnostic (already true, it's a plain REST/JSON API) so a future app can consume it without backend changes. |
+| 24 | §5.1 — allowed document file types & max size (confirmed 2026-11-18, when document upload was built) | **Confirmed:** **PDF, JPG, PNG only, 5 MB max**, enforced server-side (`Uploads:MaxFileSizeBytes`/`Uploads:AllowedMimeTypes`) — configurable, not hardcoded, per the requirement's own wording. |
 
 Everything in §1–§9 below reflects these confirmed answers. Remaining open items (exact mandatory
 field lists, exact report field lists, appeal process for a suspension) are still genuinely open
@@ -81,7 +82,7 @@ silently allowed (BACKEND_GUIDELINES §12, "endpoint cannot be classified → re
 |---|---|---|
 | `offices` | `view`, `create`, `edit`, `deactivate` | Super Admin only. |
 | `officeusers` | `view`, `invite`, `edit`, `deactivate` | Manage `OfficeAdmin`/`OfficeStaff` accounts within one office. |
-| `jobseekers` | `view`, `viewdocuments`, `review`, `approve`, `reject`, `suspend`, `reinstate` | `review` = move Submitted → Under Review. |
+| `jobseekers` | `view`, `viewown`, `viewdocuments`, `editown`, `uploaddocuments`, `submit`, `review`, `approve`, `reject`, `suspend`, `reinstate` | `review` = move Submitted → Under Review. `viewown`/`editown`/`uploaddocuments`/`submit` are the JobSeeker's own self-service actions — granted by having a `JobSeekerProfile` at all, not by a staff grant (same shape as `jobapplications.viewown`). |
 | `employers` | `view`, `viewdocuments`, `review`, `approve`, `reject`, `suspend`, `reinstate` | |
 | `jobadvertisements` | `view`, `create`, `edit`, `submit`, `review`, `approve`, `reject`, `publish`, `pause`, `close`, `renew` | `create`/`edit`/`submit`/`renew` are Employer actions; the rest are office actions. |
 | `advertisementpayments` | `view`, `record`, `refund` | `record` = confirm a payment (manual or gateway webhook). |
@@ -110,7 +111,8 @@ Legend: **✅ full** · **🟡 scoped** (own records / own office / payment-gate
 |---|---|---|---|---|---|
 | `offices.*` | ✅ | — | — | — | — |
 | `officeusers.*` | ✅ (any office) | 🟡 own office | — ¹ | — | — |
-| `jobseekers.view` / `.viewdocuments` | 🟡 metadata only (§0.3) | 🟡 own office | 🟡 if granted | — | 🟡 own profile only |
+| `jobseekers.view` / `.viewdocuments` | 🟡 metadata only (§0.3) | 🟡 own office | 🟡 if granted | — | — |
+| `jobseekers.viewown/editown/uploaddocuments/submit` | — | — | — | — | 🟡 own profile only |
 | `jobseekers.review/approve/reject/suspend/reinstate` | — | 🟡 own office | 🟡 if granted | — | — |
 | `employers.view` / `.viewdocuments` | 🟡 metadata only (§0.3) | 🟡 own office | 🟡 if granted | 🟡 own company only | — |
 | `employers.review/approve/reject/suspend/reinstate` | — | 🟡 own office | 🟡 if granted | — | — |

@@ -13,7 +13,7 @@ public static class PermissionCatalogue
     [
         ("offices", ["view", "create", "edit", "deactivate"]),
         ("officeusers", ["view", "invite", "edit", "deactivate"]),
-        ("jobseekers", ["view", "viewdocuments", "review", "approve", "reject", "suspend", "reinstate"]),
+        ("jobseekers", ["view", "viewown", "viewdocuments", "editown", "uploaddocuments", "submit", "review", "approve", "reject", "suspend", "reinstate"]),
         ("employers", ["view", "viewdocuments", "review", "approve", "reject", "suspend", "reinstate"]),
         ("jobadvertisements", ["view", "create", "edit", "submit", "review", "approve", "reject", "publish", "pause", "close", "renew"]),
         ("advertisementpayments", ["view", "record", "refund"]),

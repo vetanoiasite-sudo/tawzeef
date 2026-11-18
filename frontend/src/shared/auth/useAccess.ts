@@ -1,5 +1,15 @@
 import { useSessionStore } from './sessionStore'
 
+// Mirrors backend/src/Tawzeef.Infrastructure/Authorization/PermissionChecker.cs's
+// JobSeekerOwnPermissions — granted by holding the JobSeeker role itself, not a staff grant
+// (RBAC_PERMISSIONS.md §2/§3). Keep the two lists in sync.
+const JOB_SEEKER_OWN_PERMISSIONS = [
+  'jobseekers.viewown',
+  'jobseekers.editown',
+  'jobseekers.uploaddocuments',
+  'jobseekers.submit',
+]
+
 /**
  * Element-level gating uses this (or <Can>), never a raw role-name comparison
  * (PROJECT_ARCHITECTURE_FRONTEND.md §13.3). This is a UX layer only — the backend's
@@ -11,6 +21,7 @@ export function useAccess() {
   function hasPermission(permissionCode: string): boolean {
     if (!user) return false
     if (user.isSuperAdmin) return true
+    if (user.role === 'JobSeeker' && JOB_SEEKER_OWN_PERMISSIONS.includes(permissionCode)) return true
     return user.permissions.includes(permissionCode)
   }
 

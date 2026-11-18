@@ -5,7 +5,7 @@ import { useSessionStore } from '@/shared/auth/sessionStore'
 import { TawzeefLogo } from '@/shared/ui/TawzeefLogo'
 
 export function AppLayout() {
-  const { t } = useTranslation(['common', 'auth'])
+  const { t } = useTranslation(['common', 'auth', 'jobSeekerProfile'])
   const { isAuthenticated } = useAccess()
   const user = useSessionStore((s) => s.user)
   const clearSession = useSessionStore((s) => s.clearSession)
@@ -16,6 +16,11 @@ export function AppLayout() {
         <TawzeefLogo height={32} />
         {isAuthenticated ? (
           <div className="flex items-center gap-3 text-sm">
+            {user?.role === 'JobSeeker' && (
+              <Link to="/profile" className="text-primary">
+                {t('jobSeekerProfile:pageTitle')}
+              </Link>
+            )}
             <span className="text-text">{t('common:welcomeUser', { name: user?.fullName })}</span>
             <button type="button" onClick={clearSession} className="text-primary">
               {t('common:logout')}

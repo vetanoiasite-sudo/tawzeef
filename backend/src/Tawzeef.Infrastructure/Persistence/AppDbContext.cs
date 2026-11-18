@@ -22,6 +22,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityUser
     public DbSet<PermissionDefinition> PermissionDefinitions => Set<PermissionDefinition>();
     public DbSet<OtpVerification> OtpVerifications => Set<OtpVerification>();
     public DbSet<JobSeekerProfile> JobSeekerProfiles => Set<JobSeekerProfile>();
+    public DbSet<JobSeekerDocument> JobSeekerDocuments => Set<JobSeekerDocument>();
     public DbSet<Employer> Employers => Set<Employer>();
 
     protected override void OnModelCreating(ModelBuilder builder)

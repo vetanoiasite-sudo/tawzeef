@@ -224,6 +224,77 @@ namespace Tawzeef.Infrastructure.Migrations
                     b.ToTable("Employers", (string)null);
                 });
 
+            modelBuilder.Entity("Tawzeef.Domain.Entities.JobSeekers.JobSeekerDocument", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte>("DocumentType")
+                        .HasColumnType("tinyint");
+
+                    b.Property<int>("FileSizeBytes")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("JobSeekerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("MimeType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Guid?>("ModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("OfficeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("OriginalFileName")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("nvarchar(260)");
+
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<byte>("ReviewStatus")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ReviewedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SecureFileReference")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobSeekerId", "DocumentType");
+
+                    b.ToTable("JobSeekerDocuments", (string)null);
+                });
+
             modelBuilder.Entity("Tawzeef.Domain.Entities.JobSeekers.JobSeekerProfile", b =>
                 {
                     b.Property<Guid>("Id")

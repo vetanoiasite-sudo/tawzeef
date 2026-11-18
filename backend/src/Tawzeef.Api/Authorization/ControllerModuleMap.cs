@@ -10,5 +10,6 @@ public static class ControllerModuleMap
     public static readonly Dictionary<string, string> Map = new(StringComparer.OrdinalIgnoreCase)
     {
         ["Offices"] = "offices",
+        ["JobSeekers"] = "jobseekers",
     };
 }
