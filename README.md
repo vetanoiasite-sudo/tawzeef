@@ -6,9 +6,14 @@ planning documentation (business requirements, RBAC, database, API, workflows, t
 
 ## Status
 
-No business features yet. Backend Phase 2 Foundation (auth, RBAC, tenant model, audit logging,
-secure file storage) is done and verified end-to-end (migration applied, `/health` + Swagger
-checked). Frontend Phase 2 Foundation (providers, router, theme, auth store) is next.
+No business features yet. Phase 2 Foundation is done on both sides, verified end-to-end:
+- **Backend:** auth, RBAC, tenant model, audit logging, secure file storage (migration applied,
+  `/health` + Swagger checked).
+- **Frontend:** providers, router + guards, layout, design tokens, the shared API client, and the
+  (in-memory, not-yet-wired-to-a-login-screen) session store — checked in the browser, including
+  the 404 page and a one-route (`/`) router tree.
+
+Phase 3 (the first real feature — most likely Job Seeker / Employer registration) is next.
 
 ## Repository layout
 
@@ -70,3 +75,7 @@ Conventions: [docs/PROJECT_ARCHITECTURE_FRONTEND.md](docs/PROJECT_ARCHITECTURE_F
 up to the latest major versions of ESLint (10) and TypeScript (7 / "tsgo") at time of scaffolding.
 `frontend/package.json` pins `eslint@^9` and `typescript@^5.7` so the full type-checked + a11y +
 boundaries lint setup works. Revisit this pin once those plugins publish compatible releases.
+`eslint-plugin-boundaries` also prints (non-failing) deprecation warnings for its `rules`/
+`element-types` options on every lint run — it still enforces the `app → feature → shared` rule
+correctly on the old API, but its v7 config shape isn't verified here yet; migrate
+`eslint.config.js` to `policies`/`dependencies` once that's confirmed rather than guessing at it.

@@ -1,0 +1,36 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens — Tailwind v4 generates utilities (bg-primary, text-primary-dark, …) straight
+ * from this @theme block. Mirrored in theme.ts for the rare case JS needs the raw value (e.g. an
+ * inline style, a chart color) — keep the two in sync by hand; there are only a few tokens.
+ * Confirmed palette: docs/UI_UX_GUIDELINES.md §2.1 and §5.
+ */
+@theme {
+  --color-primary: #0a66c2;
+  --color-primary-dark: #072f5f;
+  --color-primary-accent: #70b5f9;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f6f7f8;
+  --color-text: #141413;
+  --color-text-muted: #6b7280;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-danger: #dc2626;
+  --color-neutral: #8a8f98;
+  --color-info: #2563eb;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, 'Segoe UI', Tahoma, sans-serif;
+  color-scheme: light;
+  color: var(--color-text);
+  background-color: var(--color-surface);
+}

@@ -37,13 +37,14 @@ than an open job board.
 
 ### 2.1 Color tokens
 
-Semantic names only — no raw hex in components (PROJECT_ARCHITECTURE_FRONTEND §15). Proposed
-starting palette (confirm against brand guidance if the church/office network has one):
+Semantic names only — no raw hex in components (PROJECT_ARCHITECTURE_FRONTEND §15). Confirmed
+palette, matching the approved logo (see assets/brand/README.md):
 
 | Token | Light | Usage |
 |---|---|---|
-| `color-primary` | deep teal/blue (`#0F6B5C`–`#1B4F72` range) | Primary actions, links, active nav, brand header |
-| `color-primary-accent` | warm gold (`#C9A227` range, used sparingly) | Highlights that need to feel "institutional" rather than "tech product" — e.g. a featured/verified badge, not buttons |
+| `color-primary` | `#0A66C2` (confirmed with the logo, 2026-11-18) | Primary actions, links, active nav |
+| `color-primary-dark` | `#072F5F` | The logo's cross color; header/footer dark backgrounds, pressed states |
+| `color-primary-accent` | `#70B5F9` (used sparingly) | The logo's briefcase/flag accent; highlights that need to feel deliberate — e.g. a featured/verified badge, not every button |
 | `color-surface` | `#FFFFFF` | Cards, panels |
 | `color-surface-muted` | `#F6F7F8` | Page background, filter sidebar background |
 | `color-text` / `color-text-muted` | near-black / mid-gray | Body text / secondary text |
@@ -325,8 +326,8 @@ header for v1 — there is only one language to switch to.
       e.g. `aria-label="Hidden until the advertisement fee is paid"`.
 - [ ] Color is never the only signal for status — `StatusTag` always pairs color with a text
       label.
-- [ ] Contrast ≥ 4.5:1 for the chosen primary/accent palette in §2.1 — validate once final hex
-      values are picked, especially the gold accent against white.
+- [ ] Contrast ≥ 4.5:1 for the confirmed primary/accent palette in §2.1 — `color-primary-accent`
+      (`#70B5F9`) is light and must not carry body text; it's for fills/icons/borders only.
 
 ---
 
@@ -340,7 +341,6 @@ genuinely still open:
 | Open item | Why it matters here |
 |---|---|
 | §24.D.22 (exact fee amount) | The `500 جنيه` figure on the payment CTA (§7) and the status screen (§4.5) is illustrative only — swap in the real amount once set. |
-| Brand palette | §2.1's palette is a proposed starting point, not a confirmed brand. Replace with the church network's actual brand guidelines if one exists, before implementation. |
 | Arabic numeral style | Eastern vs Western Arabic numerals for office-staff screens (§8) — not asked yet, low risk either way. |
 | Appeal process | If the product owner later defines a formal appeal path for a suspended Job Seeker or blocked company (DATABASE_DOCUMENTATION.md §8), this document needs a corresponding screen — none is designed yet since no such flow exists today beyond submitting a new complaint/suggestion. |
 

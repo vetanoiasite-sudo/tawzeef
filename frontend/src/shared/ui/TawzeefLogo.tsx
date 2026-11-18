@@ -35,7 +35,16 @@ export function TawzeefLogo({
         <rect x="0" y="30" width="60" height="13" fill={cross} />
         <rect x="21" y="18" width="14" height="82" fill={cross} />
         <g transform="rotate(18 28 8.5)">
-          <rect x="24.5" y="4" width="7" height="6" rx="1.2" fill="none" stroke={accent} strokeWidth="2.2" />
+          <rect
+            x="24.5"
+            y="4"
+            width="7"
+            height="6"
+            rx="1.2"
+            fill="none"
+            stroke={accent}
+            strokeWidth="2.2"
+          />
           <rect x="19" y="9" width="18" height="9" rx="1.8" fill={accent} />
         </g>
       </svg>
