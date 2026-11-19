@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Tawzeef.Domain.Entities.Auth;
 using Tawzeef.Domain.Entities.Complaints;
 using Tawzeef.Domain.Entities.Employers;
+using Tawzeef.Domain.Entities.JobAdvertisements;
+using Tawzeef.Domain.Entities.JobApplications;
 using Tawzeef.Domain.Entities.JobSeekers;
 using Tawzeef.Domain.Entities.Offices;
 using Tawzeef.Domain.Identity;
@@ -29,6 +31,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityUser
     public DbSet<OfficeDecision> OfficeDecisions => Set<OfficeDecision>();
     public DbSet<Complaint> Complaints => Set<Complaint>();
     public DbSet<OfficeStaffInvite> OfficeStaffInvites => Set<OfficeStaffInvite>();
+    public DbSet<JobAdvertisement> JobAdvertisements => Set<JobAdvertisement>();
+    public DbSet<AdvertisementPayment> AdvertisementPayments => Set<AdvertisementPayment>();
+    public DbSet<JobApplication> JobApplications => Set<JobApplication>();
+    public DbSet<ApplicationStatusHistory> ApplicationStatusHistories => Set<ApplicationStatusHistory>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

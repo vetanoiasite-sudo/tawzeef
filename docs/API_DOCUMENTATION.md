@@ -300,6 +300,12 @@ are **not** reset. The ad is excluded from public search while re-review is pend
 // RecordedBy is taken from ICurrentUser server-side, never from the request body.
 ```
 
+**Implementation note (2026-11-19):** this one action does both the payment confirmation *and*
+the `Paid -> Published` transition in a single atomic step — WORKFLOWS_AND_STATE_MACHINES.md §5's
+`PaymentPending` state is modeled on the `JobAdvertisementStatus` enum but has no reachable
+transition in this slice, since there is no payment gateway and no documented "Employer initiates
+payment" endpoint to land there from. Revisit when a real payment gateway is added.
+
 ---
 
 ### 3.7 Public job search & details (no login required)
@@ -309,10 +315,13 @@ endpoint's query params drive.
 
 | Method | Route | Auth |
 |---|---|---|
-| `GET` | `/api/jobs` | Anonymous |
+| `GET` | `/api/jobs?keyword=&city=&category=&employmentType=&pageIndex=&pageSize=` | Anonymous |
 | `GET` | `/api/jobs/{id:guid}` | Anonymous |
-| `GET` | `/api/lookups/job-categories` | Anonymous |
-| `GET` | `/api/lookups/cities` | Anonymous |
+
+**Implementation note (2026-11-19):** no `/api/lookups/job-categories`/`/api/lookups/cities`
+endpoints exist — DATABASE_DOCUMENTATION.md §7.1's lookup tables were not built (see that section's
+implementation note); `city`/`category` are free-text `Contains` filters on `/api/jobs` instead of
+lookup ids.
 
 ```
 GET /api/jobs?keyword=محاسب&cityId={guid}&categoryId={guid}&experience=1-3&employmentType=FullTime&datePosted=last7days&pageIndex=0&pageSize=20
@@ -374,13 +383,19 @@ creates a new row, since the old one is no longer "active".
 // ApplicantListItemDto — before payment
 { "applicationId": "guid", "jobSeekerName": "string", "appliedAt": "datetime", "employerFacingStatus": "NotYetContacted" }
 // ApplicantListItemDto — after payment (additional fields present)
-{ "...": "...", "phone": "string", "email": "string?", "cvDownloadUrl": "string (signed, short-lived)" }
+{ "...": "...", "phone": "string", "email": "string?", "cvDownloadUrl": "string" }
 ```
 
 ```json
 // UpdateApplicationOutcomeDto
 { "outcome": "ContactedInterviewScheduled", "notes": "string?" }
 ```
+
+**Implementation note (2026-11-19):** `cvDownloadUrl` is a relative, authenticated API path
+(`GET /api/employer/applications/{id}/cv`, same Bearer token, re-checks the payment gate on every
+call) rather than a signed, short-lived URL — no signed-URL/file-token infrastructure exists yet in
+this codebase. It streams the Job Seeker's active `Cv` `JobSeekerDocument` through the existing
+`IFileStorage` abstraction.
 
 ---
 

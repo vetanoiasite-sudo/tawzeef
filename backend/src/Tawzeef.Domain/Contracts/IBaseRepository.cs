@@ -12,7 +12,9 @@ public interface IBaseRepository<T> where T : class
     Task<T?> GetByIdAsync(Guid id, CancellationToken ct = default);
     Task<T?> FindAsync(Expression<Func<T, bool>> predicate, string[]? includes = null, CancellationToken ct = default);
     Task<IReadOnlyList<T>> ListAsync(Expression<Func<T, bool>>? predicate = null, string[]? includes = null, CancellationToken ct = default);
-    Task<PagedResult<T>> PageAsync(int pageIndex, int pageSize, Expression<Func<T, bool>>? predicate = null, string[]? includes = null, CancellationToken ct = default);
+    Task<PagedResult<T>> PageAsync(
+        int pageIndex, int pageSize, Expression<Func<T, bool>>? predicate = null, string[]? includes = null,
+        Expression<Func<T, object>>? orderBy = null, bool descending = false, CancellationToken ct = default);
     Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default);
     Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null, CancellationToken ct = default);
     Task AddAsync(T entity, CancellationToken ct = default);

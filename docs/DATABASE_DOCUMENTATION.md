@@ -512,6 +512,12 @@ If the product owner rejects this proposed addition, keep `JobAdvertisement.City
 as free-text `nvarchar` columns instead and build filters off a `DISTINCT` query — functional, but
 facet counts and spelling consistency degrade over time.
 
+**Implementation note (2026-11-19):** the first Job Advertisements slice took this fallback —
+`JobAdvertisement.Category`/`.City` are plain `nvarchar` columns (no `JobCategory`/`City` tables,
+no `CategoryId` FK), matching `Employer.City`/`JobSeekerProfile.City`. `/api/jobs` filters both with
+a `Contains` match rather than an exact lookup-id match. Revisit if the product owner confirms the
+lookup-table addition.
+
 ---
 
 ## 8. Remaining open decisions

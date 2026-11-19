@@ -15,6 +15,10 @@ export function AppLayout() {
     'complaints',
     'officeComplaintReview',
     'officeUsers',
+    'publicJobs',
+    'employerJobAds',
+    'officeJobAdsReview',
+    'jobSeekerApplications',
   ])
   const { isAuthenticated, hasPermission } = useAccess()
   const user = useSessionStore((s) => s.user)
@@ -24,6 +28,9 @@ export function AppLayout() {
     <div className="flex min-h-screen flex-col">
       <header className="flex items-center justify-between border-b border-surface-muted px-6 py-3">
         <TawzeefLogo height={32} />
+        <Link to="/jobs" className="text-sm text-primary">
+          {t('publicJobs:pageTitle')}
+        </Link>
         {isAuthenticated ? (
           <div className="flex items-center gap-3 text-sm">
             {user?.role === 'JobSeeker' && (
@@ -31,9 +38,24 @@ export function AppLayout() {
                 {t('jobSeekerProfile:pageTitle')}
               </Link>
             )}
+            {user?.role === 'JobSeeker' && hasPermission('jobapplications.viewown') && (
+              <Link to="/my-applications" className="text-primary">
+                {t('jobSeekerApplications:pageTitle')}
+              </Link>
+            )}
             {user?.role === 'Employer' && (
               <Link to="/company-profile" className="text-primary">
                 {t('employerProfile:pageTitle')}
+              </Link>
+            )}
+            {user?.role === 'Employer' && hasPermission('jobadvertisements.view') && (
+              <Link to="/employer/job-advertisements" className="text-primary">
+                {t('employerJobAds:pageTitle')}
+              </Link>
+            )}
+            {hasPermission('jobadvertisements.review') && (
+              <Link to="/office/job-advertisements" className="text-primary">
+                {t('officeJobAdsReview:queueTitle')}
               </Link>
             )}
             {hasPermission('jobseekers.view') && (

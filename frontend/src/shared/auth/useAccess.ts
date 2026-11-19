@@ -8,6 +8,9 @@ const JOB_SEEKER_OWN_PERMISSIONS = [
   'jobseekers.editown',
   'jobseekers.uploaddocuments',
   'jobseekers.submit',
+  'jobapplications.create',
+  'jobapplications.viewown',
+  'jobapplications.withdraw',
 ]
 
 // Mirrors PermissionChecker's EmployerOwnPermissions.
@@ -16,6 +19,14 @@ const EMPLOYER_OWN_PERMISSIONS = [
   'employers.editown',
   'employers.uploaddocuments',
   'employers.submit',
+  'jobadvertisements.view',
+  'jobadvertisements.create',
+  'jobadvertisements.edit',
+  'jobadvertisements.submit',
+  'jobadvertisements.renew',
+  'jobadvertisements.close',
+  'jobapplications.view',
+  'jobapplications.updateoutcome',
 ]
 
 // Mirrors PermissionChecker's SharedOwnPermissions — granted to either a JobSeeker or an

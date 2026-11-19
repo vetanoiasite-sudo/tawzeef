@@ -1,0 +1,87 @@
+using Tawzeef.Application.Common;
+using Tawzeef.Domain.Common;
+using Tawzeef.Domain.Contracts;
+using Tawzeef.Domain.Entities.Employers;
+using Tawzeef.Domain.Entities.JobAdvertisements;
+using Tawzeef.Domain.Enums;
+
+namespace Tawzeef.Application.Features.PublicJobs;
+
+public class PublicJobSearchService(IUnitOfWork uow) : IPublicJobSearchService
+{
+    public async Task<ServiceResult<PagedResult<JobListItemDto>>> SearchAsync(JobSearchQueryDto query, CancellationToken ct = default)
+    {
+        var pageIndex = Math.Max(query.PageIndex, 0);
+        var pageSize = query.PageSize is > 0 and <= 100 ? query.PageSize : 20;
+        var now = DateTime.UtcNow;
+
+        // No background job exists yet to flip Published -> Expired (WORKFLOWS_AND_STATE_MACHINES.md
+        // §5), so "active public search" is a read-time filter on ExpiresAt instead.
+        var page = await uow.Repository<JobAdvertisement>().PageAsync(
+            pageIndex,
+            pageSize,
+            a => a.Status == JobAdvertisementStatus.Published
+                && (a.ExpiresAt == null || a.ExpiresAt > now)
+                && (string.IsNullOrWhiteSpace(query.Keyword) || a.Title.Contains(query.Keyword))
+                && (string.IsNullOrWhiteSpace(query.City) || (a.City != null && a.City.Contains(query.City)))
+                && (string.IsNullOrWhiteSpace(query.Category) || (a.Category != null && a.Category.Contains(query.Category)))
+                && (!query.EmploymentType.HasValue || a.EmploymentType == query.EmploymentType.Value),
+            orderBy: a => a.PublishedAt!,
+            descending: true,
+            ct: ct);
+
+        var employerIds = page.Items.Select(a => a.EmployerId).Distinct().ToList();
+        var employers = employerIds.Count == 0 ? [] : await uow.Repository<Employer>().ListAsync(e => employerIds.Contains(e.Id), ct: ct);
+        var namesByEmployer = employers.ToDictionary(e => e.Id, e => e.DisplayName);
+
+        return ServiceResult<PagedResult<JobListItemDto>>.Success(new PagedResult<JobListItemDto>
+        {
+            Items = page.Items.Select(a => new JobListItemDto
+            {
+                Id = a.Id,
+                Title = a.Title,
+                EmployerDisplayName = namesByEmployer.GetValueOrDefault(a.EmployerId, string.Empty),
+                City = a.City,
+                Category = a.Category,
+                EmploymentType = a.EmploymentType?.ToString(),
+                ExperienceRequirement = a.ExperienceRequirement,
+                PublishedAt = a.PublishedAt,
+                ExpiresAt = a.ExpiresAt,
+            }).ToList(),
+            PageIndex = page.PageIndex,
+            PageSize = page.PageSize,
+            TotalCount = page.TotalCount,
+        });
+    }
+
+    public async Task<ServiceResult<JobDetailsDto>> GetByIdAsync(Guid id, CancellationToken ct = default)
+    {
+        var now = DateTime.UtcNow;
+        // API_DOCUMENTATION.md §3.7: a non-Published (or expired) id must not even confirm its own
+        // existence to an anonymous caller — plain 404, same as "not found".
+        var ad = await uow.Repository<JobAdvertisement>().FindAsync(
+            a => a.Id == id && a.Status == JobAdvertisementStatus.Published && (a.ExpiresAt == null || a.ExpiresAt > now), ct: ct);
+        if (ad is null) return ServiceResult<JobDetailsDto>.NotFound("Job not found.");
+
+        var employer = await uow.Repository<Employer>().FindAsync(e => e.Id == ad.EmployerId, ct: ct);
+
+        return ServiceResult<JobDetailsDto>.Success(new JobDetailsDto
+        {
+            Id = ad.Id,
+            Title = ad.Title,
+            Description = ad.Description,
+            ExperienceRequirement = ad.ExperienceRequirement,
+            WorkingHours = ad.WorkingHours,
+            Address = ad.Address,
+            City = ad.City,
+            Category = ad.Category,
+            EmploymentType = ad.EmploymentType?.ToString(),
+            SalaryMin = ad.SalaryMin,
+            SalaryMax = ad.SalaryMax,
+            VacancyCount = ad.VacancyCount,
+            EmployerDisplayName = employer?.DisplayName ?? string.Empty,
+            PublishedAt = ad.PublishedAt,
+            ExpiresAt = ad.ExpiresAt,
+        });
+    }
+}

@@ -18,6 +18,7 @@ public static class PermissionCatalogue
         ("jobadvertisements", ["view", "create", "edit", "submit", "review", "approve", "reject", "publish", "pause", "close", "renew"]),
         ("advertisementpayments", ["view", "record", "refund"]),
         ("jobapplications", ["view", "viewown", "create", "withdraw", "updateoutcome"]),
+        // ^ unchanged — already had the exact action lists job advertisements/applications need.
         ("applicantdata", ["viewgated"]),
         ("interviews", ["view", "schedule", "edit"]),
         ("interviewreports", ["view", "create"]),

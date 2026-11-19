@@ -128,9 +128,40 @@ async function requestPaged<T>(path: string, query?: RequestOptions['query']): P
   return { items: envelope.data as T, pagination }
 }
 
+/** For an endpoint that streams a file (e.g. a gated CV download) instead of a ServiceResult
+ * envelope — a plain <a href> can't carry the Authorization header, so this fetches the bytes
+ * with it and hands back a Blob the caller turns into a download. */
+async function requestBlob(path: string): Promise<{ blob: Blob; fileName: string }> {
+  const headers: HeadersInit = {}
+  const token = getAuthToken()
+  if (token) headers['Authorization'] = `Bearer ${token}`
+
+  let response: Response
+  try {
+    response = await fetch(buildUrl(path), { method: 'GET', headers })
+  } catch {
+    throw new ApiError('network', ['Could not reach the server.'])
+  }
+
+  if (response.status === 401) {
+    onUnauthorized()
+    throw new ApiError('unauthorized', ['Your session has expired.'])
+  }
+
+  if (!response.ok) {
+    const envelope = (await response.json().catch(() => null)) as ApiEnvelope<unknown> | null
+    throw new ApiError(errorKindFor(response.status), envelope?.errorMessages ?? ['Something went wrong.'])
+  }
+
+  const blob = await response.blob()
+  const match = /filename="?([^";]+)"?/i.exec(response.headers.get('Content-Disposition') ?? '')
+  return { blob, fileName: match?.[1] ?? 'download' }
+}
+
 export const httpClient = {
   get: <T>(path: string, options?: RequestOptions) => request<T>('GET', path, undefined, options),
   getPaged: <T>(path: string, query?: RequestOptions['query']) => requestPaged<T>(path, query),
+  getBlob: (path: string) => requestBlob(path),
   post: <T>(path: string, body?: unknown, options?: RequestOptions) =>
     request<T>('POST', path, body, options),
   put: <T>(path: string, body?: unknown, options?: RequestOptions) =>

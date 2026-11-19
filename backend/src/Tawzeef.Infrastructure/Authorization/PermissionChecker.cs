@@ -16,11 +16,23 @@ public class PermissionChecker(AppDbContext context) : IPermissionChecker
     /// JobSeekerProfile — no UserOfficeMembership/StaffPermissionGrant involved. §4's ownership
     /// scoping (which row) is still enforced separately, in the service layer.</summary>
     private static readonly HashSet<string> JobSeekerOwnPermissions =
-        ["jobseekers.viewown", "jobseekers.editown", "jobseekers.uploaddocuments", "jobseekers.submit"];
+        [
+            "jobseekers.viewown", "jobseekers.editown", "jobseekers.uploaddocuments", "jobseekers.submit",
+            "jobapplications.create", "jobapplications.viewown", "jobapplications.withdraw",
+        ];
 
-    /// <summary>Same idea, for an Employer holding an Employer row — mirrors JobSeekerOwnPermissions.</summary>
+    /// <summary>Same idea, for an Employer holding an Employer row — mirrors JobSeekerOwnPermissions.
+    /// jobadvertisements.view/jobapplications.view are safe to grant broadly here because the office's
+    /// own review surfaces use a different code (jobadvertisements.review) — see
+    /// OfficeJobAdvertisementsController; the service layer still scopes every query to this
+    /// Employer's own company (RBAC_PERMISSIONS.md §4.2).</summary>
     private static readonly HashSet<string> EmployerOwnPermissions =
-        ["employers.viewown", "employers.editown", "employers.uploaddocuments", "employers.submit"];
+        [
+            "employers.viewown", "employers.editown", "employers.uploaddocuments", "employers.submit",
+            "jobadvertisements.view", "jobadvertisements.create", "jobadvertisements.edit",
+            "jobadvertisements.submit", "jobadvertisements.renew", "jobadvertisements.close",
+            "jobapplications.view", "jobapplications.updateoutcome",
+        ];
 
     /// <summary>RBAC_PERMISSIONS.md §3: granted to *either* a JobSeeker or an Employer simply by
     /// holding that role, scoped to exactly the two verbs complaint submission needs today.</summary>
@@ -29,6 +41,15 @@ public class PermissionChecker(AppDbContext context) : IPermissionChecker
     public async Task<bool> HasPermissionAsync(ICurrentUser user, string permissionCode, CancellationToken ct = default)
     {
         if (user.IsSuperAdmin) return true;
+
+        // Office staff (OfficeId set) always resolve through membership, even for a code — like
+        // jobapplications.view/jobadvertisements.view/jobapplications.updateoutcome — that is also
+        // in one of the own-permission hashsets below for a bare Employer/JobSeeker account (no
+        // UserOfficeMembership ever exists for those roles, so this never misroutes them): without
+        // this office-first check, an OfficeAdmin calling a shared-code endpoint would incorrectly
+        // fall into e.g. the Employer-ownership check below and get a false "not an employer" deny.
+        if (user.Id is not null && user.OfficeId is not null)
+            return await HasOfficeMembershipPermissionAsync(user.Id.Value, user.OfficeId.Value, permissionCode, ct);
 
         if (JobSeekerOwnPermissions.Contains(permissionCode))
         {
@@ -49,10 +70,13 @@ public class PermissionChecker(AppDbContext context) : IPermissionChecker
                 || await context.Employers.AnyAsync(e => e.UserId == user.Id, ct);
         }
 
-        if (user.Id is null || user.OfficeId is null) return false;
+        return false;
+    }
 
+    private async Task<bool> HasOfficeMembershipPermissionAsync(Guid userId, Guid officeId, string permissionCode, CancellationToken ct)
+    {
         var membership = await context.UserOfficeMemberships
-            .Where(m => m.UserId == user.Id && m.OfficeId == user.OfficeId && m.MembershipStatus == MembershipStatus.Active)
+            .Where(m => m.UserId == userId && m.OfficeId == officeId && m.MembershipStatus == MembershipStatus.Active)
             .Select(m => new { m.Id, m.Role })
             .FirstOrDefaultAsync(ct);
 

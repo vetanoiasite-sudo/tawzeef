@@ -1,0 +1,58 @@
+using Microsoft.AspNetCore.Mvc;
+using Tawzeef.Api.Authorization;
+using Tawzeef.Api.Common;
+using Tawzeef.Application.Features.JobAdvertisements;
+using Tawzeef.Application.Features.JobApplications;
+using Tawzeef.Domain.Contracts;
+
+namespace Tawzeef.Api.Controllers;
+
+/// <summary>Office review queue + manual payment confirmation — API_DOCUMENTATION.md §3.6/§3.8's
+/// /api/office/job-advertisements routes.</summary>
+[Route("api/office/job-advertisements")]
+public class OfficeJobAdvertisementsController(
+    IJobAdvertisementReviewService service, IApplicantReviewService applicantReviewService, ICurrentUser currentUser) : ApiControllerBase
+{
+    [HttpGet]
+    [RequiresPermission("jobadvertisements.review")]
+    public async Task<IActionResult> ListQueue([FromQuery] JobAdvertisementQueryDto query, CancellationToken ct)
+        => RespondPaged(await service.ListQueueAsync(RequireOfficeId(), query, ct));
+
+    [HttpGet("{id:guid}")]
+    [RequiresPermission("jobadvertisements.review")]
+    public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
+        => Respond(await service.GetByIdAsync(RequireOfficeId(), id, ct));
+
+    [HttpPost("{id:guid}/approve")]
+    [RequiresPermission("jobadvertisements.approve")]
+    public async Task<IActionResult> Approve(Guid id, CancellationToken ct)
+        => Respond(await service.ApproveAsync(RequireOfficeId(), RequireUserId(), id, ct));
+
+    [HttpPost("{id:guid}/reject")]
+    [RequiresPermission("jobadvertisements.reject")]
+    public async Task<IActionResult> Reject(Guid id, [FromBody] JobAdvertisementReasonDto dto, CancellationToken ct)
+        => Respond(await service.RejectAsync(RequireOfficeId(), RequireUserId(), id, dto.Reason, ct));
+
+    [HttpPost("{id:guid}/pause")]
+    [RequiresPermission("jobadvertisements.pause")]
+    public async Task<IActionResult> Pause(Guid id, CancellationToken ct)
+        => Respond(await service.PauseAsync(RequireOfficeId(), id, ct));
+
+    [HttpPost("{id:guid}/resume")]
+    [RequiresPermission("jobadvertisements.pause")]
+    public async Task<IActionResult> Resume(Guid id, CancellationToken ct)
+        => Respond(await service.ResumeAsync(RequireOfficeId(), id, ct));
+
+    [HttpPost("{id:guid}/payment/confirm")]
+    [RequiresPermission("advertisementpayments.record")]
+    public async Task<IActionResult> ConfirmPayment(Guid id, [FromBody] ConfirmAdvertisementPaymentDto dto, CancellationToken ct)
+        => Respond(await service.ConfirmPaymentAsync(RequireOfficeId(), RequireUserId(), id, dto, ct));
+
+    [HttpGet("{id:guid}/applicants")]
+    [RequiresPermission("jobapplications.view")]
+    public async Task<IActionResult> ListApplicants(Guid id, [FromQuery] JobApplicationQueryDto query, CancellationToken ct)
+        => RespondPaged(await applicantReviewService.ListForOfficeAsync(RequireOfficeId(), id, query, ct));
+
+    private Guid RequireUserId() => currentUser.Id ?? throw new UnauthorizedAccessException();
+    private Guid RequireOfficeId() => currentUser.OfficeId ?? throw new UnauthorizedAccessException();
+}

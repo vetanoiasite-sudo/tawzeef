@@ -25,10 +25,13 @@ public class BaseRepository<T>(AppDbContext context) : IBaseRepository<T> where 
         return await query.ToListAsync(ct);
     }
 
-    public async Task<PagedResult<T>> PageAsync(int pageIndex, int pageSize, Expression<Func<T, bool>>? predicate = null, string[]? includes = null, CancellationToken ct = default)
+    public async Task<PagedResult<T>> PageAsync(
+        int pageIndex, int pageSize, Expression<Func<T, bool>>? predicate = null, string[]? includes = null,
+        Expression<Func<T, object>>? orderBy = null, bool descending = false, CancellationToken ct = default)
     {
         var query = ApplyIncludes(Set.AsQueryable(), includes);
         if (predicate is not null) query = query.Where(predicate);
+        if (orderBy is not null) query = descending ? query.OrderByDescending(orderBy) : query.OrderBy(orderBy);
 
         var totalCount = await query.CountAsync(ct);
         var items = await query.Skip(pageIndex * pageSize).Take(pageSize).ToListAsync(ct);
