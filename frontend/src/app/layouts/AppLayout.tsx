@@ -19,6 +19,7 @@ export function AppLayout() {
     'employerJobAds',
     'officeJobAdsReview',
     'jobSeekerApplications',
+    'interviewsAndReports',
   ])
   const { isAuthenticated, hasPermission } = useAccess()
   const user = useSessionStore((s) => s.user)
@@ -56,6 +57,15 @@ export function AppLayout() {
             {hasPermission('jobadvertisements.review') && (
               <Link to="/office/job-advertisements" className="text-primary">
                 {t('officeJobAdsReview:queueTitle')}
+              </Link>
+            )}
+            {/* hiringfollowupreports.view is also granted to Employer (own ads, per-application
+                read — RBAC_PERMISSIONS.md §3), so this office-only queue link needs the role check
+                too, not just the permission: an Employer legitimately has the code but not an
+                OfficeId, and /api/office/hiring-follow-ups/due requires one. */}
+            {user?.role !== 'Employer' && user?.role !== 'JobSeeker' && hasPermission('hiringfollowupreports.view') && (
+              <Link to="/office/hiring-follow-ups" className="text-primary">
+                {t('interviewsAndReports:dueFollowUpsTitle')}
               </Link>
             )}
             {hasPermission('jobseekers.view') && (

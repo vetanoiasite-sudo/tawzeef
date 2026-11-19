@@ -11,6 +11,7 @@ const JOB_SEEKER_OWN_PERMISSIONS = [
   'jobapplications.create',
   'jobapplications.viewown',
   'jobapplications.withdraw',
+  'interviews.view',
 ]
 
 // Mirrors PermissionChecker's EmployerOwnPermissions.
@@ -27,6 +28,14 @@ const EMPLOYER_OWN_PERMISSIONS = [
   'jobadvertisements.close',
   'jobapplications.view',
   'jobapplications.updateoutcome',
+  'interviews.view',
+  'interviews.schedule',
+  'interviews.edit',
+  'interviewreports.create',
+  'interviewreports.view',
+  'hiringfollowupreports.view',
+  'applicantevaluationreports.create',
+  'applicantevaluationreports.view',
 ]
 
 // Mirrors PermissionChecker's SharedOwnPermissions — granted to either a JobSeeker or an

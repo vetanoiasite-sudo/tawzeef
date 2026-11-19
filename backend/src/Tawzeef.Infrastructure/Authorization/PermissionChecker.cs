@@ -19,6 +19,7 @@ public class PermissionChecker(AppDbContext context) : IPermissionChecker
         [
             "jobseekers.viewown", "jobseekers.editown", "jobseekers.uploaddocuments", "jobseekers.submit",
             "jobapplications.create", "jobapplications.viewown", "jobapplications.withdraw",
+            "interviews.view",
         ];
 
     /// <summary>Same idea, for an Employer holding an Employer row — mirrors JobSeekerOwnPermissions.
@@ -32,6 +33,10 @@ public class PermissionChecker(AppDbContext context) : IPermissionChecker
             "jobadvertisements.view", "jobadvertisements.create", "jobadvertisements.edit",
             "jobadvertisements.submit", "jobadvertisements.renew", "jobadvertisements.close",
             "jobapplications.view", "jobapplications.updateoutcome",
+            "interviews.view", "interviews.schedule", "interviews.edit",
+            "interviewreports.create", "interviewreports.view",
+            "hiringfollowupreports.view",
+            "applicantevaluationreports.create", "applicantevaluationreports.view",
         ];
 
     /// <summary>RBAC_PERMISSIONS.md §3: granted to *either* a JobSeeker or an Employer simply by
@@ -51,24 +56,21 @@ public class PermissionChecker(AppDbContext context) : IPermissionChecker
         if (user.Id is not null && user.OfficeId is not null)
             return await HasOfficeMembershipPermissionAsync(user.Id.Value, user.OfficeId.Value, permissionCode, ct);
 
-        if (JobSeekerOwnPermissions.Contains(permissionCode))
-        {
-            if (user.Id is null) return false;
-            return await context.JobSeekerProfiles.AnyAsync(p => p.UserId == user.Id, ct);
-        }
+        if (user.Id is null) return false;
 
-        if (EmployerOwnPermissions.Contains(permissionCode))
-        {
-            if (user.Id is null) return false;
-            return await context.Employers.AnyAsync(e => e.UserId == user.Id, ct);
-        }
+        // Resolve which role this bare (non-office) account actually holds FIRST, then check that
+        // role's own-permission set — never the reverse. Checking "is this code in some hashset"
+        // before "which role is this" breaks the moment a code (like interviews.view, shared by
+        // Employer and JobSeeker per RBAC_PERMISSIONS.md §3) appears in more than one hashset: an
+        // Employer calling with that code would incorrectly hit the JobSeeker branch first and get
+        // a false deny, since they have no JobSeekerProfile row. A user holds exactly one of these
+        // roles (or none), so this existence check is also the correct ownership gate, not just a
+        // performance shortcut.
+        if (await context.JobSeekerProfiles.AnyAsync(p => p.UserId == user.Id, ct))
+            return JobSeekerOwnPermissions.Contains(permissionCode) || SharedOwnPermissions.Contains(permissionCode);
 
-        if (SharedOwnPermissions.Contains(permissionCode))
-        {
-            if (user.Id is null) return false;
-            return await context.JobSeekerProfiles.AnyAsync(p => p.UserId == user.Id, ct)
-                || await context.Employers.AnyAsync(e => e.UserId == user.Id, ct);
-        }
+        if (await context.Employers.AnyAsync(e => e.UserId == user.Id, ct))
+            return EmployerOwnPermissions.Contains(permissionCode) || SharedOwnPermissions.Contains(permissionCode);
 
         return false;
     }

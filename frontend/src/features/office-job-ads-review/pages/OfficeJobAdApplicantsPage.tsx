@@ -33,6 +33,7 @@ export default function OfficeJobAdApplicantsPage() {
                 <th className="px-3 py-2 text-start">{t('columnAppliedAt')}</th>
                 <th className="px-3 py-2 text-start">{t('columnContact')}</th>
                 <th className="px-3 py-2 text-start">{t('columnOutcome')}</th>
+                <th className="px-3 py-2" />
               </tr>
             </thead>
             <tbody>
@@ -50,6 +51,11 @@ export default function OfficeJobAdApplicantsPage() {
                     </div>
                   </td>
                   <td className="px-3 py-2 text-text">{t(`outcome.${applicant.employerFacingStatus}`)}</td>
+                  <td className="px-3 py-2">
+                    <Link to={`/office/applications/${applicant.applicationId}`} className="text-primary">
+                      {t('interviewAndReports')}
+                    </Link>
+                  </td>
                 </tr>
               ))}
             </tbody>

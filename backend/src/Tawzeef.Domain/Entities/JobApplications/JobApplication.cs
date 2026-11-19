@@ -24,6 +24,13 @@ public class JobApplication : IEntity
     /// withdrawn application is never reactivated, only re-applied as a new row.</summary>
     public DateTime? WithdrawnAt { get; set; }
 
+    /// <summary>WORKFLOWS_AND_STATE_MACHINES.md §9.1's flow diagram references this field directly
+    /// (not listed under DATABASE_DOCUMENTATION.md §6's JobApplication columns — added here to
+    /// support it). Stamped by HiringFollowUpReportService when the office creates the follow-up
+    /// report — that POST is literally how a hire gets recorded (no separate "mark hired" action is
+    /// documented).</summary>
+    public DateTime? HiredAt { get; set; }
+
     public Guid? CreatedBy { get; set; }
     public DateTime CreationDate { get; set; } = DateTime.UtcNow;
     public Guid? ModifiedBy { get; set; }

@@ -3,6 +3,7 @@ import { complaintsRoutes } from '@/features/complaints'
 import { employerJobAdsRoutes } from '@/features/employer-job-ads'
 import { employerProfileRoutes } from '@/features/employer-profile'
 import { homeRoutes } from '@/features/home'
+import { interviewsAndReportsRoutes } from '@/features/interviews-and-reports'
 import { jobSeekerApplicationsRoutes } from '@/features/job-seeker-applications'
 import { jobSeekerProfileRoutes } from '@/features/jobseeker-profile'
 import { officeComplaintsReviewRoutes } from '@/features/office-complaints-review'
@@ -32,4 +33,5 @@ export const routeRegistry: AppRouteDef[] = [
   ...employerJobAdsRoutes,
   ...officeJobAdsReviewRoutes,
   ...jobSeekerApplicationsRoutes,
+  ...interviewsAndReportsRoutes,
 ]

@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Tawzeef.Application.Features.Auth;
 using Tawzeef.Application.Features.Complaints;
 using Tawzeef.Application.Features.Employers;
+using Tawzeef.Application.Features.Interviews;
 using Tawzeef.Application.Features.JobAdvertisements;
 using Tawzeef.Application.Features.JobApplications;
 using Tawzeef.Application.Features.JobSeekers;
@@ -29,6 +30,9 @@ public static class ApplicationDI
         services.AddScoped<IJobApplicationService, JobApplicationService>();
         services.AddScoped<IApplicantReviewService, ApplicantReviewService>();
         services.AddScoped<IPublicJobSearchService, PublicJobSearchService>();
+        services.AddScoped<IInterviewService, InterviewService>();
+        services.AddScoped<IHiringFollowUpService, HiringFollowUpService>();
+        services.AddScoped<IApplicantEvaluationService, ApplicantEvaluationService>();
         return services;
     }
 }

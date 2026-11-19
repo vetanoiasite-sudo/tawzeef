@@ -39,6 +39,7 @@ export default function JobAdApplicantsPage() {
                 <th className="px-3 py-2 text-start">{t('columnContact')}</th>
                 <th className="px-3 py-2 text-start">{t('columnOutcome')}</th>
                 <th className="px-3 py-2" />
+                <th className="px-3 py-2" />
               </tr>
             </thead>
             <tbody>

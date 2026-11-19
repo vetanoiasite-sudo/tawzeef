@@ -64,6 +64,7 @@ export const employerJobAdsAr = {
   withdrawn: 'منسحب',
   dataLockedUntilPayment: 'تُعرض بيانات التواصل بعد تأكيد السداد',
   downloadCv: 'تحميل السيرة الذاتية',
+  interviewAndReports: 'المقابلة والتقارير',
   outcome: {
     NotYetContacted: 'لم يتم التواصل بعد',
     ContactedInterviewScheduled: 'تم التواصل — مقابلة مجدولة',

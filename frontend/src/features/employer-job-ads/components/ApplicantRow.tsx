@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 import { httpClient } from '@/shared/api/httpClient'
 import type { ApplicantListItem, EmployerFacingStatusCode } from '../types/employerJobAds.types'
 
@@ -79,6 +80,11 @@ export function ApplicantRow({
             {t('downloadCv')}
           </button>
         )}
+      </td>
+      <td className="px-3 py-2">
+        <Link to={`/employer/applications/${applicant.applicationId}`} className="text-sm text-primary">
+          {t('interviewAndReports')}
+        </Link>
       </td>
     </tr>
   )

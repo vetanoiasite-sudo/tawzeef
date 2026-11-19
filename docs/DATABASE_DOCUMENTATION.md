@@ -330,6 +330,7 @@ rather than a second payment against the same ad.
 | `AppliedAt` | datetime2 | No | |
 | `LastStatusChangedAt` | datetime2 | No | |
 | `WithdrawnAt` | datetime2 | Yes | **Confirmed (RBAC_PERMISSIONS.md §0 item 14):** the Job Seeker may withdraw; `WithdrawnAt` marks it terminal. |
+| `HiredAt` | datetime2 | Yes | **Added 2026-11-19, building Interviews & Reports** — not in this table's original column list, but WORKFLOWS_AND_STATE_MACHINES.md §9.1's flow diagram references `JobApplication.HiredAt` directly. Stamped by `HiringFollowUpReportService` when the office creates the `HiringFollowUpReport` — that POST is literally how a hire gets recorded; no separate "mark hired" action is documented. |
 
 Indexes: **a filtered unique index on `(JobAdvertisementId, JobSeekerId) WHERE WithdrawnAt IS
 NULL`** — confirmed: a Job Seeker may have at most one *active* (non-withdrawn) application per

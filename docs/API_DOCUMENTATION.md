@@ -413,13 +413,17 @@ this codebase. It streams the Job Seeker's active `Cv` `JobSeekerDocument` throu
 | `GET` | `/api/applications/{id:guid}/interview-report` | `interviewreports.view` |
 | `POST` | `/api/applications/{id:guid}/hiring-follow-up` (create, on marking hired) | `hiringfollowupreports.create` — **office** |
 | `PUT` | `/api/applications/{id:guid}/hiring-follow-up` (complete) | `hiringfollowupreports.create` — **office**, after following up with both the Employer and the Job Seeker |
+| `GET` | `/api/applications/{id:guid}/hiring-follow-up` | `hiringfollowupreports.view` — not in the original inventory, added so Office/Employer can read a single application's follow-up status, matching the §3 matrix's "Employer: own ads only (read)" grant |
 | `GET` | `/api/office/hiring-follow-ups/due` (paged, office dashboard feed) | `hiringfollowupreports.view` |
 | `POST` | `/api/applications/{id:guid}/evaluation` | `applicantevaluationreports.create` — Employer |
 | `GET` | `/api/applications/{id:guid}/evaluation` | `applicantevaluationreports.view` |
 
 A `HiringFollowUpReport` that passes `DueAt` unfiled moves to `Status = Overdue` and notifies the
 responsible office staff (confirmed, mandatory for every hire — no stronger enforcement than that
-notification).
+notification). **Implementation note (2026-11-19):** the notification itself isn't sent — no
+Notifications system exists yet in this codebase (a known, separately-flagged gap). `Overdue` is
+computed at read time on the due-list (`PendingDue` past `DueAt`) rather than written to the
+database by a background job, same convention as `JobAdvertisement` expiry.
 
 ```json
 // CreateInterviewDto

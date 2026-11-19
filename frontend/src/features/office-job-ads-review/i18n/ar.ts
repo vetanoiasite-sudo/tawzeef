@@ -43,6 +43,7 @@ export const officeJobAdsReviewAr = {
   columnContact: 'بيانات التواصل',
   columnOutcome: 'نتيجة التواصل',
   withdrawn: 'منسحب',
+  interviewAndReports: 'المقابلة والتقارير',
   outcome: {
     NotYetContacted: 'لم يتم التواصل بعد',
     ContactedInterviewScheduled: 'تم التواصل — مقابلة مجدولة',
