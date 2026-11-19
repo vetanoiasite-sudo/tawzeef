@@ -1,6 +1,7 @@
 using Tawzeef.Application.Common;
 using Tawzeef.Domain.Common;
 using Tawzeef.Domain.Contracts;
+using Tawzeef.Domain.Entities.Complaints;
 using Tawzeef.Domain.Entities.JobSeekers;
 using Tawzeef.Domain.Entities.Offices;
 using Tawzeef.Domain.Enums;
@@ -24,9 +25,19 @@ public class JobSeekerReviewService(IUnitOfWork uow) : IJobSeekerReviewService
                 && (string.IsNullOrWhiteSpace(query.City) || (p.City != null && p.City.Contains(query.City))),
             ct: ct);
 
+        var profileIds = page.Items.Select(p => p.Id).ToList();
+        var validComplaints = profileIds.Count == 0
+            ? []
+            : await uow.Repository<Complaint>().ListAsync(
+                c => c.SubjectType == ComplaintSubjectType.JobSeeker
+                    && profileIds.Contains(c.SubjectId)
+                    && c.ValidityDecision == ComplaintValidityDecision.Valid,
+                ct: ct);
+        var countsByProfile = validComplaints.GroupBy(c => c.SubjectId).ToDictionary(g => g.Key, g => g.Count());
+
         return ServiceResult<PagedResult<JobSeekerReviewListItemDto>>.Success(new PagedResult<JobSeekerReviewListItemDto>
         {
-            Items = page.Items.Select(p => p.ToListItemDto()).ToList(),
+            Items = page.Items.Select(p => p.ToListItemDto(countsByProfile.GetValueOrDefault(p.Id, 0))).ToList(),
             PageIndex = page.PageIndex,
             PageSize = page.PageSize,
             TotalCount = page.TotalCount,
@@ -48,8 +59,16 @@ public class JobSeekerReviewService(IUnitOfWork uow) : IJobSeekerReviewService
         }
 
         var documents = await uow.Repository<JobSeekerDocument>().ListAsync(d => d.JobSeekerId == profile.Id && d.IsActive, ct: ct);
-        return ServiceResult<JobSeekerProfileDto>.Success(profile.ToDto(documents));
+        var validComplaintCount = await CountValidComplaintsAsync(profile.Id, ct);
+        return ServiceResult<JobSeekerProfileDto>.Success(profile.ToDto(documents, validComplaintCount));
     }
+
+    private async Task<int> CountValidComplaintsAsync(Guid jobSeekerProfileId, CancellationToken ct) =>
+        await uow.Repository<Complaint>().CountAsync(
+            c => c.SubjectType == ComplaintSubjectType.JobSeeker
+                && c.SubjectId == jobSeekerProfileId
+                && c.ValidityDecision == ComplaintValidityDecision.Valid,
+            ct);
 
     public async Task<ServiceResult<JobSeekerDocumentDto>> ApproveDocumentAsync(
         Guid officeId, Guid reviewerId, Guid profileId, Guid documentId, CancellationToken ct = default)
@@ -112,7 +131,7 @@ public class JobSeekerReviewService(IUnitOfWork uow) : IJobSeekerReviewService
         uow.Repository<JobSeekerProfile>().Update(profile);
         await uow.SaveChangesAsync(ct);
 
-        return ServiceResult<JobSeekerProfileDto>.Success(profile.ToDto(documents));
+        return ServiceResult<JobSeekerProfileDto>.Success(profile.ToDto(documents, await CountValidComplaintsAsync(profile.Id, ct)));
     }
 
     public async Task<ServiceResult<JobSeekerProfileDto>> RejectProfileAsync(
@@ -129,7 +148,7 @@ public class JobSeekerReviewService(IUnitOfWork uow) : IJobSeekerReviewService
         await uow.SaveChangesAsync(ct);
 
         var documents = await uow.Repository<JobSeekerDocument>().ListAsync(d => d.JobSeekerId == profile.Id && d.IsActive, ct: ct);
-        return ServiceResult<JobSeekerProfileDto>.Success(profile.ToDto(documents));
+        return ServiceResult<JobSeekerProfileDto>.Success(profile.ToDto(documents, await CountValidComplaintsAsync(profile.Id, ct)));
     }
 
     public async Task<ServiceResult<JobSeekerProfileDto>> SuspendAsync(
@@ -161,7 +180,7 @@ public class JobSeekerReviewService(IUnitOfWork uow) : IJobSeekerReviewService
         await uow.SaveChangesAsync(ct);
 
         var documents = await uow.Repository<JobSeekerDocument>().ListAsync(d => d.JobSeekerId == profile.Id && d.IsActive, ct: ct);
-        return ServiceResult<JobSeekerProfileDto>.Success(profile.ToDto(documents));
+        return ServiceResult<JobSeekerProfileDto>.Success(profile.ToDto(documents, await CountValidComplaintsAsync(profile.Id, ct)));
     }
 
     public async Task<ServiceResult<JobSeekerProfileDto>> ReinstateAsync(
@@ -193,7 +212,7 @@ public class JobSeekerReviewService(IUnitOfWork uow) : IJobSeekerReviewService
         await uow.SaveChangesAsync(ct);
 
         var documents = await uow.Repository<JobSeekerDocument>().ListAsync(d => d.JobSeekerId == profile.Id && d.IsActive, ct: ct);
-        return ServiceResult<JobSeekerProfileDto>.Success(profile.ToDto(documents));
+        return ServiceResult<JobSeekerProfileDto>.Success(profile.ToDto(documents, await CountValidComplaintsAsync(profile.Id, ct)));
     }
 
     private async Task<(JobSeekerDocument? Document, string? Error)> LoadReviewableDocumentAsync(

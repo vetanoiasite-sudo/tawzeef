@@ -24,6 +24,10 @@ public class JobSeekerReviewListItemDto
     public string? City { get; set; }
     public string ReviewStatus { get; set; } = string.Empty;
     public DateTime LastUpdatedAt { get; set; }
+
+    /// <summary>Same count as JobSeekerProfileDto.ValidComplaintCount — surfaced in the list too so
+    /// the office can spot an accumulating case without opening every record.</summary>
+    public int ValidComplaintCount { get; set; }
 }
 
 /// <summary>A required free-text reason — document/profile reject, suspend, and reinstate all

@@ -188,8 +188,15 @@ registration requires OTP verification of that number before the account is usab
   "id": "guid", "fullName": "string", "mobileNumber": "string", "email": "string?",
   "city": "string?", "education": "string?", "yearsOfExperience": 0,
   "reviewStatus": "Submitted", "rejectionReason": "string?",
+  "suspensionReason": "string?", "suspendedAt": "datetime?",
+  "validComplaintCount": 0,
   "documents": [{ "id": "guid", "documentType": "Cv", "reviewStatus": "Pending", "originalFileName": "cv.pdf", "uploadedAt": "datetime" }]
 }
+// validComplaintCount: §10.3's alert surfaced where the office already works, rather than as a
+// separate notification feature — count of complaints against this profile with
+// ValidityDecision == Valid (§0 item 5), always 0 on this self-service response; populated for
+// real on GET/POST /api/office/job-seekers/{id:guid}/... (§3.4) and the list items from
+// GET /api/office/job-seekers. The frontend highlights it once it reaches 3.
 ```
 
 `RejectReviewDto` (shared shape for job-seeker, employer, document, and advertisement rejection

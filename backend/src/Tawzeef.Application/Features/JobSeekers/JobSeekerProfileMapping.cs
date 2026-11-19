@@ -4,7 +4,7 @@ namespace Tawzeef.Application.Features.JobSeekers;
 
 internal static class JobSeekerProfileMapping
 {
-    public static JobSeekerProfileDto ToDto(this JobSeekerProfile p, IEnumerable<JobSeekerDocument> documents) => new()
+    public static JobSeekerProfileDto ToDto(this JobSeekerProfile p, IEnumerable<JobSeekerDocument> documents, int validComplaintCount = 0) => new()
     {
         Id = p.Id,
         FullName = p.FullName,
@@ -21,6 +21,7 @@ internal static class JobSeekerProfileMapping
         RejectionReason = p.RejectionReason,
         SuspensionReason = p.SuspensionReason,
         SuspendedAt = p.SuspendedAt,
+        ValidComplaintCount = validComplaintCount,
         Documents = documents.Select(d => d.ToDto()).ToList(),
     };
 

@@ -29,6 +29,13 @@ public class JobSeekerProfileDto
     public string? RejectionReason { get; set; }
     public string? SuspensionReason { get; set; }
     public DateTime? SuspendedAt { get; set; }
+
+    /// <summary>WORKFLOWS_AND_STATE_MACHINES.md §10.3 — count of complaints against this profile
+    /// the office has confirmed Valid (RBAC_PERMISSIONS.md §0 item 5: only Valid ones count,
+    /// cumulative, no time window). Office-review visibility only: always 0 on the self-service
+    /// GET /api/jobseekers/me response, which reuses this same DTO.</summary>
+    public int ValidComplaintCount { get; set; }
+
     public List<JobSeekerDocumentDto> Documents { get; set; } = [];
 }
 

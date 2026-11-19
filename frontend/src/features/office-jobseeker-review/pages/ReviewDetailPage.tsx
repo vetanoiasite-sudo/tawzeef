@@ -43,6 +43,7 @@ export default function ReviewDetailPage() {
   const canDecideProfile = profile.reviewStatus === 'UnderReview'
   const canSuspend = profile.reviewStatus === 'Approved' && hasPermission('jobseekers.suspend')
   const canReinstate = profile.reviewStatus === 'Suspended' && hasPermission('jobseekers.reinstate')
+  const overComplaintThreshold = profile.validComplaintCount >= 3
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-8 px-4 py-10">
@@ -54,6 +55,14 @@ export default function ReviewDetailPage() {
         <h1 className="text-lg font-semibold text-text">{profile.fullName}</h1>
         <p className="text-sm text-text-muted">{profile.mobileNumber}</p>
       </div>
+
+      {overComplaintThreshold && (
+        <div className="rounded-md border border-danger bg-danger/10 p-4">
+          <p className="text-sm font-medium text-danger">
+            {t('complaintThresholdWarning', { count: profile.validComplaintCount })}
+          </p>
+        </div>
+      )}
 
       <div className="rounded-md bg-surface-muted p-4">
         <p className="text-sm text-text-muted">

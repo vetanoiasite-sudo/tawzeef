@@ -14,6 +14,7 @@ export type OfficeJobSeekerListItem = {
   city: string | null
   reviewStatus: JobSeekerReviewStatusCode
   lastUpdatedAt: string
+  validComplaintCount: number
 }
 
 export type OfficeJobSeekerDocument = {
@@ -41,6 +42,7 @@ export type OfficeJobSeekerDetail = {
   rejectionReason: string | null
   suspensionReason: string | null
   suspendedAt: string | null
+  validComplaintCount: number
   documents: OfficeJobSeekerDocument[]
 }
 

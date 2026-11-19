@@ -1,8 +1,11 @@
+import clsx from 'clsx'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { useReviewQueue } from '../api/officeJobSeekerReview.queries'
 import type { JobSeekerReviewStatusCode } from '../types/officeJobSeekerReview.types'
+
+const COMPLAINT_THRESHOLD = 3
 
 const STATUS_FILTERS: (JobSeekerReviewStatusCode | undefined)[] = [
   undefined,
@@ -63,6 +66,7 @@ export default function ReviewQueuePage() {
                 <th className="px-3 py-2 text-start">{t('columnMobile')}</th>
                 <th className="px-3 py-2 text-start">{t('columnCity')}</th>
                 <th className="px-3 py-2 text-start">{t('columnStatus')}</th>
+                <th className="px-3 py-2 text-start">{t('columnComplaints')}</th>
                 <th className="px-3 py-2 text-start">{t('columnLastUpdated')}</th>
                 <th className="px-3 py-2" />
               </tr>
@@ -74,6 +78,9 @@ export default function ReviewQueuePage() {
                   <td className="px-3 py-2 text-text">{row.mobileNumber}</td>
                   <td className="px-3 py-2 text-text">{row.city ?? '—'}</td>
                   <td className="px-3 py-2 text-text">{t(`status.${row.reviewStatus}`)}</td>
+                  <td className={clsx('px-3 py-2 font-medium', row.validComplaintCount >= COMPLAINT_THRESHOLD ? 'text-danger' : 'text-text')}>
+                    {row.validComplaintCount}
+                  </td>
                   <td className="px-3 py-2 text-text-muted">{new Date(row.lastUpdatedAt).toLocaleDateString('ar')}</td>
                   <td className="px-3 py-2">
                     <Link to={`/office/job-seekers/${row.id}`} className="text-primary">

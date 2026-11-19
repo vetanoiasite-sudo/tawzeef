@@ -4,7 +4,7 @@ namespace Tawzeef.Application.Features.JobSeekers;
 
 internal static class JobSeekerReviewMapping
 {
-    public static JobSeekerReviewListItemDto ToListItemDto(this JobSeekerProfile p) => new()
+    public static JobSeekerReviewListItemDto ToListItemDto(this JobSeekerProfile p, int validComplaintCount = 0) => new()
     {
         Id = p.Id,
         FullName = p.FullName,
@@ -12,5 +12,6 @@ internal static class JobSeekerReviewMapping
         City = p.City,
         ReviewStatus = p.ReviewStatus.ToString(),
         LastUpdatedAt = p.ModifiedDate ?? p.CreationDate,
+        ValidComplaintCount = validComplaintCount,
     };
 }

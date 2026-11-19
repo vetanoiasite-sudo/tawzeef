@@ -16,6 +16,7 @@ export const officeJobSeekerReviewAr = {
   columnCity: 'المدينة',
   columnStatus: 'الحالة',
   columnLastUpdated: 'آخر تحديث',
+  columnComplaints: 'شكاوى صحيحة',
   viewAction: 'عرض',
   emptyQueue: 'لا يوجد طلبات مطابقة',
   pageOf: 'صفحة {{current}} من {{total}}',
@@ -49,4 +50,5 @@ export const officeJobSeekerReviewAr = {
   yearsOfExperienceLabel: 'سنوات الخبرة',
   skillsLabel: 'المهارات',
   careerSummaryLabel: 'نبذة مختصرة',
+  complaintThresholdWarning: 'وصل عدد الشكاوى الصحيحة المؤكدة ضد هذا الباحث إلى {{count}} — راجع إمكانية اتخاذ قرار إداري.',
 }
