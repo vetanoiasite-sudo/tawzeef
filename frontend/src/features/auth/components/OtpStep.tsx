@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { verifyOtpSchema, type VerifyOtpFormValues } from '../schemas/auth.schemas'
+import { TextInput } from '@/shared/ui/TextInput'
+import { Button } from '@/shared/ui/Button'
 
 // UI_UX_GUIDELINES.md §13: "a short 6-digit code input with a resend timer."
 const RESEND_SECONDS = 60
@@ -47,48 +49,37 @@ export function OtpStep({
     <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-4">
       <p className="text-sm text-text-muted">{t('auth:otpSentTo', { phone: phoneNumber })}</p>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="code" className="text-sm font-medium text-text">
-          {t('auth:otpLabel')}
-        </label>
-        <input
-          id="code"
-          type="text"
-          inputMode="numeric"
-          maxLength={6}
-          autoComplete="one-time-code"
-          className="rounded-md border border-surface-muted px-3 py-2 text-center text-lg tracking-[0.5em] text-text outline-none focus:border-primary"
-          {...register('code')}
-        />
-        {errors.code && <p className="text-sm text-danger">{t(errors.code.message ?? '')}</p>}
-      </div>
+      <TextInput
+        id="code"
+        type="text"
+        inputMode="numeric"
+        maxLength={6}
+        autoComplete="one-time-code"
+        label={t('auth:otpLabel')}
+        className="text-center text-lg tracking-[0.5em]"
+        error={errors.code ? t(errors.code.message ?? '') : undefined}
+        {...register('code')}
+      />
 
       {submitError && <p className="text-sm text-danger">{submitError}</p>}
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="rounded-md bg-primary px-4 py-2 font-medium text-surface disabled:opacity-60"
-      >
+      <Button type="submit" variant="primary" disabled={isSubmitting}>
         {t('auth:verifyCode')}
-      </button>
+      </Button>
 
       <div className="flex items-center justify-between text-sm">
-        <button
-          type="button"
-          onClick={onChangeNumber}
-          className="text-text-muted underline-offset-2 hover:underline"
-        >
+        <Button type="button" variant="ghost" className="min-h-0 px-0" onClick={onChangeNumber}>
           {t('auth:changeNumber')}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="ghost"
+          className="min-h-0 px-0 disabled:text-text-muted"
           onClick={handleResend}
           disabled={secondsLeft > 0 || isResending}
-          className="text-primary disabled:text-text-muted"
         >
           {secondsLeft > 0 ? t('auth:resendIn', { seconds: secondsLeft }) : t('auth:resendCode')}
-        </button>
+        </Button>
       </div>
     </form>
   )

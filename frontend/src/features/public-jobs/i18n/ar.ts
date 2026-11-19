@@ -11,6 +11,8 @@ export const publicJobsAr = {
   },
   searchAction: 'بحث',
   emptyResults: 'لا توجد وظائف مطابقة',
+  emptyResultsHint: 'جرّب كلمات بحث مختلفة أو أزل بعض الفلاتر',
+  postedOn: 'تاريخ النشر:',
   prevPage: 'السابق',
   nextPage: 'التالي',
   pageOf: 'صفحة {{current}} من {{total}}',

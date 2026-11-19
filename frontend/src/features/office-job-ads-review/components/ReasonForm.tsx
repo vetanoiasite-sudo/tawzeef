@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { TextArea } from '@/shared/ui/TextInput'
+import { Button } from '@/shared/ui/Button'
 
 export function ReasonForm({
   confirmLabel,
@@ -18,27 +20,21 @@ export function ReasonForm({
   const [reason, setReason] = useState('')
 
   return (
-    <div className="flex flex-col gap-2 rounded-md border border-danger/40 p-3">
-      <textarea
+    <div className="flex flex-col gap-3 rounded-md border border-danger/40 p-3">
+      <TextArea
         value={reason}
         onChange={(e) => setReason(e.target.value)}
         placeholder={t('reasonPlaceholder')}
         rows={2}
-        className="rounded-md border border-surface-muted px-2 py-1 text-sm text-text outline-none focus:border-danger"
       />
       {error && <p className="text-sm text-danger">{error}</p>}
       <div className="flex gap-2">
-        <button
-          type="button"
-          disabled={isSubmitting || !reason.trim()}
-          onClick={() => onConfirm(reason.trim())}
-          className="rounded-md bg-danger px-3 py-1.5 text-sm font-medium text-surface disabled:opacity-60"
-        >
+        <Button variant="danger" disabled={isSubmitting || !reason.trim()} onClick={() => onConfirm(reason.trim())}>
           {confirmLabel}
-        </button>
-        <button type="button" onClick={onCancel} className="rounded-md border border-surface-muted px-3 py-1.5 text-sm text-text">
+        </Button>
+        <Button variant="secondary" onClick={onCancel}>
           {t('cancel')}
-        </button>
+        </Button>
       </div>
     </div>
   )

@@ -10,6 +10,11 @@ import {
   useSubmitJobAd,
   useUpdateJobAd,
 } from '../api/employerJobAds.queries'
+import { PageHeader } from '@/shared/ui/PageHeader'
+import { Card } from '@/shared/ui/Card'
+import { Button } from '@/shared/ui/Button'
+import { StatusTag } from '@/shared/ui/StatusTag'
+import { LoadingState } from '@/shared/ui/LoadingState'
 
 function errorMessage(error: unknown): string | undefined {
   return error instanceof ApiError ? error.messages[0] : undefined
@@ -29,7 +34,7 @@ export default function JobAdDetailPage() {
   const renew = useRenewJobAd(adId)
 
   if (isLoading || !ad) {
-    return <div className="mx-auto max-w-2xl px-4 py-10 text-text-muted">...</div>
+    return <LoadingState />
   }
 
   const canEdit = ad.status === 'Draft' || ad.status === 'Rejected' || ad.status === 'Published'
@@ -38,49 +43,49 @@ export default function JobAdDetailPage() {
   const canRenew = ad.status === 'Expired'
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-10">
-      <Link to="/employer/job-advertisements" className="text-sm text-primary">
+    <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8 sm:px-6">
+      <Link to="/employer/job-advertisements" className="text-sm font-medium text-primary hover:underline">
         {t('backToList')}
       </Link>
 
       {isEditing ? (
-        <>
-          <h1 className="text-lg font-semibold text-text">{ad.title}</h1>
+        <Card className="flex flex-col gap-5">
+          <PageHeader title={ad.title} />
           <JobAdForm
             ad={ad}
             isSubmitting={update.isPending}
             submitError={errorMessage(update.error)}
             onSubmit={(values) => update.mutate(values, { onSuccess: () => setIsEditing(false) })}
           />
-          <button type="button" onClick={() => setIsEditing(false)} className="self-start text-sm text-text-muted">
+          <Button variant="ghost" onClick={() => setIsEditing(false)} className="self-start">
             {t('cancelAction')}
-          </button>
-        </>
+          </Button>
+        </Card>
       ) : (
-        <>
-          <div className="flex items-center justify-between">
-            <h1 className="text-lg font-semibold text-text">{ad.title}</h1>
-            {canEdit && (
-              <button type="button" onClick={() => setIsEditing(true)} className="text-sm text-primary">
-                {t('editAction')}
-              </button>
-            )}
-          </div>
+        <Card className="flex flex-col gap-5">
+          <PageHeader
+            title={ad.title}
+            action={
+              canEdit && (
+                <Button variant="secondary" onClick={() => setIsEditing(true)}>
+                  {t('editAction')}
+                </Button>
+              )
+            }
+          />
 
-          <div className="rounded-md bg-surface-muted p-4">
-            <p className="text-sm text-text-muted">
-              {t('columnStatus')}: <span className="font-medium text-text">{t(`status.${ad.status}`)}</span>
-            </p>
+          <div className="flex flex-col gap-2 rounded-md bg-surface-muted p-4">
+            <StatusTag domain="advertisement" value={ad.status} label={t(`status.${ad.status}`)} />
             {ad.rejectionReason && (
-              <p className="mt-1 text-sm text-danger">
+              <p className="text-sm text-danger">
                 {t('rejectionReasonLabel')}: {ad.rejectionReason}
               </p>
             )}
           </div>
 
-          <section className="grid grid-cols-2 gap-4 text-sm">
+          <section className="grid grid-cols-1 gap-4 border-t border-surface-muted pt-5 text-sm sm:grid-cols-2">
             {ad.description && (
-              <div className="col-span-2">
+              <div className="col-span-1 sm:col-span-2">
                 <p className="text-text-muted">{t('descriptionLabel')}</p>
                 <p className="whitespace-pre-line text-text">{ad.description}</p>
               </div>
@@ -100,8 +105,8 @@ export default function JobAdDetailPage() {
           </section>
 
           {ad.payment && (
-            <section className="rounded-md border border-surface-muted p-4">
-              <h2 className="mb-2 font-semibold text-text">{t('paymentSection')}</h2>
+            <section className="flex flex-col gap-1 rounded-md border border-surface-muted p-4">
+              <h2 className="mb-1 font-semibold text-text">{t('paymentSection')}</h2>
               <p className="text-sm text-text">
                 {t('paymentAmount')}: {ad.payment.amount} {ad.payment.currency}
               </p>
@@ -116,32 +121,26 @@ export default function JobAdDetailPage() {
             </section>
           )}
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-3 border-t border-surface-muted pt-5">
             {canSubmit && (
-              <button
-                type="button"
-                disabled={submit.isPending}
-                onClick={() => submit.mutate()}
-                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-surface disabled:opacity-60"
-              >
+              <Button variant="primary" disabled={submit.isPending} onClick={() => submit.mutate()}>
                 {t('submitForReview')}
-              </button>
+              </Button>
             )}
             {canClose && (
-              <button
-                type="button"
+              <Button
+                variant="danger"
                 disabled={close.isPending}
                 onClick={() => {
                   if (window.confirm(t('closeConfirm'))) close.mutate()
                 }}
-                className="rounded-md border border-danger px-4 py-2 text-sm font-medium text-danger disabled:opacity-60"
               >
                 {t('closeAction')}
-              </button>
+              </Button>
             )}
             {canRenew && (
-              <button
-                type="button"
+              <Button
+                variant="primary"
                 disabled={renew.isPending}
                 onClick={() =>
                   renew.mutate(undefined, {
@@ -150,16 +149,12 @@ export default function JobAdDetailPage() {
                     },
                   })
                 }
-                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-surface disabled:opacity-60"
               >
                 {t('renewAction')}
-              </button>
+              </Button>
             )}
-            <Link
-              to={`/employer/job-advertisements/${ad.id}/applicants`}
-              className="rounded-md border border-surface-muted px-4 py-2 text-sm font-medium text-text"
-            >
-              {t('applicantsAction')}
+            <Link to={`/employer/job-advertisements/${ad.id}/applicants`}>
+              <Button variant="secondary">{t('applicantsAction')}</Button>
             </Link>
           </div>
 
@@ -168,7 +163,7 @@ export default function JobAdDetailPage() {
               {errorMessage(submit.error) ?? errorMessage(close.error) ?? errorMessage(renew.error)}
             </p>
           )}
-        </>
+        </Card>
       )}
     </div>
   )

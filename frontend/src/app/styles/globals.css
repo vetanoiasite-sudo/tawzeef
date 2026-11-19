@@ -1,5 +1,10 @@
 @import 'tailwindcss';
 
+/* Cairo: single Arabic+Latin family, varying weight for hierarchy — avoids mixing two different
+ * Arabic scripts (e.g. Kufi headings + Naskh body), which risks reading as inconsistent rather
+ * than deliberate. UI_UX_GUIDELINES.md §2.2: "pick one pairing and commit." */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap');
+
 /*
  * Design tokens — Tailwind v4 generates utilities (bg-primary, text-primary-dark, …) straight
  * from this @theme block. Mirrored in theme.ts for the rare case JS needs the raw value (e.g. an
@@ -29,8 +34,8 @@
 
 body {
   margin: 0;
-  font-family: system-ui, 'Segoe UI', Tahoma, sans-serif;
+  font-family: 'Cairo', system-ui, 'Segoe UI', Tahoma, sans-serif;
   color-scheme: light;
   color: var(--color-text);
-  background-color: var(--color-surface);
+  background-color: var(--color-surface-muted);
 }

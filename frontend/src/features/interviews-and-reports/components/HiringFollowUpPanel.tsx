@@ -2,6 +2,12 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ApiError } from '@/shared/api/types'
 import { useCompleteHiringFollowUp, useCreateHiringFollowUp, useHiringFollowUp } from '../api/interviewsAndReports.queries'
+import { Card } from '@/shared/ui/Card'
+import { Select } from '@/shared/ui/Select'
+import { TextArea } from '@/shared/ui/TextInput'
+import { Button } from '@/shared/ui/Button'
+import { StatusTag } from '@/shared/ui/StatusTag'
+import { LoadingState } from '@/shared/ui/LoadingState'
 
 function errorMessage(error: unknown): string | undefined {
   return error instanceof ApiError ? error.messages[0] : undefined
@@ -26,35 +32,35 @@ export function HiringFollowUpPanel({ applicationId, canManage }: { applicationI
 
   const notFound = error instanceof ApiError && error.kind === 'notFound'
 
-  if (isLoading) return <p className="text-sm text-text-muted">...</p>
+  if (isLoading) return <LoadingState />
 
   if (notFound || !followUp) {
-    if (!canManage) return <p className="text-sm text-text-muted">{t('noFollowUpYet')}</p>
+    if (!canManage)
+      return (
+        <Card>
+          <p className="text-sm text-text-muted">{t('noFollowUpYet')}</p>
+        </Card>
+      )
     return (
-      <div className="flex flex-col gap-2">
+      <Card className="flex flex-col gap-3">
         <p className="text-sm text-text-muted">{t('noFollowUpYet')}</p>
-        <button
-          type="button"
-          disabled={markHired.isPending}
-          onClick={() => markHired.mutate(undefined)}
-          className="self-start rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-surface disabled:opacity-60"
-        >
+        <Button variant="primary" disabled={markHired.isPending} onClick={() => markHired.mutate(undefined)} className="self-start">
           {t('markHired')}
-        </button>
+        </Button>
         {errorMessage(markHired.error) && <p className="text-sm text-danger">{errorMessage(markHired.error)}</p>}
-      </div>
+      </Card>
     )
   }
 
   return (
-    <div className="flex flex-col gap-2 text-sm">
+    <Card className="flex flex-col gap-3 text-sm">
       <p className="text-text">
         {t('hiredAtLabel')}: {new Date(followUp.hiredAt).toLocaleDateString('ar')}
       </p>
       <p className="text-text">
         {t('dueAtLabel')}: {new Date(followUp.dueAt).toLocaleDateString('ar')}
       </p>
-      <p className="text-text">{t(`followUpStatus.${followUp.status}`)}</p>
+      <StatusTag domain="hiringFollowUp" value={followUp.status} label={t(`followUpStatus.${followUp.status}`)} />
 
       {followUp.status === 'Completed' ? (
         <>
@@ -71,44 +77,38 @@ export function HiringFollowUpPanel({ applicationId, canManage }: { applicationI
         </>
       ) : (
         canManage && (
-          <div className="flex flex-col gap-2 rounded-md border border-surface-muted p-3">
+          <div className="flex flex-col gap-3 border-t border-surface-muted pt-3">
             {[
               { label: t('stillEmployedLabel'), value: stillEmployed, set: setStillEmployed },
               { label: t('employerSatisfiedLabel'), value: employerSatisfied, set: setEmployerSatisfied },
               { label: t('jobSeekerSatisfiedLabel'), value: jobSeekerSatisfied, set: setJobSeekerSatisfied },
             ].map((field) => (
               <div key={field.label} className="flex items-center gap-2">
-                <span className="text-text-muted">{field.label}</span>
-                <select
+                <span className="w-40 shrink-0 text-text-muted">{field.label}</span>
+                <Select
                   value={field.value === null ? '' : field.value ? 'yes' : 'no'}
                   onChange={(e) => field.set(e.target.value === '' ? null : e.target.value === 'yes')}
-                  className="rounded-md border border-surface-muted px-2 py-1 text-sm text-text"
+                  className="flex-1"
                 >
                   <option value="">{t('unspecified')}</option>
                   <option value="yes">{t('yes')}</option>
                   <option value="no">{t('no')}</option>
-                </select>
+                </Select>
               </div>
             ))}
-            <textarea
-              placeholder={t('notesLabel')}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={2}
-              className="rounded-md border border-surface-muted px-2 py-1 text-sm text-text"
-            />
-            <button
-              type="button"
+            <TextArea placeholder={t('notesLabel')} value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
+            <Button
+              variant="primary"
               disabled={complete.isPending}
               onClick={() => complete.mutate({ stillEmployed, employerSatisfied, jobSeekerSatisfied, notes })}
-              className="self-start rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-surface disabled:opacity-60"
+              className="self-start"
             >
               {t('completeFollowUp')}
-            </button>
+            </Button>
             {errorMessage(complete.error) && <p className="text-sm text-danger">{errorMessage(complete.error)}</p>}
           </div>
         )
       )}
-    </div>
+    </Card>
   )
 }

@@ -2,6 +2,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { requestOtpSchema, type RequestOtpFormValues } from '../schemas/auth.schemas'
+import { TextInput } from '@/shared/ui/TextInput'
+import { Button } from '@/shared/ui/Button'
 
 export function PhoneStep({
   defaultPhoneNumber,
@@ -26,32 +28,21 @@ export function PhoneStep({
 
   return (
     <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1">
-        <label htmlFor="phoneNumber" className="text-sm font-medium text-text">
-          {t('auth:phoneLabel')}
-        </label>
-        <input
-          id="phoneNumber"
-          type="tel"
-          autoComplete="tel"
-          placeholder={t('auth:phonePlaceholder')}
-          className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
-          {...register('phoneNumber')}
-        />
-        {errors.phoneNumber && (
-          <p className="text-sm text-danger">{t(errors.phoneNumber.message ?? '')}</p>
-        )}
-      </div>
+      <TextInput
+        id="phoneNumber"
+        type="tel"
+        autoComplete="tel"
+        label={t('auth:phoneLabel')}
+        placeholder={t('auth:phonePlaceholder')}
+        error={errors.phoneNumber ? t(errors.phoneNumber.message ?? '') : undefined}
+        {...register('phoneNumber')}
+      />
 
       {submitError && <p className="text-sm text-danger">{submitError}</p>}
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="rounded-md bg-primary px-4 py-2 font-medium text-surface disabled:opacity-60"
-      >
+      <Button type="submit" variant="primary" disabled={isSubmitting}>
         {t('auth:sendCode')}
-      </button>
+      </Button>
     </form>
   )
 }

@@ -4,17 +4,19 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { useReviewQueue } from '../api/officeEmployerReview.queries'
 import type { EmployerVerificationStatusCode } from '../types/officeEmployerReview.types'
+import { PageHeader } from '@/shared/ui/PageHeader'
+import { Card } from '@/shared/ui/Card'
+import { FilterChips } from '@/shared/ui/FilterChips'
+import { StatusTag } from '@/shared/ui/StatusTag'
+import { EmptyState } from '@/shared/ui/EmptyState'
+import { LoadingState } from '@/shared/ui/LoadingState'
+import { Pagination } from '@/shared/ui/Pagination'
 
 const COMPLAINT_THRESHOLD = 3
 
-const STATUS_FILTERS: (EmployerVerificationStatusCode | undefined)[] = [
-  undefined,
-  'Submitted',
-  'UnderReview',
-  'Approved',
-  'Rejected',
-  'Suspended',
-]
+type StatusFilterValue = EmployerVerificationStatusCode | 'all'
+
+const STATUS_FILTERS: StatusFilterValue[] = ['all', 'Submitted', 'UnderReview', 'Approved', 'Rejected', 'Suspended']
 
 const PAGE_SIZE = 20
 
@@ -25,98 +27,61 @@ export default function ReviewQueuePage() {
 
   const { data, isLoading } = useReviewQueue({ verificationStatus, pageIndex, pageSize: PAGE_SIZE })
 
-  function handleFilterChange(next: EmployerVerificationStatusCode | undefined) {
-    setVerificationStatus(next)
+  function handleFilterChange(next: StatusFilterValue) {
+    setVerificationStatus(next === 'all' ? undefined : next)
     setPageIndex(0)
   }
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-10">
-      <h1 className="text-lg font-semibold text-text">{t('queueTitle')}</h1>
+    <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-8 sm:px-6">
+      <PageHeader title={t('queueTitle')} />
 
-      <div className="flex flex-wrap gap-2">
-        {STATUS_FILTERS.map((status) => (
-          <button
-            key={status ?? 'all'}
-            type="button"
-            onClick={() => handleFilterChange(status)}
-            className={
-              verificationStatus === status
-                ? 'rounded-full bg-primary px-3 py-1 text-sm font-medium text-surface'
-                : 'rounded-full border border-surface-muted px-3 py-1 text-sm text-text'
-            }
-          >
-            {status ? t(`status.${status}`) : t('filterAll')}
-          </button>
-        ))}
-      </div>
+      <FilterChips
+        options={STATUS_FILTERS.map((status) => ({
+          value: status,
+          label: status === 'all' ? t('filterAll') : t(`status.${status}`),
+        }))}
+        value={verificationStatus ?? 'all'}
+        onChange={handleFilterChange}
+      />
 
-      {isLoading && <p className="text-sm text-text-muted">...</p>}
+      {isLoading && <LoadingState />}
 
-      {!isLoading && data && data.items.length === 0 && (
-        <p className="text-sm text-text-muted">{t('emptyQueue')}</p>
-      )}
+      {!isLoading && data && data.items.length === 0 && <EmptyState message={t('emptyQueue')} />}
 
       {!isLoading && data && data.items.length > 0 && (
-        <div className="overflow-x-auto rounded-md border border-surface-muted">
-          <table className="w-full text-start text-sm">
-            <thead className="bg-surface-muted text-text-muted">
-              <tr>
-                <th className="px-3 py-2 text-start">{t('columnName')}</th>
-                <th className="px-3 py-2 text-start">{t('columnCity')}</th>
-                <th className="px-3 py-2 text-start">{t('columnStatus')}</th>
-                <th className="px-3 py-2 text-start">{t('columnCooperation')}</th>
-                <th className="px-3 py-2 text-start">{t('columnComplaints')}</th>
-                <th className="px-3 py-2 text-start">{t('columnLastUpdated')}</th>
-                <th className="px-3 py-2" />
-              </tr>
-            </thead>
-            <tbody>
-              {data.items.map((row) => (
-                <tr key={row.id} className="border-t border-surface-muted">
-                  <td className="px-3 py-2 text-text">{row.displayName}</td>
-                  <td className="px-3 py-2 text-text">{row.city ?? '—'}</td>
-                  <td className="px-3 py-2 text-text">{t(`status.${row.verificationStatus}`)}</td>
-                  <td className="px-3 py-2 text-text">{t(`cooperationStatus.${row.cooperationStatus}`)}</td>
-                  <td className={clsx('px-3 py-2 font-medium', row.validComplaintCount >= COMPLAINT_THRESHOLD ? 'text-danger' : 'text-text')}>
-                    {row.validComplaintCount}
-                  </td>
-                  <td className="px-3 py-2 text-text-muted">{new Date(row.lastUpdatedAt).toLocaleDateString('ar')}</td>
-                  <td className="px-3 py-2">
-                    <Link to={`/office/employers/${row.id}`} className="text-primary">
-                      {t('viewAction')}
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="flex flex-col gap-3">
+          {data.items.map((row) => (
+            <Link key={row.id} to={`/office/employers/${row.id}`}>
+              <Card className="flex flex-wrap items-center justify-between gap-3 transition-colors duration-150 hover:border-primary">
+                <div className="flex flex-col gap-1">
+                  <span className="font-semibold text-text">{row.displayName}</span>
+                  {row.city && <span className="text-sm text-text-muted">{row.city}</span>}
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <StatusTag domain="employerVerification" value={row.verificationStatus} label={t(`status.${row.verificationStatus}`)} />
+                  <StatusTag
+                    domain="employerCooperation"
+                    value={row.cooperationStatus}
+                    label={t(`cooperationStatus.${row.cooperationStatus}`)}
+                  />
+                  <span
+                    className={clsx(
+                      'text-sm font-medium',
+                      row.validComplaintCount >= COMPLAINT_THRESHOLD ? 'text-danger' : 'text-text-muted',
+                    )}
+                  >
+                    {t('columnComplaints')}: {row.validComplaintCount}
+                  </span>
+                  <span className="text-sm text-text-muted">{new Date(row.lastUpdatedAt).toLocaleDateString('ar')}</span>
+                </div>
+              </Card>
+            </Link>
+          ))}
         </div>
       )}
 
-      {data && data.pagination.totalPages > 1 && (
-        <div className="flex items-center justify-center gap-4">
-          <button
-            type="button"
-            disabled={pageIndex === 0}
-            onClick={() => setPageIndex((p) => p - 1)}
-            className="rounded-md border border-surface-muted px-3 py-1.5 text-sm text-text disabled:opacity-60"
-          >
-            {t('prevPage')}
-          </button>
-          <span className="text-sm text-text-muted">
-            {t('pageOf', { current: pageIndex + 1, total: data.pagination.totalPages })}
-          </span>
-          <button
-            type="button"
-            disabled={pageIndex + 1 >= data.pagination.totalPages}
-            onClick={() => setPageIndex((p) => p + 1)}
-            className="rounded-md border border-surface-muted px-3 py-1.5 text-sm text-text disabled:opacity-60"
-          >
-            {t('nextPage')}
-          </button>
-        </div>
-      )}
+      {data && <Pagination pageIndex={pageIndex} totalPages={data.pagination.totalPages} onChange={setPageIndex} />}
     </div>
   )
 }

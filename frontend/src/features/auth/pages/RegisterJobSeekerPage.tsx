@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ApiError } from '@/shared/api/types'
 import { useSessionStore } from '@/shared/auth/sessionStore'
 import { TawzeefLogo } from '@/shared/ui/TawzeefLogo'
+import { Card } from '@/shared/ui/Card'
 import { toSessionUser } from '../api/auth.mapper'
 import { useRegisterJobSeeker, useRequestOtp, useVerifyOtp } from '../api/auth.queries'
 import { DetailsStep } from '../components/DetailsStep'
@@ -87,42 +88,44 @@ export default function RegisterJobSeekerPage() {
 
       <RegistrationStepper current={step} />
 
-      {step === 'phone' && (
-        <PhoneStep
-          defaultPhoneNumber={phoneNumber}
-          isSubmitting={requestOtp.isPending}
-          submitError={errorMessage(requestOtp.error)}
-          onSubmit={handleRequestOtp}
-        />
-      )}
+      <Card>
+        {step === 'phone' && (
+          <PhoneStep
+            defaultPhoneNumber={phoneNumber}
+            isSubmitting={requestOtp.isPending}
+            submitError={errorMessage(requestOtp.error)}
+            onSubmit={handleRequestOtp}
+          />
+        )}
 
-      {step === 'otp' && (
-        <OtpStep
-          phoneNumber={phoneNumber}
-          isSubmitting={verifyOtp.isPending}
-          isResending={requestOtp.isPending}
-          submitError={errorMessage(verifyOtp.error)}
-          onSubmit={handleVerifyOtp}
-          onResend={() => requestOtp.mutate({ phoneNumber })}
-          onChangeNumber={() => setStep('phone')}
-        />
-      )}
+        {step === 'otp' && (
+          <OtpStep
+            phoneNumber={phoneNumber}
+            isSubmitting={verifyOtp.isPending}
+            isResending={requestOtp.isPending}
+            submitError={errorMessage(verifyOtp.error)}
+            onSubmit={handleVerifyOtp}
+            onResend={() => requestOtp.mutate({ phoneNumber })}
+            onChangeNumber={() => setStep('phone')}
+          />
+        )}
 
-      {step === 'details' && (
-        <DetailsStep
-          isSubmitting={registerJobSeeker.isPending}
-          submitError={errorMessage(registerJobSeeker.error)}
-          onSubmit={handleRegister}
-        />
-      )}
+        {step === 'details' && (
+          <DetailsStep
+            isSubmitting={registerJobSeeker.isPending}
+            submitError={errorMessage(registerJobSeeker.error)}
+            onSubmit={handleRegister}
+          />
+        )}
+      </Card>
 
       <p className="text-center text-sm text-text-muted">
         {t('alreadyHaveAccount')}{' '}
-        <Link to="/login" className="text-primary">
+        <Link to="/login" className="font-medium text-primary hover:underline">
           {t('loginLink')}
         </Link>{' '}
         ·{' '}
-        <Link to="/register/employer" className="text-primary">
+        <Link to="/register/employer" className="font-medium text-primary hover:underline">
           {t('registerEmployerLink')}
         </Link>
       </p>

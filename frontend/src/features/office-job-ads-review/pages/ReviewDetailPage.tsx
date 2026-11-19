@@ -13,6 +13,11 @@ import {
   useRejectJobAd,
   useResumeJobAd,
 } from '../api/officeJobAdsReview.queries'
+import { PageHeader } from '@/shared/ui/PageHeader'
+import { Card } from '@/shared/ui/Card'
+import { Button } from '@/shared/ui/Button'
+import { StatusTag } from '@/shared/ui/StatusTag'
+import { LoadingState } from '@/shared/ui/LoadingState'
 
 function errorMessage(error: unknown): string | undefined {
   return error instanceof ApiError ? error.messages[0] : undefined
@@ -34,7 +39,7 @@ export default function ReviewDetailPage() {
   const confirmPayment = useConfirmPayment(adId)
 
   if (isLoading || !ad) {
-    return <div className="mx-auto max-w-2xl px-4 py-10 text-text-muted">...</div>
+    return <LoadingState />
   }
 
   const canDecide = ad.status === 'UnderReview' && hasPermission('jobadvertisements.approve')
@@ -43,143 +48,119 @@ export default function ReviewDetailPage() {
   const canResume = ad.status === 'Paused' && hasPermission('jobadvertisements.pause')
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-8 px-4 py-10">
-      <Link to="/office/job-advertisements" className="text-sm text-primary">
+    <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8 sm:px-6">
+      <Link to="/office/job-advertisements" className="text-sm font-medium text-primary hover:underline">
         {t('backToQueue')}
       </Link>
 
-      <div className="flex flex-col gap-1">
-        <h1 className="text-lg font-semibold text-text">{ad.title}</h1>
+      <Card className="flex flex-col gap-5">
+        <PageHeader title={ad.title} />
         <p className="text-sm text-text-muted">{ad.employerDisplayName}</p>
-      </div>
 
-      <div className="rounded-md bg-surface-muted p-4">
-        <p className="text-sm text-text-muted">
-          {t('columnStatus')}: <span className="font-medium text-text">{t(`status.${ad.status}`)}</span>
-        </p>
-        {ad.rejectionReason && (
-          <p className="mt-1 text-sm text-danger">
-            {t('rejectionReasonLabel')}: {ad.rejectionReason}
-          </p>
-        )}
-      </div>
-
-      <section className="grid grid-cols-2 gap-4 text-sm">
-        {ad.description && (
-          <div className="col-span-2">
-            <p className="text-text-muted">{ad.description}</p>
-          </div>
-        )}
-        <div>
-          <p className="text-text-muted">{t('columnCity')}</p>
-          <p className="text-text">{ad.city ?? '—'}</p>
+        <div className="flex flex-col gap-2 rounded-md bg-surface-muted p-4">
+          <StatusTag domain="advertisement" value={ad.status} label={t(`status.${ad.status}`)} />
+          {ad.rejectionReason && (
+            <p className="text-sm text-danger">
+              {t('rejectionReasonLabel')}: {ad.rejectionReason}
+            </p>
+          )}
         </div>
-        <div>
-          <p className="text-text-muted">{t('columnSubmittedAt')}</p>
-          <p className="text-text">{ad.submittedAt ? new Date(ad.submittedAt).toLocaleDateString('ar') : '—'}</p>
-        </div>
-      </section>
 
-      {ad.payment && (
-        <section className="rounded-md border border-surface-muted p-4">
-          <h2 className="mb-2 font-semibold text-text">{t('paymentSection')}</h2>
-          <p className="text-sm text-text">
-            {t('paymentAmount')}: {ad.payment.amount} {ad.payment.currency}
-          </p>
-          <p className="text-sm text-text">
-            {t('paymentStatus')}: {ad.payment.paymentStatus}
-          </p>
-        </section>
-      )}
-
-      {canDecide && (
-        <section className="flex flex-col gap-2">
-          {!showReject ? (
-            <div className="flex gap-2">
-              <button
-                type="button"
-                disabled={approve.isPending}
-                onClick={() => approve.mutate()}
-                className="rounded-md bg-success px-4 py-2 text-sm font-medium text-surface disabled:opacity-60"
-              >
-                {t('approveAction')}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowReject(true)}
-                className="rounded-md border border-danger px-4 py-2 text-sm font-medium text-danger"
-              >
-                {t('rejectAction')}
-              </button>
+        <section className="grid grid-cols-1 gap-4 border-t border-surface-muted pt-5 text-sm sm:grid-cols-2">
+          {ad.description && (
+            <div className="col-span-1 sm:col-span-2">
+              <p className="text-text">{ad.description}</p>
             </div>
-          ) : (
-            <ReasonForm
-              confirmLabel={t('rejectAction')}
-              isSubmitting={reject.isPending}
-              error={errorMessage(reject.error)}
-              onConfirm={(reason) => {
-                reject.mutate(reason)
-                setShowReject(false)
-              }}
-              onCancel={() => setShowReject(false)}
-            />
           )}
-          {errorMessage(approve.error) && <p className="text-sm text-danger">{errorMessage(approve.error)}</p>}
+          <div>
+            <p className="text-text-muted">{t('columnCity')}</p>
+            <p className="text-text">{ad.city ?? '—'}</p>
+          </div>
+          <div>
+            <p className="text-text-muted">{t('columnSubmittedAt')}</p>
+            <p className="text-text">{ad.submittedAt ? new Date(ad.submittedAt).toLocaleDateString('ar') : '—'}</p>
+          </div>
         </section>
-      )}
 
-      {canConfirmPayment && (
-        <section className="flex flex-col gap-2">
-          {!showPayment ? (
-            <button
-              type="button"
-              onClick={() => setShowPayment(true)}
-              className="self-start rounded-md bg-primary px-4 py-2 text-sm font-medium text-surface"
-            >
-              {t('confirmPaymentAction')}
-            </button>
-          ) : (
-            <PaymentConfirmForm
-              isSubmitting={confirmPayment.isPending}
-              error={errorMessage(confirmPayment.error)}
-              onConfirm={(amount, currency) => {
-                confirmPayment.mutate({ amount, currency })
-                setShowPayment(false)
-              }}
-              onCancel={() => setShowPayment(false)}
-            />
+        {ad.payment && (
+          <section className="flex flex-col gap-1 rounded-md border border-surface-muted p-4">
+            <h2 className="mb-1 font-semibold text-text">{t('paymentSection')}</h2>
+            <p className="text-sm text-text">
+              {t('paymentAmount')}: {ad.payment.amount} {ad.payment.currency}
+            </p>
+            <p className="text-sm text-text">
+              {t('paymentStatus')}: {ad.payment.paymentStatus}
+            </p>
+          </section>
+        )}
+
+        {canDecide && (
+          <section className="flex flex-col gap-2 border-t border-surface-muted pt-5">
+            {!showReject ? (
+              <div className="flex gap-3">
+                <Button
+                  variant="success"
+                  disabled={approve.isPending}
+                  onClick={() => approve.mutate()}
+                >
+                  {t('approveAction')}
+                </Button>
+                <Button variant="danger" onClick={() => setShowReject(true)}>
+                  {t('rejectAction')}
+                </Button>
+              </div>
+            ) : (
+              <ReasonForm
+                confirmLabel={t('rejectAction')}
+                isSubmitting={reject.isPending}
+                error={errorMessage(reject.error)}
+                onConfirm={(reason) => {
+                  reject.mutate(reason)
+                  setShowReject(false)
+                }}
+                onCancel={() => setShowReject(false)}
+              />
+            )}
+            {errorMessage(approve.error) && <p className="text-sm text-danger">{errorMessage(approve.error)}</p>}
+          </section>
+        )}
+
+        {canConfirmPayment && (
+          <section className="flex flex-col gap-2 border-t border-surface-muted pt-5">
+            {!showPayment ? (
+              <Button variant="primary" className="self-start" onClick={() => setShowPayment(true)}>
+                {t('confirmPaymentAction')}
+              </Button>
+            ) : (
+              <PaymentConfirmForm
+                isSubmitting={confirmPayment.isPending}
+                error={errorMessage(confirmPayment.error)}
+                onConfirm={(amount, currency) => {
+                  confirmPayment.mutate({ amount, currency })
+                  setShowPayment(false)
+                }}
+                onCancel={() => setShowPayment(false)}
+              />
+            )}
+          </section>
+        )}
+
+        <div className="flex flex-wrap gap-3 border-t border-surface-muted pt-5">
+          {canPause && (
+            <Button variant="danger" disabled={pause.isPending} onClick={() => pause.mutate()}>
+              {t('pauseAction')}
+            </Button>
           )}
-        </section>
-      )}
-
-      <div className="flex flex-wrap gap-2">
-        {canPause && (
-          <button
-            type="button"
-            disabled={pause.isPending}
-            onClick={() => pause.mutate()}
-            className="rounded-md border border-danger px-4 py-2 text-sm font-medium text-danger disabled:opacity-60"
-          >
-            {t('pauseAction')}
-          </button>
-        )}
-        {canResume && (
-          <button
-            type="button"
-            disabled={resume.isPending}
-            onClick={() => resume.mutate()}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-surface disabled:opacity-60"
-          >
-            {t('resumeAction')}
-          </button>
-        )}
-        <Link
-          to={`/office/job-advertisements/${ad.id}/applicants`}
-          className="rounded-md border border-surface-muted px-4 py-2 text-sm font-medium text-text"
-        >
-          {t('applicantsAction')}
-        </Link>
-      </div>
+          {canResume && (
+            <Button variant="primary" disabled={resume.isPending} onClick={() => resume.mutate()}>
+              {t('resumeAction')}
+            </Button>
+          )}
+          <Link to={`/office/job-advertisements/${ad.id}/applicants`}>
+            <Button variant="secondary">{t('applicantsAction')}</Button>
+          </Link>
+        </div>
+      </Card>
     </div>
   )
 }

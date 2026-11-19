@@ -2,6 +2,10 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { httpClient } from '@/shared/api/httpClient'
+import { Card } from '@/shared/ui/Card'
+import { Button } from '@/shared/ui/Button'
+import { Select } from '@/shared/ui/Select'
+import { GatedField } from '@/shared/ui/GatedField'
 import type { ApplicantListItem, EmployerFacingStatusCode } from '../types/employerJobAds.types'
 
 const OUTCOMES: EmployerFacingStatusCode[] = [
@@ -41,51 +45,55 @@ export function ApplicantRow({
   }
 
   return (
-    <tr className="border-t border-surface-muted">
-      <td className="px-3 py-2 text-text">{applicant.jobSeekerName}</td>
-      <td className="px-3 py-2 text-text-muted">{new Date(applicant.appliedAt).toLocaleDateString('ar')}</td>
-      <td className="px-3 py-2 text-text">{applicant.withdrawnAt ? t('withdrawn') : '—'}</td>
-      <td className="px-3 py-2">
-        {isGated ? (
-          <div className="flex flex-col gap-0.5 text-sm text-text">
-            {applicant.phone && <span>{applicant.phone}</span>}
-            {applicant.email && <span>{applicant.email}</span>}
-          </div>
-        ) : (
-          <span className="text-xs text-text-muted">{t('dataLockedUntilPayment')}</span>
+    <Card className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <p className="font-semibold text-text">{applicant.jobSeekerName}</p>
+          <p className="text-xs text-text-muted">{new Date(applicant.appliedAt).toLocaleDateString('ar')}</p>
+        </div>
+        {applicant.withdrawnAt && (
+          <span className="rounded-full bg-neutral/10 px-2.5 py-1 text-xs font-medium text-neutral">{t('withdrawn')}</span>
         )}
-      </td>
-      <td className="px-3 py-2">
-        <select
+      </div>
+
+      <div className="flex flex-wrap items-end gap-4">
+        <div className="flex flex-col gap-1">
+          <span className="text-xs font-medium text-text">{t('columnContact')}</span>
+          {isGated ? (
+            <div className="flex flex-col gap-0.5 text-sm text-text">
+              {applicant.phone && <span>{applicant.phone}</span>}
+              {applicant.email && <span>{applicant.email}</span>}
+            </div>
+          ) : (
+            <GatedField reason={t('dataLockedUntilPayment')} />
+          )}
+        </div>
+
+        <Select
+          label={t('columnOutcome')}
           value={applicant.employerFacingStatus}
           disabled={isUpdating}
           onChange={(e) => onUpdateOutcome(e.target.value as EmployerFacingStatusCode)}
-          className="rounded-md border border-surface-muted px-2 py-1 text-sm text-text"
+          className="min-w-[200px]"
         >
           {OUTCOMES.map((o) => (
             <option key={o} value={o}>
               {t(`outcome.${o}`)}
             </option>
           ))}
-        </select>
-      </td>
-      <td className="px-3 py-2">
+        </Select>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3 border-t border-surface-muted pt-3">
         {isGated && (
-          <button
-            type="button"
-            disabled={downloading}
-            onClick={() => void handleDownloadCv()}
-            className="text-sm text-primary disabled:opacity-60"
-          >
+          <Button variant="secondary" disabled={downloading} onClick={() => void handleDownloadCv()}>
             {t('downloadCv')}
-          </button>
+          </Button>
         )}
-      </td>
-      <td className="px-3 py-2">
-        <Link to={`/employer/applications/${applicant.applicationId}`} className="text-sm text-primary">
-          {t('interviewAndReports')}
+        <Link to={`/employer/applications/${applicant.applicationId}`}>
+          <Button variant="ghost">{t('interviewAndReports')}</Button>
         </Link>
-      </td>
-    </tr>
+      </div>
+    </Card>
   )
 }

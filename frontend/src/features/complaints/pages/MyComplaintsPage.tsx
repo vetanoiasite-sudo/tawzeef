@@ -3,6 +3,12 @@ import { useTranslation } from 'react-i18next'
 import { ApiError } from '@/shared/api/types'
 import { ComplaintForm } from '../components/ComplaintForm'
 import { useCreateComplaint, useMyComplaints } from '../api/complaint.queries'
+import { PageHeader } from '@/shared/ui/PageHeader'
+import { Button } from '@/shared/ui/Button'
+import { Card } from '@/shared/ui/Card'
+import { EmptyState } from '@/shared/ui/EmptyState'
+import { LoadingState } from '@/shared/ui/LoadingState'
+import { StatusTag } from '@/shared/ui/StatusTag'
 
 function errorMessage(error: unknown): string | undefined {
   return error instanceof ApiError ? error.messages[0] : undefined
@@ -16,19 +22,17 @@ export default function MyComplaintsPage() {
   const createComplaint = useCreateComplaint()
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-10">
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-text">{t('pageTitle')}</h1>
-        {!showForm && (
-          <button
-            type="button"
-            onClick={() => setShowForm(true)}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-surface"
-          >
-            {t('submitNew')}
-          </button>
-        )}
-      </div>
+    <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8">
+      <PageHeader
+        title={t('pageTitle')}
+        action={
+          !showForm && (
+            <Button variant="primary" onClick={() => setShowForm(true)}>
+              {t('submitNew')}
+            </Button>
+          )
+        }
+      />
 
       {showForm && (
         <ComplaintForm
@@ -41,17 +45,17 @@ export default function MyComplaintsPage() {
         />
       )}
 
-      {isLoading && <p className="text-sm text-text-muted">...</p>}
+      {isLoading && <LoadingState />}
 
-      {!isLoading && data && data.items.length === 0 && <p className="text-sm text-text-muted">{t('emptyList')}</p>}
+      {!isLoading && data && data.items.length === 0 && <EmptyState message={t('emptyList')} />}
 
       {!isLoading && data && data.items.length > 0 && (
         <div className="flex flex-col gap-3">
           {data.items.map((complaint) => (
-            <div key={complaint.id} className="flex flex-col gap-1 rounded-md border border-surface-muted p-4">
-              <div className="flex items-center justify-between">
+            <Card key={complaint.id} className="flex flex-col gap-2">
+              <div className="flex items-center justify-between gap-2">
                 <span className="font-medium text-text">{complaint.subjectName}</span>
-                <span className="text-sm text-text-muted">{t(`status.${complaint.status}`)}</span>
+                <StatusTag domain="complaint" value={complaint.status} label={t(`status.${complaint.status}`)} />
               </div>
               <p className="text-sm text-text">{complaint.complaintText}</p>
               {complaint.resolutionNotes && (
@@ -60,7 +64,7 @@ export default function MyComplaintsPage() {
                 </p>
               )}
               <p className="text-xs text-text-muted">{new Date(complaint.createdAt).toLocaleDateString('ar')}</p>
-            </div>
+            </Card>
           ))}
         </div>
       )}

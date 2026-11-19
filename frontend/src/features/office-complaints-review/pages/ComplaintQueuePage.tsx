@@ -3,108 +3,69 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { useComplaintQueue } from '../api/officeComplaintReview.queries'
 import type { ComplaintStatusCode } from '../types/officeComplaintReview.types'
+import { PageHeader } from '@/shared/ui/PageHeader'
+import { FilterChips } from '@/shared/ui/FilterChips'
+import { Card } from '@/shared/ui/Card'
+import { EmptyState } from '@/shared/ui/EmptyState'
+import { LoadingState } from '@/shared/ui/LoadingState'
+import { Pagination } from '@/shared/ui/Pagination'
+import { StatusTag } from '@/shared/ui/StatusTag'
 
-const STATUS_FILTERS: (ComplaintStatusCode | undefined)[] = [
-  undefined,
-  'New',
-  'UnderReview',
-  'Resolved',
-  'Rejected',
-]
+const STATUS_FILTERS: (ComplaintStatusCode | 'all')[] = ['all', 'New', 'UnderReview', 'Resolved', 'Rejected']
 
 const PAGE_SIZE = 20
 
 export default function ComplaintQueuePage() {
   const { t } = useTranslation('officeComplaintReview')
-  const [status, setStatus] = useState<ComplaintStatusCode | undefined>(undefined)
+  const [status, setStatus] = useState<ComplaintStatusCode | 'all'>('all')
   const [pageIndex, setPageIndex] = useState(0)
 
-  const { data, isLoading } = useComplaintQueue({ status, pageIndex, pageSize: PAGE_SIZE })
+  const { data, isLoading } = useComplaintQueue({
+    status: status === 'all' ? undefined : status,
+    pageIndex,
+    pageSize: PAGE_SIZE,
+  })
 
-  function handleFilterChange(next: ComplaintStatusCode | undefined) {
+  function handleFilterChange(next: ComplaintStatusCode | 'all') {
     setStatus(next)
     setPageIndex(0)
   }
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-10">
-      <h1 className="text-lg font-semibold text-text">{t('queueTitle')}</h1>
+    <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-8">
+      <PageHeader title={t('queueTitle')} />
 
-      <div className="flex flex-wrap gap-2">
-        {STATUS_FILTERS.map((s) => (
-          <button
-            key={s ?? 'all'}
-            type="button"
-            onClick={() => handleFilterChange(s)}
-            className={
-              status === s
-                ? 'rounded-full bg-primary px-3 py-1 text-sm font-medium text-surface'
-                : 'rounded-full border border-surface-muted px-3 py-1 text-sm text-text'
-            }
-          >
-            {s ? t(`status.${s}`) : t('filterAll')}
-          </button>
-        ))}
-      </div>
+      <FilterChips
+        options={STATUS_FILTERS.map((s) => ({ value: s, label: s === 'all' ? t('filterAll') : t(`status.${s}`) }))}
+        value={status}
+        onChange={handleFilterChange}
+      />
 
-      {isLoading && <p className="text-sm text-text-muted">...</p>}
+      {isLoading && <LoadingState />}
 
-      {!isLoading && data && data.items.length === 0 && <p className="text-sm text-text-muted">{t('emptyQueue')}</p>}
+      {!isLoading && data && data.items.length === 0 && <EmptyState message={t('emptyQueue')} />}
 
       {!isLoading && data && data.items.length > 0 && (
-        <div className="overflow-x-auto rounded-md border border-surface-muted">
-          <table className="w-full text-start text-sm">
-            <thead className="bg-surface-muted text-text-muted">
-              <tr>
-                <th className="px-3 py-2 text-start">{t('columnSubject')}</th>
-                <th className="px-3 py-2 text-start">{t('columnStatus')}</th>
-                <th className="px-3 py-2 text-start">{t('columnValidity')}</th>
-                <th className="px-3 py-2 text-start">{t('columnDate')}</th>
-                <th className="px-3 py-2" />
-              </tr>
-            </thead>
-            <tbody>
-              {data.items.map((row) => (
-                <tr key={row.id} className="border-t border-surface-muted">
-                  <td className="px-3 py-2 text-text">{row.subjectName}</td>
-                  <td className="px-3 py-2 text-text">{t(`status.${row.status}`)}</td>
-                  <td className="px-3 py-2 text-text">{t(`validity.${row.validityDecision}`)}</td>
-                  <td className="px-3 py-2 text-text-muted">{new Date(row.createdAt).toLocaleDateString('ar')}</td>
-                  <td className="px-3 py-2">
-                    <Link to={`/office/complaints/${row.id}`} className="text-primary">
-                      {t('viewAction')}
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="flex flex-col gap-3">
+          {data.items.map((row) => (
+            <Card key={row.id} className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-col gap-1">
+                <span className="font-medium text-text">{row.subjectName}</span>
+                <span className="text-xs text-text-muted">{new Date(row.createdAt).toLocaleDateString('ar')}</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <StatusTag domain="complaint" value={row.status} label={t(`status.${row.status}`)} />
+                <span className="text-sm text-text-muted">{t(`validity.${row.validityDecision}`)}</span>
+                <Link to={`/office/complaints/${row.id}`} className="text-sm font-medium text-primary hover:underline">
+                  {t('viewAction')}
+                </Link>
+              </div>
+            </Card>
+          ))}
         </div>
       )}
 
-      {data && data.pagination.totalPages > 1 && (
-        <div className="flex items-center justify-center gap-4">
-          <button
-            type="button"
-            disabled={pageIndex === 0}
-            onClick={() => setPageIndex((p) => p - 1)}
-            className="rounded-md border border-surface-muted px-3 py-1.5 text-sm text-text disabled:opacity-60"
-          >
-            {t('prevPage')}
-          </button>
-          <span className="text-sm text-text-muted">
-            {t('pageOf', { current: pageIndex + 1, total: data.pagination.totalPages })}
-          </span>
-          <button
-            type="button"
-            disabled={pageIndex + 1 >= data.pagination.totalPages}
-            onClick={() => setPageIndex((p) => p + 1)}
-            className="rounded-md border border-surface-muted px-3 py-1.5 text-sm text-text disabled:opacity-60"
-          >
-            {t('nextPage')}
-          </button>
-        </div>
-      )}
+      {data && <Pagination pageIndex={pageIndex} totalPages={data.pagination.totalPages} onChange={setPageIndex} />}
     </div>
   )
 }

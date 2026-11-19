@@ -5,6 +5,9 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { ApiError } from '@/shared/api/types'
 import { useSessionStore } from '@/shared/auth/sessionStore'
 import { TawzeefLogo } from '@/shared/ui/TawzeefLogo'
+import { Card } from '@/shared/ui/Card'
+import { TextInput } from '@/shared/ui/TextInput'
+import { Button } from '@/shared/ui/Button'
 import { toSessionUser } from '../api/auth.mapper'
 import { useLogin } from '../api/auth.queries'
 import { loginSchema, type LoginFormValues } from '../schemas/auth.schemas'
@@ -43,62 +46,46 @@ export default function LoginPage() {
         <h1 className="text-lg font-semibold text-text">{t('auth:loginTitle')}</h1>
       </div>
 
-      <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="identifier" className="text-sm font-medium text-text">
-            {t('auth:loginIdentifierLabel')}
-          </label>
-          <input
+      <Card>
+        <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-4">
+          <TextInput
             id="identifier"
             type="tel"
             autoComplete="tel"
-            className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
+            label={t('auth:loginIdentifierLabel')}
+            error={errors.identifier ? t(errors.identifier.message ?? '') : undefined}
             {...register('identifier')}
           />
-          {errors.identifier && (
-            <p className="text-sm text-danger">{t(errors.identifier.message ?? '')}</p>
-          )}
-        </div>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="password" className="text-sm font-medium text-text">
-            {t('auth:loginPasswordLabel')}
-          </label>
-          <input
+          <TextInput
             id="password"
             type="password"
             autoComplete="current-password"
-            className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
+            label={t('auth:loginPasswordLabel')}
+            error={errors.password ? t(errors.password.message ?? '') : undefined}
             {...register('password')}
           />
-          {errors.password && (
-            <p className="text-sm text-danger">{t(errors.password.message ?? '')}</p>
-          )}
-        </div>
 
-        {submitError && <p className="text-sm text-danger">{submitError}</p>}
+          {submitError && <p className="text-sm text-danger">{submitError}</p>}
 
-        <button
-          type="submit"
-          disabled={login.isPending}
-          className="rounded-md bg-primary px-4 py-2 font-medium text-surface disabled:opacity-60"
-        >
-          {t('auth:loginSubmit')}
-        </button>
-      </form>
+          <Button type="submit" variant="primary" disabled={login.isPending}>
+            {t('auth:loginSubmit')}
+          </Button>
+        </form>
+      </Card>
 
       <p className="text-center text-sm text-text-muted">
         {t('auth:noAccount')}{' '}
-        <Link to="/register/job-seeker" className="text-primary">
+        <Link to="/register/job-seeker" className="font-medium text-primary hover:underline">
           {t('auth:registerLink')}
         </Link>{' '}
         ·{' '}
-        <Link to="/register/employer" className="text-primary">
+        <Link to="/register/employer" className="font-medium text-primary hover:underline">
           {t('auth:registerEmployerLink')}
         </Link>
       </p>
       <p className="text-center text-sm text-text-muted">
-        <Link to="/accept-invite" className="text-primary">
+        <Link to="/accept-invite" className="font-medium text-primary hover:underline">
           {t('auth:acceptInviteLink')}
         </Link>
       </p>

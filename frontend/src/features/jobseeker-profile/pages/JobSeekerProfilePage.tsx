@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next'
 import { ApiError } from '@/shared/api/types'
-import { TawzeefLogo } from '@/shared/ui/TawzeefLogo'
 import { DocumentUploadCard } from '../components/DocumentUploadCard'
 import { ProfileCompletionForm } from '../components/ProfileCompletionForm'
 import {
@@ -11,6 +10,11 @@ import {
 } from '../api/jobSeekerProfile.queries'
 import type { JobSeekerProfileFormValues } from '../schemas/jobSeekerProfile.schema'
 import { REQUIRED_DOCUMENT_TYPES, type JobSeekerDocumentTypeCode } from '../types/jobSeekerProfile.types'
+import { PageHeader } from '@/shared/ui/PageHeader'
+import { Card } from '@/shared/ui/Card'
+import { Button } from '@/shared/ui/Button'
+import { StatusTag } from '@/shared/ui/StatusTag'
+import { LoadingState } from '@/shared/ui/LoadingState'
 
 function errorMessage(error: unknown): string | undefined {
   return error instanceof ApiError ? error.messages[0] : undefined
@@ -24,11 +28,7 @@ export default function JobSeekerProfilePage() {
   const submitForReview = useSubmitJobSeekerProfileForReview()
 
   if (isLoading || !profile) {
-    return (
-      <div className="mx-auto flex max-w-2xl flex-col items-center gap-4 px-4 py-10">
-        <TawzeefLogo height={48} />
-      </div>
-    )
+    return <LoadingState />
   }
 
   function handleSaveProfile(values: JobSeekerProfileFormValues) {
@@ -53,36 +53,36 @@ export default function JobSeekerProfilePage() {
   const canSubmit = (profile.reviewStatus === 'Draft' || profile.reviewStatus === 'Rejected') && allDocumentsPresent
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-8 px-4 py-10">
-      <div className="flex flex-col items-center gap-2">
-        <TawzeefLogo height={48} />
-        <h1 className="text-lg font-semibold text-text">{t('pageTitle')}</h1>
-      </div>
+    <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8 sm:px-6">
+      <PageHeader title={t('pageTitle')} />
 
-      <div className="rounded-md bg-surface-muted p-4">
-        <p className="text-sm text-text-muted">
-          {t('statusLabel')}: <span className="font-medium text-text">{t(`status.${profile.reviewStatus}`)}</span>
-        </p>
+      <Card className="flex flex-col gap-1.5">
+        <div className="flex items-center gap-2 text-sm text-text-muted">
+          {t('statusLabel')}:
+          <StatusTag domain="jobSeekerReview" value={profile.reviewStatus} label={t(`status.${profile.reviewStatus}`)} />
+        </div>
         {profile.rejectionReason && (
-          <p className="mt-1 text-sm text-danger">
+          <p className="text-sm text-danger">
             {t('rejectionReasonLabel')}: {profile.rejectionReason}
           </p>
         )}
-      </div>
+      </Card>
 
       <section className="flex flex-col gap-4">
-        <h2 className="font-semibold text-text">{t('profileSection')}</h2>
-        <ProfileCompletionForm
-          profile={profile}
-          isSubmitting={updateProfile.isPending}
-          submitError={errorMessage(updateProfile.error)}
-          onSubmit={handleSaveProfile}
-        />
-        {updateProfile.isSuccess && <p className="text-sm text-success">{t('saveSuccess')}</p>}
+        <h2 className="text-lg font-semibold text-text">{t('profileSection')}</h2>
+        <Card>
+          <ProfileCompletionForm
+            profile={profile}
+            isSubmitting={updateProfile.isPending}
+            submitError={errorMessage(updateProfile.error)}
+            onSubmit={handleSaveProfile}
+          />
+          {updateProfile.isSuccess && <p className="mt-3 text-sm text-success">{t('saveSuccess')}</p>}
+        </Card>
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="font-semibold text-text">{t('documentsSection')}</h2>
+        <h2 className="text-lg font-semibold text-text">{t('documentsSection')}</h2>
         {REQUIRED_DOCUMENT_TYPES.map((type) => (
           <DocumentUploadCard
             key={type}
@@ -97,14 +97,9 @@ export default function JobSeekerProfilePage() {
 
       {(profile.reviewStatus === 'Draft' || profile.reviewStatus === 'Rejected') && (
         <div className="flex flex-col items-start gap-2">
-          <button
-            type="button"
-            disabled={!canSubmit || submitForReview.isPending}
-            onClick={() => submitForReview.mutate()}
-            className="rounded-md bg-primary px-4 py-2 font-medium text-surface disabled:opacity-60"
-          >
+          <Button disabled={!canSubmit || submitForReview.isPending} onClick={() => submitForReview.mutate()}>
             {t('submitForReview')}
-          </button>
+          </Button>
           {!allDocumentsPresent && <p className="text-sm text-text-muted">{t('submitMissingDocs')}</p>}
           {errorMessage(submitForReview.error) && (
             <p className="text-sm text-danger">{errorMessage(submitForReview.error)}</p>

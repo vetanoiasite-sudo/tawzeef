@@ -2,6 +2,10 @@ import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { PermissionCheckboxList } from './PermissionCheckboxList'
 import type { InviteOfficeUserPayload, OfficeUserRoleCode } from '../types/officeUser.types'
+import { Card } from '@/shared/ui/Card'
+import { Button } from '@/shared/ui/Button'
+import { TextInput } from '@/shared/ui/TextInput'
+import { Select } from '@/shared/ui/Select'
 
 export function InviteOfficeUserForm({
   isSubmitting,
@@ -31,72 +35,41 @@ export function InviteOfficeUserForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-md border border-surface-muted p-4">
-      <div className="flex flex-col gap-1">
-        <label htmlFor="fullName" className="text-sm font-medium text-text">
-          {t('fullNameLabel')}
-        </label>
-        <input
-          id="fullName"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
-        />
-      </div>
+    <form onSubmit={handleSubmit}>
+      <Card className="flex flex-col gap-4">
+        <TextInput id="fullName" label={t('fullNameLabel')} value={fullName} onChange={(e) => setFullName(e.target.value)} />
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="mobileNumber" className="text-sm font-medium text-text">
-          {t('mobileNumberLabel')}
-        </label>
-        <input
+        <TextInput
           id="mobileNumber"
           type="tel"
+          label={t('mobileNumberLabel')}
           value={mobileNumber}
           onChange={(e) => setMobileNumber(e.target.value)}
-          className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
         />
-      </div>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="role" className="text-sm font-medium text-text">
-          {t('roleLabel')}
-        </label>
-        <select
-          id="role"
-          value={role}
-          onChange={(e) => setRole(e.target.value as OfficeUserRoleCode)}
-          className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
-        >
+        <Select id="role" label={t('roleLabel')} value={role} onChange={(e) => setRole(e.target.value as OfficeUserRoleCode)}>
           <option value="OfficeStaff">{t('role.OfficeStaff')}</option>
           <option value="OfficeAdmin">{t('role.OfficeAdmin')}</option>
-        </select>
-      </div>
+        </Select>
 
-      {role === 'OfficeStaff' && (
-        <div className="flex flex-col gap-2">
-          <span className="text-sm font-medium text-text">{t('permissionsLabel')}</span>
-          <PermissionCheckboxList selected={permissionCodes} onChange={setPermissionCodes} />
+        {role === 'OfficeStaff' && (
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium text-text">{t('permissionsLabel')}</span>
+            <PermissionCheckboxList selected={permissionCodes} onChange={setPermissionCodes} />
+          </div>
+        )}
+
+        {error && <p className="text-sm text-danger">{error}</p>}
+
+        <div className="flex gap-2">
+          <Button type="submit" variant="primary" disabled={isSubmitting || !fullName.trim() || !mobileNumber.trim()}>
+            {t('send')}
+          </Button>
+          <Button type="button" variant="secondary" onClick={onCancel}>
+            {t('cancel')}
+          </Button>
         </div>
-      )}
-
-      {error && <p className="text-sm text-danger">{error}</p>}
-
-      <div className="flex gap-2">
-        <button
-          type="submit"
-          disabled={isSubmitting || !fullName.trim() || !mobileNumber.trim()}
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-surface disabled:opacity-60"
-        >
-          {t('send')}
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-md border border-surface-muted px-4 py-2 text-sm text-text"
-        >
-          {t('cancel')}
-        </button>
-      </div>
+      </Card>
     </form>
   )
 }

@@ -1,14 +1,10 @@
-import clsx from 'clsx'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ReasonForm } from './ReasonForm'
 import type { OfficeJobSeekerDocument } from '../types/officeJobSeekerReview.types'
-
-const STATUS_TONE: Record<string, string> = {
-  Pending: 'text-warning',
-  Approved: 'text-success',
-  Rejected: 'text-danger',
-}
+import { Card } from '@/shared/ui/Card'
+import { Button } from '@/shared/ui/Button'
+import { StatusTag } from '@/shared/ui/StatusTag'
 
 export function DocumentReviewRow({
   document,
@@ -29,12 +25,14 @@ export function DocumentReviewRow({
   const [showReject, setShowReject] = useState(false)
 
   return (
-    <div className="flex flex-col gap-2 rounded-md border border-surface-muted p-4">
+    <Card className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
         <span className="font-medium text-text">{t(`documentType.${document.documentType}`)}</span>
-        <span className={clsx('text-sm font-medium', STATUS_TONE[document.reviewStatus])}>
-          {t(`documentStatus.${document.reviewStatus}`)}
-        </span>
+        <StatusTag
+          domain="documentReview"
+          value={document.reviewStatus}
+          label={t(`documentStatus.${document.reviewStatus}`)}
+        />
       </div>
 
       <p className="text-sm text-text-muted">{document.originalFileName}</p>
@@ -46,21 +44,12 @@ export function DocumentReviewRow({
 
       {document.reviewStatus === 'Pending' && !showReject && (
         <div className="flex gap-2">
-          <button
-            type="button"
-            disabled={isApproving}
-            onClick={onApprove}
-            className="rounded-md bg-success px-3 py-1.5 text-sm font-medium text-surface disabled:opacity-60"
-          >
+          <Button disabled={isApproving} onClick={onApprove} className="bg-success hover:bg-success/90">
             {t('approve')}
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowReject(true)}
-            className="rounded-md border border-danger px-3 py-1.5 text-sm font-medium text-danger"
-          >
+          </Button>
+          <Button variant="danger" onClick={() => setShowReject(true)}>
             {t('reject')}
-          </button>
+          </Button>
         </div>
       )}
 
@@ -76,6 +65,6 @@ export function DocumentReviewRow({
           onCancel={() => setShowReject(false)}
         />
       )}
-    </div>
+    </Card>
   )
 }

@@ -3,6 +3,11 @@ import { useTranslation } from 'react-i18next'
 import { ApiError } from '@/shared/api/types'
 import { useInterview, useScheduleInterview, useUpdateInterview } from '../api/interviewsAndReports.queries'
 import type { InterviewStatusCode } from '../types/interviewsAndReports.types'
+import { Card } from '@/shared/ui/Card'
+import { TextInput } from '@/shared/ui/TextInput'
+import { Button } from '@/shared/ui/Button'
+import { StatusTag } from '@/shared/ui/StatusTag'
+import { LoadingState } from '@/shared/ui/LoadingState'
 
 function errorMessage(error: unknown): string | undefined {
   return error instanceof ApiError ? error.messages[0] : undefined
@@ -19,28 +24,31 @@ export function InterviewPanel({ applicationId, editable }: { applicationId: str
 
   const notFound = error instanceof ApiError && error.kind === 'notFound'
 
-  if (isLoading) return <p className="text-sm text-text-muted">...</p>
+  if (isLoading) return <LoadingState />
 
   if (notFound || !interview) {
-    if (!editable) return <p className="text-sm text-text-muted">{t('noInterviewYet')}</p>
+    if (!editable)
+      return (
+        <Card>
+          <p className="text-sm text-text-muted">{t('noInterviewYet')}</p>
+        </Card>
+      )
     return (
-      <div className="flex flex-col gap-2">
+      <Card className="flex flex-col gap-3">
         <p className="text-sm text-text-muted">{t('noInterviewYet')}</p>
-        <input
+        <TextInput
           type="datetime-local"
           value={scheduledAt}
           onChange={(e) => setScheduledAt(e.target.value)}
-          className="rounded-md border border-surface-muted px-2 py-1 text-sm text-text"
         />
-        <input
+        <TextInput
           type="text"
           placeholder={t('locationLabel')}
           value={location}
           onChange={(e) => setLocation(e.target.value)}
-          className="rounded-md border border-surface-muted px-2 py-1 text-sm text-text"
         />
-        <button
-          type="button"
+        <Button
+          variant="primary"
           disabled={schedule.isPending}
           onClick={() =>
             schedule.mutate({
@@ -48,43 +56,43 @@ export function InterviewPanel({ applicationId, editable }: { applicationId: str
               locationOrMeetingDetails: location,
             })
           }
-          className="self-start rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-surface disabled:opacity-60"
+          className="self-start"
         >
           {t('scheduleInterview')}
-        </button>
+        </Button>
         {errorMessage(schedule.error) && <p className="text-sm text-danger">{errorMessage(schedule.error)}</p>}
-      </div>
+      </Card>
     )
   }
 
   return (
-    <div className="flex flex-col gap-2 text-sm">
+    <Card className="flex flex-col gap-3 text-sm">
       <p className="text-text">
         {t('scheduledAtLabel')}: {interview.scheduledAt ? new Date(interview.scheduledAt).toLocaleString('ar') : '—'}
       </p>
       <p className="text-text">
         {t('locationLabel')}: {interview.locationOrMeetingDetails ?? '—'}
       </p>
-      <p className="text-text">
-        {t('interviewStatusLabel')}: {t(`interviewStatus.${interview.status}`)}
-      </p>
+      <div className="flex items-center gap-2 text-text">
+        <span>{t('interviewStatusLabel')}:</span>
+        <StatusTag domain="interview" value={interview.status} label={t(`interviewStatus.${interview.status}`)} />
+      </div>
 
       {editable && interview.status === 'Scheduled' && (
         <div className="flex flex-wrap gap-2">
           {(['Completed', 'NoShow', 'Cancelled'] as InterviewStatusCode[]).map((status) => (
-            <button
+            <Button
               key={status}
-              type="button"
+              variant="secondary"
               disabled={update.isPending}
               onClick={() => update.mutate({ scheduledAt: '', locationOrMeetingDetails: '', status })}
-              className="rounded-md border border-surface-muted px-3 py-1.5 text-sm text-text disabled:opacity-60"
             >
               {t(`interviewStatus.${status}`)}
-            </button>
+            </Button>
           ))}
         </div>
       )}
       {errorMessage(update.error) && <p className="text-sm text-danger">{errorMessage(update.error)}</p>}
-    </div>
+    </Card>
   )
 }

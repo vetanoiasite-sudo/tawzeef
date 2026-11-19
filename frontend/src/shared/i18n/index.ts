@@ -16,6 +16,10 @@ void i18n.use(initReactI18next).init({
       common: {
         logout: 'تسجيل الخروج',
         welcomeUser: 'مرحبًا، {{name}}',
+        prevPage: 'السابق',
+        nextPage: 'التالي',
+        pageOf: 'صفحة {{current}} من {{total}}',
+        cancel: 'إلغاء',
       },
       validation: {
         required: 'هذا الحقل مطلوب',

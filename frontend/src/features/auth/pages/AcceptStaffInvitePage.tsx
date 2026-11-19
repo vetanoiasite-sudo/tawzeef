@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { ApiError } from '@/shared/api/types'
 import { useSessionStore } from '@/shared/auth/sessionStore'
 import { TawzeefLogo } from '@/shared/ui/TawzeefLogo'
+import { Card } from '@/shared/ui/Card'
 import { toSessionUser } from '../api/auth.mapper'
 import { useAcceptStaffInvite, useRequestOtp, useVerifyOtp } from '../api/auth.queries'
 import { AcceptInvitePasswordStep } from '../components/AcceptInvitePasswordStep'
@@ -79,34 +80,36 @@ export default function AcceptStaffInvitePage() {
 
       <RegistrationStepper current={step} />
 
-      {step === 'phone' && (
-        <PhoneStep
-          defaultPhoneNumber={phoneNumber}
-          isSubmitting={requestOtp.isPending}
-          submitError={errorMessage(requestOtp.error)}
-          onSubmit={handleRequestOtp}
-        />
-      )}
+      <Card>
+        {step === 'phone' && (
+          <PhoneStep
+            defaultPhoneNumber={phoneNumber}
+            isSubmitting={requestOtp.isPending}
+            submitError={errorMessage(requestOtp.error)}
+            onSubmit={handleRequestOtp}
+          />
+        )}
 
-      {step === 'otp' && (
-        <OtpStep
-          phoneNumber={phoneNumber}
-          isSubmitting={verifyOtp.isPending}
-          isResending={requestOtp.isPending}
-          submitError={errorMessage(verifyOtp.error)}
-          onSubmit={handleVerifyOtp}
-          onResend={() => requestOtp.mutate({ phoneNumber, purpose: 'StaffInvite' })}
-          onChangeNumber={() => setStep('phone')}
-        />
-      )}
+        {step === 'otp' && (
+          <OtpStep
+            phoneNumber={phoneNumber}
+            isSubmitting={verifyOtp.isPending}
+            isResending={requestOtp.isPending}
+            submitError={errorMessage(verifyOtp.error)}
+            onSubmit={handleVerifyOtp}
+            onResend={() => requestOtp.mutate({ phoneNumber, purpose: 'StaffInvite' })}
+            onChangeNumber={() => setStep('phone')}
+          />
+        )}
 
-      {step === 'details' && (
-        <AcceptInvitePasswordStep
-          isSubmitting={acceptInvite.isPending}
-          submitError={errorMessage(acceptInvite.error)}
-          onSubmit={handleAccept}
-        />
-      )}
+        {step === 'details' && (
+          <AcceptInvitePasswordStep
+            isSubmitting={acceptInvite.isPending}
+            submitError={errorMessage(acceptInvite.error)}
+            onSubmit={handleAccept}
+          />
+        )}
+      </Card>
     </div>
   )
 }

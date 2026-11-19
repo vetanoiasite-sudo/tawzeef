@@ -3,6 +3,8 @@ import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { employerProfileFormSchema, type EmployerProfileFormValues } from '../schemas/employerProfile.schema'
 import type { EmployerProfile } from '../types/employerProfile.types'
+import { TextInput } from '@/shared/ui/TextInput'
+import { Button } from '@/shared/ui/Button'
 
 export function EmployerProfileCompletionForm({
   profile,
@@ -39,113 +41,74 @@ export function EmployerProfileCompletionForm({
   return (
     <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="representativeName" className="text-sm font-medium text-text">
-            {t('employerProfile:representativeNameLabel')}
-          </label>
-          <input
-            id="representativeName"
-            type="text"
-            className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
-            {...register('representativeName')}
-          />
-          {errors.representativeName && (
-            <p className="text-sm text-danger">{t(errors.representativeName.message ?? '')}</p>
-          )}
-        </div>
+        <TextInput
+          id="representativeName"
+          type="text"
+          label={t('employerProfile:representativeNameLabel')}
+          error={errors.representativeName ? t(errors.representativeName.message ?? '') : undefined}
+          {...register('representativeName')}
+        />
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="representativeRole" className="text-sm font-medium text-text">
-            {t('employerProfile:representativeRoleLabel')}
-          </label>
-          <input
-            id="representativeRole"
-            type="text"
-            className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
-            {...register('representativeRole')}
-          />
-          {errors.representativeRole && (
-            <p className="text-sm text-danger">{t(errors.representativeRole.message ?? '')}</p>
-          )}
-        </div>
+        <TextInput
+          id="representativeRole"
+          type="text"
+          label={t('employerProfile:representativeRoleLabel')}
+          error={errors.representativeRole ? t(errors.representativeRole.message ?? '') : undefined}
+          {...register('representativeRole')}
+        />
 
-        <div className="flex flex-col gap-1 sm:col-span-2">
-          <label htmlFor="businessActivity" className="text-sm font-medium text-text">
-            {t('employerProfile:businessActivityLabel')}
-          </label>
-          <input
+        <div className="sm:col-span-2">
+          <TextInput
             id="businessActivity"
             type="text"
-            className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
+            label={t('employerProfile:businessActivityLabel')}
+            error={errors.businessActivity ? t(errors.businessActivity.message ?? '') : undefined}
             {...register('businessActivity')}
           />
-          {errors.businessActivity && (
-            <p className="text-sm text-danger">{t(errors.businessActivity.message ?? '')}</p>
-          )}
         </div>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="city" className="text-sm font-medium text-text">
-            {t('employerProfile:cityLabel')}
-          </label>
-          <input
-            id="city"
-            type="text"
-            className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
-            {...register('city')}
-          />
-          {errors.city && <p className="text-sm text-danger">{t(errors.city.message ?? '')}</p>}
-        </div>
+        <TextInput
+          id="city"
+          type="text"
+          label={t('employerProfile:cityLabel')}
+          error={errors.city ? t(errors.city.message ?? '') : undefined}
+          {...register('city')}
+        />
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="companyPhone" className="text-sm font-medium text-text">
-            {t('employerProfile:companyPhoneLabel')}
-          </label>
-          <input
-            id="companyPhone"
-            type="tel"
-            className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
-            {...register('companyPhone')}
-          />
-          {errors.companyPhone && <p className="text-sm text-danger">{t(errors.companyPhone.message ?? '')}</p>}
-        </div>
+        <TextInput
+          id="companyPhone"
+          type="tel"
+          label={t('employerProfile:companyPhoneLabel')}
+          error={errors.companyPhone ? t(errors.companyPhone.message ?? '') : undefined}
+          {...register('companyPhone')}
+        />
 
-        <div className="flex flex-col gap-1 sm:col-span-2">
-          <label htmlFor="address" className="text-sm font-medium text-text">
-            {t('employerProfile:addressLabel')}
-          </label>
-          <input
+        <div className="sm:col-span-2">
+          <TextInput
             id="address"
             type="text"
-            className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
+            label={t('employerProfile:addressLabel')}
+            error={errors.address ? t(errors.address.message ?? '') : undefined}
             {...register('address')}
           />
-          {errors.address && <p className="text-sm text-danger">{t(errors.address.message ?? '')}</p>}
         </div>
 
-        <div className="flex flex-col gap-1 sm:col-span-2">
-          <label htmlFor="companyEmail" className="text-sm font-medium text-text">
-            {t('employerProfile:companyEmailLabel')}
-          </label>
-          <input
+        <div className="sm:col-span-2">
+          <TextInput
             id="companyEmail"
             type="email"
-            className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
+            label={t('employerProfile:companyEmailLabel')}
+            error={errors.companyEmail ? t(errors.companyEmail.message ?? '') : undefined}
             {...register('companyEmail')}
           />
-          {errors.companyEmail && <p className="text-sm text-danger">{t(errors.companyEmail.message ?? '')}</p>}
         </div>
       </div>
 
       {submitError && <p className="text-sm text-danger">{submitError}</p>}
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="self-start rounded-md bg-primary px-4 py-2 font-medium text-surface disabled:opacity-60"
-      >
+      <Button type="submit" disabled={isSubmitting} className="self-start">
         {t('employerProfile:save')}
-      </button>
+      </Button>
     </form>
   )
 }

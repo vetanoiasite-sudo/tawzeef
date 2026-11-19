@@ -3,6 +3,12 @@ import { useTranslation } from 'react-i18next'
 import { ApiError } from '@/shared/api/types'
 import { useCreateEvaluation, useEvaluation } from '../api/interviewsAndReports.queries'
 import type { ApplicantEvaluationOutcomeCode } from '../types/interviewsAndReports.types'
+import { Card } from '@/shared/ui/Card'
+import { Select } from '@/shared/ui/Select'
+import { TextArea } from '@/shared/ui/TextInput'
+import { Button } from '@/shared/ui/Button'
+import { StatusTag } from '@/shared/ui/StatusTag'
+import { LoadingState } from '@/shared/ui/LoadingState'
 
 function errorMessage(error: unknown): string | undefined {
   return error instanceof ApiError ? error.messages[0] : undefined
@@ -20,54 +26,46 @@ export function EvaluationPanel({ applicationId, editable }: { applicationId: st
 
   const notFound = error instanceof ApiError && error.kind === 'notFound'
 
-  if (isLoading) return <p className="text-sm text-text-muted">...</p>
+  if (isLoading) return <LoadingState />
 
   if (editable) {
     return (
-      <div className="flex flex-col gap-2">
+      <Card className="flex flex-col gap-3">
         {evaluation ? (
-          <p className="text-sm text-text">
-            {t('outcomeLabel')}: {t(`outcome.${evaluation.outcome}`)} {evaluation.notes && `— ${evaluation.notes}`}
-          </p>
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <StatusTag domain="applicantEvaluation" value={evaluation.outcome} label={t(`outcome.${evaluation.outcome}`)} />
+            {evaluation.notes && <span className="text-text-muted">— {evaluation.notes}</span>}
+          </div>
         ) : (
           <p className="text-sm text-text-muted">{t('noEvaluationYet')}</p>
         )}
-        <select
-          value={outcome}
-          onChange={(e) => setOutcome(e.target.value as ApplicantEvaluationOutcomeCode)}
-          className="rounded-md border border-surface-muted px-2 py-1 text-sm text-text"
-        >
+        <Select value={outcome} onChange={(e) => setOutcome(e.target.value as ApplicantEvaluationOutcomeCode)}>
           {OUTCOMES.map((o) => (
             <option key={o} value={o}>
               {t(`outcome.${o}`)}
             </option>
           ))}
-        </select>
-        <textarea
-          placeholder={t('notesLabel')}
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          rows={2}
-          className="rounded-md border border-surface-muted px-2 py-1 text-sm text-text"
-        />
-        <button
-          type="button"
-          disabled={create.isPending}
-          onClick={() => create.mutate({ outcome, notes })}
-          className="self-start rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-surface disabled:opacity-60"
-        >
+        </Select>
+        <TextArea placeholder={t('notesLabel')} value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
+        <Button variant="primary" disabled={create.isPending} onClick={() => create.mutate({ outcome, notes })} className="self-start">
           {t('writeEvaluation')}
-        </button>
+        </Button>
         {errorMessage(create.error) && <p className="text-sm text-danger">{errorMessage(create.error)}</p>}
-      </div>
+      </Card>
     )
   }
 
-  if (notFound || !evaluation) return <p className="text-sm text-text-muted">{t('noEvaluationYet')}</p>
+  if (notFound || !evaluation)
+    return (
+      <Card>
+        <p className="text-sm text-text-muted">{t('noEvaluationYet')}</p>
+      </Card>
+    )
 
   return (
-    <p className="text-sm text-text">
-      {t('outcomeLabel')}: {t(`outcome.${evaluation.outcome}`)} {evaluation.notes && `— ${evaluation.notes}`}
-    </p>
+    <Card className="flex flex-wrap items-center gap-2 text-sm">
+      <StatusTag domain="applicantEvaluation" value={evaluation.outcome} label={t(`outcome.${evaluation.outcome}`)} />
+      {evaluation.notes && <span className="text-text-muted">— {evaluation.notes}</span>}
+    </Card>
   )
 }

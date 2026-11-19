@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { Button } from '@/shared/ui/Button'
 
 export function TriageControl({
   isSubmitting,
@@ -15,22 +16,12 @@ export function TriageControl({
     <div className="flex flex-col gap-2">
       <h3 className="text-sm font-semibold text-text">{t('triageSection')}</h3>
       <div className="flex gap-2">
-        <button
-          type="button"
-          disabled={isSubmitting}
-          onClick={() => onDecide('Valid')}
-          className="rounded-md bg-success px-3 py-1.5 text-sm font-medium text-surface disabled:opacity-60"
-        >
+        <Button variant="success" disabled={isSubmitting} onClick={() => onDecide('Valid')}>
           {t('markValid')}
-        </button>
-        <button
-          type="button"
-          disabled={isSubmitting}
-          onClick={() => onDecide('Invalid')}
-          className="rounded-md border border-danger px-3 py-1.5 text-sm font-medium text-danger disabled:opacity-60"
-        >
+        </Button>
+        <Button variant="danger" disabled={isSubmitting} onClick={() => onDecide('Invalid')}>
           {t('markInvalid')}
-        </button>
+        </Button>
       </div>
       {error && <p className="text-sm text-danger">{error}</p>}
     </div>

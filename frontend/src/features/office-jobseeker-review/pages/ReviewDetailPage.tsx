@@ -14,6 +14,10 @@ import {
   useRejectProfile,
   useSuspendProfile,
 } from '../api/officeJobSeekerReview.queries'
+import { Card } from '@/shared/ui/Card'
+import { Button } from '@/shared/ui/Button'
+import { StatusTag } from '@/shared/ui/StatusTag'
+import { LoadingState } from '@/shared/ui/LoadingState'
 
 function errorMessage(error: unknown): string | undefined {
   return error instanceof ApiError ? error.messages[0] : undefined
@@ -37,7 +41,7 @@ export default function ReviewDetailPage() {
   const reinstateProfile = useReinstateProfile(profileId)
 
   if (isLoading || !profile) {
-    return <div className="mx-auto max-w-2xl px-4 py-10 text-text-muted">...</div>
+    return <LoadingState />
   }
 
   const canDecideProfile = profile.reviewStatus === 'UnderReview'
@@ -46,41 +50,42 @@ export default function ReviewDetailPage() {
   const overComplaintThreshold = profile.validComplaintCount >= 3
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-8 px-4 py-10">
-      <Link to="/office/job-seekers" className="text-sm text-primary">
+    <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8 sm:px-6">
+      <Link to="/office/job-seekers" className="text-sm font-medium text-primary hover:underline">
         {t('backToQueue')}
       </Link>
 
       <div className="flex flex-col gap-1">
-        <h1 className="text-lg font-semibold text-text">{profile.fullName}</h1>
+        <h1 className="text-xl font-bold text-text">{profile.fullName}</h1>
         <p className="text-sm text-text-muted">{profile.mobileNumber}</p>
       </div>
 
       {overComplaintThreshold && (
-        <div className="rounded-md border border-danger bg-danger/10 p-4">
+        <Card className="border-danger bg-danger/10">
           <p className="text-sm font-medium text-danger">
             {t('complaintThresholdWarning', { count: profile.validComplaintCount })}
           </p>
-        </div>
+        </Card>
       )}
 
-      <div className="rounded-md bg-surface-muted p-4">
-        <p className="text-sm text-text-muted">
-          {t('columnStatus')}: <span className="font-medium text-text">{t(`status.${profile.reviewStatus}`)}</span>
-        </p>
+      <Card className="flex flex-col gap-2">
+        <div className="flex items-center gap-2 text-sm text-text-muted">
+          {t('columnStatus')}:
+          <StatusTag domain="jobSeekerReview" value={profile.reviewStatus} label={t(`status.${profile.reviewStatus}`)} />
+        </div>
         {profile.rejectionReason && (
-          <p className="mt-1 text-sm text-danger">
+          <p className="text-sm text-danger">
             {t('rejectionReasonLabel')}: {profile.rejectionReason}
           </p>
         )}
         {profile.suspensionReason && (
-          <p className="mt-1 text-sm text-danger">
+          <p className="text-sm text-danger">
             {t('suspensionReasonLabel')}: {profile.suspensionReason}
           </p>
         )}
-      </div>
+      </Card>
 
-      <section className="grid grid-cols-2 gap-4 text-sm">
+      <Card className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
         <div>
           <p className="text-text-muted">{t('emailLabel')}</p>
           <p className="text-text">{profile.email ?? '—'}</p>
@@ -101,18 +106,18 @@ export default function ReviewDetailPage() {
           <p className="text-text-muted">{t('yearsOfExperienceLabel')}</p>
           <p className="text-text">{profile.yearsOfExperience ?? '—'}</p>
         </div>
-        <div className="col-span-2">
+        <div className="sm:col-span-2">
           <p className="text-text-muted">{t('skillsLabel')}</p>
           <p className="text-text">{profile.skills ?? '—'}</p>
         </div>
-        <div className="col-span-2">
+        <div className="sm:col-span-2">
           <p className="text-text-muted">{t('careerSummaryLabel')}</p>
           <p className="text-text">{profile.careerSummary ?? '—'}</p>
         </div>
-      </section>
+      </Card>
 
       <section className="flex flex-col gap-4">
-        <h2 className="font-semibold text-text">{t('documentsSection')}</h2>
+        <h2 className="text-lg font-semibold text-text">{t('documentsSection')}</h2>
         {profile.documents.map((document) => (
           <DocumentReviewRow
             key={document.id}
@@ -130,21 +135,12 @@ export default function ReviewDetailPage() {
         <section className="flex flex-col gap-2">
           {!showRejectProfile && (
             <div className="flex gap-2">
-              <button
-                type="button"
-                disabled={approveProfile.isPending}
-                onClick={() => approveProfile.mutate()}
-                className="rounded-md bg-success px-4 py-2 text-sm font-medium text-surface disabled:opacity-60"
-              >
+              <Button disabled={approveProfile.isPending} onClick={() => approveProfile.mutate()} className="bg-success hover:bg-success/90">
                 {t('approveProfile')}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowRejectProfile(true)}
-                className="rounded-md border border-danger px-4 py-2 text-sm font-medium text-danger"
-              >
+              </Button>
+              <Button variant="danger" onClick={() => setShowRejectProfile(true)}>
                 {t('rejectProfile')}
-              </button>
+              </Button>
             </div>
           )}
           {showRejectProfile && (
@@ -166,13 +162,9 @@ export default function ReviewDetailPage() {
       {canSuspend && (
         <section className="flex flex-col gap-2">
           {!showSuspend ? (
-            <button
-              type="button"
-              onClick={() => setShowSuspend(true)}
-              className="self-start rounded-md border border-danger px-4 py-2 text-sm font-medium text-danger"
-            >
+            <Button variant="danger" onClick={() => setShowSuspend(true)} className="self-start">
               {t('suspendProfile')}
-            </button>
+            </Button>
           ) : (
             <ReasonForm
               confirmLabel={t('suspendProfile')}
@@ -191,13 +183,9 @@ export default function ReviewDetailPage() {
       {canReinstate && (
         <section className="flex flex-col gap-2">
           {!showReinstate ? (
-            <button
-              type="button"
-              onClick={() => setShowReinstate(true)}
-              className="self-start rounded-md bg-primary px-4 py-2 text-sm font-medium text-surface"
-            >
+            <Button onClick={() => setShowReinstate(true)} className="self-start">
               {t('reinstateProfile')}
-            </button>
+            </Button>
           ) : (
             <ReasonForm
               confirmLabel={t('reinstateProfile')}

@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { PermissionCheckboxList } from './PermissionCheckboxList'
 import type { OfficeUser } from '../types/officeUser.types'
+import { Card } from '@/shared/ui/Card'
+import { Button } from '@/shared/ui/Button'
+import { StatusTag } from '@/shared/ui/StatusTag'
 
 export function OfficeUserRow({
   user,
@@ -23,15 +26,15 @@ export function OfficeUserRow({
   const [draftPermissions, setDraftPermissions] = useState<string[]>(user.permissionCodes)
 
   return (
-    <div className="flex flex-col gap-2 rounded-md border border-surface-muted p-4">
+    <Card className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
         <div>
           <p className="font-medium text-text">{user.fullName}</p>
           <p className="text-sm text-text-muted">{user.mobileNumber}</p>
         </div>
-        <div className="text-end text-sm">
+        <div className="flex flex-col items-end gap-1 text-sm">
           <p className="text-text">{t(`role.${user.role}`)}</p>
-          <p className="text-text-muted">{t(`status.${user.membershipStatus}`)}</p>
+          <StatusTag domain="officeMembership" value={user.membershipStatus} label={t(`status.${user.membershipStatus}`)} />
         </div>
       </div>
 
@@ -46,56 +49,49 @@ export function OfficeUserRow({
       {user.membershipStatus === 'Active' && (
         <div className="flex flex-wrap gap-2">
           {user.role === 'OfficeStaff' && !editing && (
-            <button
-              type="button"
+            <Button
+              variant="secondary"
               onClick={() => {
                 setDraftPermissions(user.permissionCodes)
                 setEditing(true)
               }}
-              className="rounded-md border border-surface-muted px-3 py-1.5 text-sm text-text"
             >
               {t('editPermissions')}
-            </button>
+            </Button>
           )}
-          <button
-            type="button"
+          <Button
+            variant="danger"
             disabled={isRevoking}
             onClick={() => {
               if (window.confirm(t('revokeConfirm'))) onRevoke()
             }}
-            className="rounded-md border border-danger px-3 py-1.5 text-sm font-medium text-danger disabled:opacity-60"
           >
             {t('revoke')}
-          </button>
+          </Button>
         </div>
       )}
 
       {editing && (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 border-t border-surface-muted pt-3">
           <PermissionCheckboxList selected={draftPermissions} onChange={setDraftPermissions} />
           {permissionsError && <p className="text-sm text-danger">{permissionsError}</p>}
           <div className="flex gap-2">
-            <button
-              type="button"
+            <Button
+              variant="primary"
               disabled={isSavingPermissions}
               onClick={() => {
                 onSavePermissions(draftPermissions)
                 setEditing(false)
               }}
-              className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-surface disabled:opacity-60"
             >
               {t('saveChanges')}
-            </button>
-            <button
-              type="button"
-              onClick={() => setEditing(false)}
-              className="rounded-md border border-surface-muted px-3 py-1.5 text-sm text-text"
-            >
+            </Button>
+            <Button variant="secondary" onClick={() => setEditing(false)}>
               {t('cancel')}
-            </button>
+            </Button>
           </div>
         </div>
       )}
-    </div>
+    </Card>
   )
 }

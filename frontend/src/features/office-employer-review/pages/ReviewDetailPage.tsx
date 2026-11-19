@@ -14,6 +14,10 @@ import {
   useResumeCooperation,
   useStopCooperation,
 } from '../api/officeEmployerReview.queries'
+import { Card } from '@/shared/ui/Card'
+import { Button } from '@/shared/ui/Button'
+import { StatusTag } from '@/shared/ui/StatusTag'
+import { LoadingState } from '@/shared/ui/LoadingState'
 
 function errorMessage(error: unknown): string | undefined {
   return error instanceof ApiError ? error.messages[0] : undefined
@@ -37,7 +41,7 @@ export default function ReviewDetailPage() {
   const resumeCooperation = useResumeCooperation(employerId)
 
   if (isLoading || !employer) {
-    return <div className="mx-auto max-w-2xl px-4 py-10 text-text-muted">...</div>
+    return <LoadingState />
   }
 
   const canDecideProfile = employer.verificationStatus === 'UnderReview'
@@ -48,45 +52,50 @@ export default function ReviewDetailPage() {
   const overComplaintThreshold = employer.validComplaintCount >= 3
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-8 px-4 py-10">
-      <Link to="/office/employers" className="text-sm text-primary">
+    <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8 sm:px-6">
+      <Link to="/office/employers" className="text-sm font-medium text-primary hover:underline">
         {t('backToQueue')}
       </Link>
 
       <div className="flex flex-col gap-1">
-        <h1 className="text-lg font-semibold text-text">{employer.displayName}</h1>
+        <h1 className="text-xl font-bold text-text">{employer.displayName}</h1>
         <p className="text-sm text-text-muted">{employer.legalName}</p>
       </div>
 
       {overComplaintThreshold && (
-        <div className="rounded-md border border-danger bg-danger/10 p-4">
+        <Card className="border-danger bg-danger/10">
           <p className="text-sm font-medium text-danger">
             {t('complaintThresholdWarning', { count: employer.validComplaintCount })}
           </p>
-        </div>
+        </Card>
       )}
 
-      <div className="rounded-md bg-surface-muted p-4">
-        <p className="text-sm text-text-muted">
-          {t('columnStatus')}: <span className="font-medium text-text">{t(`status.${employer.verificationStatus}`)}</span>
-        </p>
-        <p className="mt-1 text-sm text-text-muted">
-          {t('columnCooperation')}:{' '}
-          <span className="font-medium text-text">{t(`cooperationStatus.${employer.cooperationStatus}`)}</span>
-        </p>
+      <Card className="flex flex-col gap-2">
+        <div className="flex items-center gap-2 text-sm text-text-muted">
+          {t('columnStatus')}:
+          <StatusTag domain="employerVerification" value={employer.verificationStatus} label={t(`status.${employer.verificationStatus}`)} />
+        </div>
+        <div className="flex items-center gap-2 text-sm text-text-muted">
+          {t('columnCooperation')}:
+          <StatusTag
+            domain="employerCooperation"
+            value={employer.cooperationStatus}
+            label={t(`cooperationStatus.${employer.cooperationStatus}`)}
+          />
+        </div>
         {employer.rejectionReason && (
-          <p className="mt-1 text-sm text-danger">
+          <p className="text-sm text-danger">
             {t('rejectionReasonLabel')}: {employer.rejectionReason}
           </p>
         )}
         {employer.cooperationStoppedReason && (
-          <p className="mt-1 text-sm text-danger">
+          <p className="text-sm text-danger">
             {t('cooperationStoppedReasonLabel')}: {employer.cooperationStoppedReason}
           </p>
         )}
-      </div>
+      </Card>
 
-      <section className="grid grid-cols-2 gap-4 text-sm">
+      <Card className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
         <div>
           <p className="text-text-muted">{t('representativeLabel')}</p>
           <p className="text-text">{employer.representativeName ?? '—'}</p>
@@ -103,18 +112,18 @@ export default function ReviewDetailPage() {
           <p className="text-text-muted">{t('phoneLabel')}</p>
           <p className="text-text">{employer.companyPhone ?? '—'}</p>
         </div>
-        <div className="col-span-2">
+        <div className="sm:col-span-2">
           <p className="text-text-muted">{t('addressLabel')}</p>
           <p className="text-text">{employer.address ?? '—'}</p>
         </div>
-        <div className="col-span-2">
+        <div className="sm:col-span-2">
           <p className="text-text-muted">{t('businessActivityLabel')}</p>
           <p className="text-text">{employer.businessActivity ?? '—'}</p>
         </div>
-      </section>
+      </Card>
 
       <section className="flex flex-col gap-4">
-        <h2 className="font-semibold text-text">{t('documentsSection')}</h2>
+        <h2 className="text-lg font-semibold text-text">{t('documentsSection')}</h2>
         {employer.documents.map((document) => (
           <DocumentReviewRow
             key={document.id}
@@ -132,21 +141,12 @@ export default function ReviewDetailPage() {
         <section className="flex flex-col gap-2">
           {!showRejectProfile && (
             <div className="flex gap-2">
-              <button
-                type="button"
-                disabled={approveProfile.isPending}
-                onClick={() => approveProfile.mutate()}
-                className="rounded-md bg-success px-4 py-2 text-sm font-medium text-surface disabled:opacity-60"
-              >
+              <Button disabled={approveProfile.isPending} onClick={() => approveProfile.mutate()} className="bg-success hover:bg-success/90">
                 {t('approveProfile')}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowRejectProfile(true)}
-                className="rounded-md border border-danger px-4 py-2 text-sm font-medium text-danger"
-              >
+              </Button>
+              <Button variant="danger" onClick={() => setShowRejectProfile(true)}>
                 {t('rejectProfile')}
-              </button>
+              </Button>
             </div>
           )}
           {showRejectProfile && (
@@ -168,13 +168,9 @@ export default function ReviewDetailPage() {
       {canStopCooperation && (
         <section className="flex flex-col gap-2">
           {!showStopCooperation ? (
-            <button
-              type="button"
-              onClick={() => setShowStopCooperation(true)}
-              className="self-start rounded-md border border-danger px-4 py-2 text-sm font-medium text-danger"
-            >
+            <Button variant="danger" onClick={() => setShowStopCooperation(true)} className="self-start">
               {t('stopCooperation')}
-            </button>
+            </Button>
           ) : (
             <ReasonForm
               confirmLabel={t('stopCooperation')}
@@ -193,13 +189,9 @@ export default function ReviewDetailPage() {
       {canResumeCooperation && (
         <section className="flex flex-col gap-2">
           {!showResumeCooperation ? (
-            <button
-              type="button"
-              onClick={() => setShowResumeCooperation(true)}
-              className="self-start rounded-md bg-primary px-4 py-2 text-sm font-medium text-surface"
-            >
+            <Button onClick={() => setShowResumeCooperation(true)} className="self-start">
               {t('resumeCooperation')}
-            </button>
+            </Button>
           ) : (
             <ReasonForm
               confirmLabel={t('resumeCooperation')}

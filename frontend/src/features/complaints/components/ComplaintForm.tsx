@@ -2,6 +2,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { createComplaintSchema, type CreateComplaintFormValues } from '../schemas/complaint.schema'
+import { Card } from '@/shared/ui/Card'
+import { Button } from '@/shared/ui/Button'
+import { TextInput, TextArea } from '@/shared/ui/TextInput'
+import { Select } from '@/shared/ui/Select'
 
 export function ComplaintForm({
   isSubmitting,
@@ -25,65 +29,42 @@ export function ComplaintForm({
   })
 
   return (
-    <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-4 rounded-md border border-surface-muted p-4">
-      <div className="flex flex-col gap-1">
-        <label htmlFor="subjectType" className="text-sm font-medium text-text">
-          {t('complaints:subjectTypeLabel')}
-        </label>
-        <select
-          id="subjectType"
-          className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
-          {...register('subjectType')}
-        >
+    <form onSubmit={(e) => void handleSubmit(onSubmit)(e)}>
+      <Card className="flex flex-col gap-4">
+        <Select id="subjectType" label={t('complaints:subjectTypeLabel')} {...register('subjectType')}>
           <option value="JobSeeker">{t('complaints:subjectType.JobSeeker')}</option>
           <option value="Employer">{t('complaints:subjectType.Employer')}</option>
-        </select>
-      </div>
+        </Select>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="subjectId" className="text-sm font-medium text-text">
-          {t('complaints:subjectIdLabel')}
-        </label>
-        <input
-          id="subjectId"
-          className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
-          {...register('subjectId')}
-        />
-        <p className="text-xs text-text-muted">{t('complaints:subjectIdHint')}</p>
-        {errors.subjectId && <p className="text-sm text-danger">{t(errors.subjectId.message ?? '')}</p>}
-      </div>
+        <div>
+          <TextInput
+            id="subjectId"
+            label={t('complaints:subjectIdLabel')}
+            error={errors.subjectId ? t(errors.subjectId.message ?? '') : undefined}
+            {...register('subjectId')}
+          />
+          <p className="mt-1 text-xs text-text-muted">{t('complaints:subjectIdHint')}</p>
+        </div>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="complaintText" className="text-sm font-medium text-text">
-          {t('complaints:complaintTextLabel')}
-        </label>
-        <textarea
+        <TextArea
           id="complaintText"
           rows={4}
-          className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
+          label={t('complaints:complaintTextLabel')}
+          error={errors.complaintText ? t(errors.complaintText.message ?? '') : undefined}
           {...register('complaintText')}
         />
-        {errors.complaintText && <p className="text-sm text-danger">{t(errors.complaintText.message ?? '')}</p>}
-      </div>
 
-      {submitError && <p className="text-sm text-danger">{submitError}</p>}
+        {submitError && <p className="text-sm text-danger">{submitError}</p>}
 
-      <div className="flex gap-2">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-surface disabled:opacity-60"
-        >
-          {t('complaints:submit')}
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-md border border-surface-muted px-4 py-2 text-sm text-text"
-        >
-          {t('complaints:cancel')}
-        </button>
-      </div>
+        <div className="flex gap-2">
+          <Button type="submit" variant="primary" disabled={isSubmitting}>
+            {t('complaints:submit')}
+          </Button>
+          <Button type="button" variant="secondary" onClick={onCancel}>
+            {t('complaints:cancel')}
+          </Button>
+        </div>
+      </Card>
     </form>
   )
 }

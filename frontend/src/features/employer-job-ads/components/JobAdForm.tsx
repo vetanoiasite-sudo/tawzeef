@@ -3,6 +3,9 @@ import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { jobAdFormSchema, type JobAdFormValues } from '../schemas/jobAd.schema'
 import type { JobAdDetail } from '../types/employerJobAds.types'
+import { TextInput, TextArea } from '@/shared/ui/TextInput'
+import { Select } from '@/shared/ui/Select'
+import { Button } from '@/shared/ui/Button'
 
 export function JobAdForm({
   ad,
@@ -38,158 +41,65 @@ export function JobAdForm({
   })
 
   return (
-    <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-4">
+    <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-5">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="flex flex-col gap-1 sm:col-span-2">
-          <label htmlFor="title" className="text-sm font-medium text-text">
-            {t('employerJobAds:titleLabel')}
-          </label>
-          <input
-            id="title"
-            type="text"
-            className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
-            {...register('title')}
-          />
-          {errors.title && <p className="text-sm text-danger">{t(errors.title.message ?? '')}</p>}
-        </div>
+        <TextInput
+          id="title"
+          label={t('employerJobAds:titleLabel')}
+          className="sm:col-span-2"
+          error={errors.title ? t(errors.title.message ?? '') : undefined}
+          {...register('title')}
+        />
 
-        <div className="flex flex-col gap-1 sm:col-span-2">
-          <label htmlFor="description" className="text-sm font-medium text-text">
-            {t('employerJobAds:descriptionLabel')}
-          </label>
-          <textarea
-            id="description"
-            rows={4}
-            className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
-            {...register('description')}
-          />
-          {errors.description && <p className="text-sm text-danger">{t(errors.description.message ?? '')}</p>}
-        </div>
+        <TextArea
+          id="description"
+          label={t('employerJobAds:descriptionLabel')}
+          rows={4}
+          className="sm:col-span-2"
+          error={errors.description ? t(errors.description.message ?? '') : undefined}
+          {...register('description')}
+        />
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="category" className="text-sm font-medium text-text">
-            {t('employerJobAds:categoryLabel')}
-          </label>
-          <input
-            id="category"
-            type="text"
-            className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
-            {...register('category')}
-          />
-        </div>
+        <TextInput id="category" label={t('employerJobAds:categoryLabel')} {...register('category')} />
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="city" className="text-sm font-medium text-text">
-            {t('employerJobAds:cityLabel')}
-          </label>
-          <input
-            id="city"
-            type="text"
-            className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
-            {...register('city')}
-          />
-        </div>
+        <TextInput id="city" label={t('employerJobAds:cityLabel')} {...register('city')} />
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="employmentType" className="text-sm font-medium text-text">
-            {t('employerJobAds:employmentTypeLabel')}
-          </label>
-          <select
-            id="employmentType"
-            className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
-            {...register('employmentType')}
-          >
-            <option value="">—</option>
-            <option value="FullTime">{t('employerJobAds:employmentType.FullTime')}</option>
-            <option value="PartTime">{t('employerJobAds:employmentType.PartTime')}</option>
-            <option value="Contract">{t('employerJobAds:employmentType.Contract')}</option>
-          </select>
-        </div>
+        <Select id="employmentType" label={t('employerJobAds:employmentTypeLabel')} {...register('employmentType')}>
+          <option value="">—</option>
+          <option value="FullTime">{t('employerJobAds:employmentType.FullTime')}</option>
+          <option value="PartTime">{t('employerJobAds:employmentType.PartTime')}</option>
+          <option value="Contract">{t('employerJobAds:employmentType.Contract')}</option>
+        </Select>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="experienceRequirement" className="text-sm font-medium text-text">
-            {t('employerJobAds:experienceRequirementLabel')}
-          </label>
-          <input
-            id="experienceRequirement"
-            type="text"
-            className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
-            {...register('experienceRequirement')}
-          />
-        </div>
+        <TextInput
+          id="experienceRequirement"
+          label={t('employerJobAds:experienceRequirementLabel')}
+          {...register('experienceRequirement')}
+        />
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="workingHours" className="text-sm font-medium text-text">
-            {t('employerJobAds:workingHoursLabel')}
-          </label>
-          <input
-            id="workingHours"
-            type="text"
-            className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
-            {...register('workingHours')}
-          />
-        </div>
+        <TextInput id="workingHours" label={t('employerJobAds:workingHoursLabel')} {...register('workingHours')} />
 
-        <div className="flex flex-col gap-1 sm:col-span-2">
-          <label htmlFor="address" className="text-sm font-medium text-text">
-            {t('employerJobAds:addressLabel')}
-          </label>
-          <input
-            id="address"
-            type="text"
-            className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
-            {...register('address')}
-          />
-        </div>
+        <TextInput id="address" label={t('employerJobAds:addressLabel')} className="sm:col-span-2" {...register('address')} />
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="salaryMin" className="text-sm font-medium text-text">
-            {t('employerJobAds:salaryMinLabel')}
-          </label>
-          <input
-            id="salaryMin"
-            type="number"
-            className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
-            {...register('salaryMin')}
-          />
-        </div>
+        <TextInput id="salaryMin" type="number" label={t('employerJobAds:salaryMinLabel')} {...register('salaryMin')} />
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="salaryMax" className="text-sm font-medium text-text">
-            {t('employerJobAds:salaryMaxLabel')}
-          </label>
-          <input
-            id="salaryMax"
-            type="number"
-            className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
-            {...register('salaryMax')}
-          />
-        </div>
+        <TextInput id="salaryMax" type="number" label={t('employerJobAds:salaryMaxLabel')} {...register('salaryMax')} />
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="vacancyCount" className="text-sm font-medium text-text">
-            {t('employerJobAds:vacancyCountLabel')}
-          </label>
-          <input
-            id="vacancyCount"
-            type="number"
-            min={1}
-            className="rounded-md border border-surface-muted px-3 py-2 text-text outline-none focus:border-primary"
-            {...register('vacancyCount')}
-          />
-          {errors.vacancyCount && <p className="text-sm text-danger">{t(errors.vacancyCount.message ?? '')}</p>}
-        </div>
+        <TextInput
+          id="vacancyCount"
+          type="number"
+          min={1}
+          label={t('employerJobAds:vacancyCountLabel')}
+          error={errors.vacancyCount ? t(errors.vacancyCount.message ?? '') : undefined}
+          {...register('vacancyCount')}
+        />
       </div>
 
       {submitError && <p className="text-sm text-danger">{submitError}</p>}
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="self-start rounded-md bg-primary px-4 py-2 font-medium text-surface disabled:opacity-60"
-      >
+      <Button type="submit" variant="primary" disabled={isSubmitting} className="self-start">
         {t('employerJobAds:save')}
-      </button>
+      </Button>
     </form>
   )
 }
