@@ -2,14 +2,17 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 import { ApiError } from '@/shared/api/types'
+import { useAccess } from '@/shared/auth/useAccess'
 import { DocumentReviewRow } from '../components/DocumentReviewRow'
-import { RejectReasonForm } from '../components/RejectReasonForm'
+import { ReasonForm } from '../components/ReasonForm'
 import {
   useApproveDocument,
   useApproveProfile,
   useOfficeJobSeekerDetail,
+  useReinstateProfile,
   useRejectDocument,
   useRejectProfile,
+  useSuspendProfile,
 } from '../api/officeJobSeekerReview.queries'
 
 function errorMessage(error: unknown): string | undefined {
@@ -18,21 +21,28 @@ function errorMessage(error: unknown): string | undefined {
 
 export default function ReviewDetailPage() {
   const { t } = useTranslation('officeJobSeekerReview')
+  const { hasPermission } = useAccess()
   const { id } = useParams<{ id: string }>()
   const profileId = id ?? ''
   const [showRejectProfile, setShowRejectProfile] = useState(false)
+  const [showSuspend, setShowSuspend] = useState(false)
+  const [showReinstate, setShowReinstate] = useState(false)
 
   const { data: profile, isLoading } = useOfficeJobSeekerDetail(profileId)
   const approveDocument = useApproveDocument(profileId)
   const rejectDocument = useRejectDocument(profileId)
   const approveProfile = useApproveProfile(profileId)
   const rejectProfile = useRejectProfile(profileId)
+  const suspendProfile = useSuspendProfile(profileId)
+  const reinstateProfile = useReinstateProfile(profileId)
 
   if (isLoading || !profile) {
     return <div className="mx-auto max-w-2xl px-4 py-10 text-text-muted">...</div>
   }
 
   const canDecideProfile = profile.reviewStatus === 'UnderReview'
+  const canSuspend = profile.reviewStatus === 'Approved' && hasPermission('jobseekers.suspend')
+  const canReinstate = profile.reviewStatus === 'Suspended' && hasPermission('jobseekers.reinstate')
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-8 px-4 py-10">
@@ -52,6 +62,11 @@ export default function ReviewDetailPage() {
         {profile.rejectionReason && (
           <p className="mt-1 text-sm text-danger">
             {t('rejectionReasonLabel')}: {profile.rejectionReason}
+          </p>
+        )}
+        {profile.suspensionReason && (
+          <p className="mt-1 text-sm text-danger">
+            {t('suspensionReasonLabel')}: {profile.suspensionReason}
           </p>
         )}
       </div>
@@ -124,7 +139,8 @@ export default function ReviewDetailPage() {
             </div>
           )}
           {showRejectProfile && (
-            <RejectReasonForm
+            <ReasonForm
+              confirmLabel={t('rejectProfile')}
               isSubmitting={rejectProfile.isPending}
               error={errorMessage(rejectProfile.error)}
               onConfirm={(reason) => {
@@ -135,6 +151,57 @@ export default function ReviewDetailPage() {
             />
           )}
           {errorMessage(approveProfile.error) && <p className="text-sm text-danger">{errorMessage(approveProfile.error)}</p>}
+        </section>
+      )}
+
+      {canSuspend && (
+        <section className="flex flex-col gap-2">
+          {!showSuspend ? (
+            <button
+              type="button"
+              onClick={() => setShowSuspend(true)}
+              className="self-start rounded-md border border-danger px-4 py-2 text-sm font-medium text-danger"
+            >
+              {t('suspendProfile')}
+            </button>
+          ) : (
+            <ReasonForm
+              confirmLabel={t('suspendProfile')}
+              isSubmitting={suspendProfile.isPending}
+              error={errorMessage(suspendProfile.error)}
+              onConfirm={(reason) => {
+                suspendProfile.mutate(reason)
+                setShowSuspend(false)
+              }}
+              onCancel={() => setShowSuspend(false)}
+            />
+          )}
+        </section>
+      )}
+
+      {canReinstate && (
+        <section className="flex flex-col gap-2">
+          {!showReinstate ? (
+            <button
+              type="button"
+              onClick={() => setShowReinstate(true)}
+              className="self-start rounded-md bg-primary px-4 py-2 text-sm font-medium text-surface"
+            >
+              {t('reinstateProfile')}
+            </button>
+          ) : (
+            <ReasonForm
+              confirmLabel={t('reinstateProfile')}
+              confirmTone="primary"
+              isSubmitting={reinstateProfile.isPending}
+              error={errorMessage(reinstateProfile.error)}
+              onConfirm={(reason) => {
+                reinstateProfile.mutate(reason)
+                setShowReinstate(false)
+              }}
+              onCancel={() => setShowReinstate(false)}
+            />
+          )}
         </section>
       )}
     </div>

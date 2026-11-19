@@ -27,7 +27,7 @@ public class OfficeJobSeekersController(IJobSeekerReviewService service, ICurren
 
     [HttpPost("{id:guid}/documents/{documentId:guid}/reject")]
     [RequiresPermission("jobseekers.review")]
-    public async Task<IActionResult> RejectDocument(Guid id, Guid documentId, [FromBody] RejectReasonDto dto, CancellationToken ct)
+    public async Task<IActionResult> RejectDocument(Guid id, Guid documentId, [FromBody] ReasonDto dto, CancellationToken ct)
         => Respond(await service.RejectDocumentAsync(RequireOfficeId(), RequireUserId(), id, documentId, dto.Reason, ct));
 
     [HttpPost("{id:guid}/approve")]
@@ -37,8 +37,20 @@ public class OfficeJobSeekersController(IJobSeekerReviewService service, ICurren
 
     [HttpPost("{id:guid}/reject")]
     [RequiresPermission("jobseekers.reject")]
-    public async Task<IActionResult> RejectProfile(Guid id, [FromBody] RejectReasonDto dto, CancellationToken ct)
+    public async Task<IActionResult> RejectProfile(Guid id, [FromBody] ReasonDto dto, CancellationToken ct)
         => Respond(await service.RejectProfileAsync(RequireOfficeId(), RequireUserId(), id, dto.Reason, ct));
+
+    /// <summary>OfficeAdmin only — RBAC_PERMISSIONS.md §0 item 8 / footnote 5, enforced by
+    /// PermissionCatalogue.OfficeAdminOnly in PermissionChecker, not by this attribute alone.</summary>
+    [HttpPost("{id:guid}/suspend")]
+    [RequiresPermission("jobseekers.suspend")]
+    public async Task<IActionResult> Suspend(Guid id, [FromBody] ReasonDto dto, CancellationToken ct)
+        => Respond(await service.SuspendAsync(RequireOfficeId(), RequireUserId(), id, dto.Reason, ct));
+
+    [HttpPost("{id:guid}/reinstate")]
+    [RequiresPermission("jobseekers.reinstate")]
+    public async Task<IActionResult> Reinstate(Guid id, [FromBody] ReasonDto dto, CancellationToken ct)
+        => Respond(await service.ReinstateAsync(RequireOfficeId(), RequireUserId(), id, dto.Reason, ct));
 
     private Guid RequireUserId() => currentUser.Id ?? throw new UnauthorizedAccessException();
     private Guid RequireOfficeId() => currentUser.OfficeId ?? throw new UnauthorizedAccessException();

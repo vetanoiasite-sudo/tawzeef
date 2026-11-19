@@ -49,3 +49,19 @@ export function useRejectProfile(profileId: string) {
     onSuccess: (data) => queryClient.setQueryData(officeJobSeekerReviewKeys.detail(profileId), data),
   })
 }
+
+export function useSuspendProfile(profileId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (reason: string) => officeJobSeekerReviewApi.suspend({ profileId, reason }),
+    onSuccess: (data) => queryClient.setQueryData(officeJobSeekerReviewKeys.detail(profileId), data),
+  })
+}
+
+export function useReinstateProfile(profileId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (reason: string) => officeJobSeekerReviewApi.reinstate({ profileId, reason }),
+    onSuccess: (data) => queryClient.setQueryData(officeJobSeekerReviewKeys.detail(profileId), data),
+  })
+}

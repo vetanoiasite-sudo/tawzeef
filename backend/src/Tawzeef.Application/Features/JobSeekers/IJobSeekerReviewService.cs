@@ -21,4 +21,10 @@ public interface IJobSeekerReviewService
 
     Task<ServiceResult<JobSeekerProfileDto>> RejectProfileAsync(
         Guid officeId, Guid reviewerId, Guid profileId, string reason, CancellationToken ct = default);
+
+    Task<ServiceResult<JobSeekerProfileDto>> SuspendAsync(
+        Guid officeId, Guid reviewerId, Guid profileId, string reason, CancellationToken ct = default);
+
+    Task<ServiceResult<JobSeekerProfileDto>> ReinstateAsync(
+        Guid officeId, Guid reviewerId, Guid profileId, string reason, CancellationToken ct = default);
 }

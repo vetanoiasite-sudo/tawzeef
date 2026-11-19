@@ -25,4 +25,8 @@ export const officeJobSeekerReviewApi = {
     httpClient.post<OfficeJobSeekerDetail>(`/api/office/job-seekers/${profileId}/approve`),
   rejectProfile: ({ profileId, reason }: { profileId: string; reason: string }) =>
     httpClient.post<OfficeJobSeekerDetail>(`/api/office/job-seekers/${profileId}/reject`, { reason }),
+  suspend: ({ profileId, reason }: { profileId: string; reason: string }) =>
+    httpClient.post<OfficeJobSeekerDetail>(`/api/office/job-seekers/${profileId}/suspend`, { reason }),
+  reinstate: ({ profileId, reason }: { profileId: string; reason: string }) =>
+    httpClient.post<OfficeJobSeekerDetail>(`/api/office/job-seekers/${profileId}/reinstate`, { reason }),
 }

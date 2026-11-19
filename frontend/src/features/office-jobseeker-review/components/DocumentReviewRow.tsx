@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { RejectReasonForm } from './RejectReasonForm'
+import { ReasonForm } from './ReasonForm'
 import type { OfficeJobSeekerDocument } from '../types/officeJobSeekerReview.types'
 
 const STATUS_TONE: Record<string, string> = {
@@ -65,7 +65,8 @@ export function DocumentReviewRow({
       )}
 
       {showReject && (
-        <RejectReasonForm
+        <ReasonForm
+          confirmLabel={t('reject')}
           isSubmitting={isRejecting}
           error={rejectError}
           onConfirm={(reason) => {

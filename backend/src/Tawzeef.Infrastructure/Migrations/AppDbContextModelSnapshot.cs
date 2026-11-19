@@ -454,6 +454,42 @@ namespace Tawzeef.Infrastructure.Migrations
                     b.ToTable("EmploymentOffices", (string)null);
                 });
 
+            modelBuilder.Entity("Tawzeef.Domain.Entities.Offices.OfficeDecision", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("DecidedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("DecidedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte>("DecisionType")
+                        .HasColumnType("tinyint");
+
+                    b.Property<Guid>("OfficeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<Guid>("TargetId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte>("TargetType")
+                        .HasColumnType("tinyint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TargetType", "TargetId");
+
+                    b.ToTable("OfficeDecisions", (string)null);
+                });
+
             modelBuilder.Entity("Tawzeef.Domain.Entities.Offices.PermissionDefinition", b =>
                 {
                     b.Property<string>("Code")

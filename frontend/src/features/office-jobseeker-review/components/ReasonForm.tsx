@@ -1,12 +1,16 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-export function RejectReasonForm({
+export function ReasonForm({
+  confirmLabel,
+  confirmTone = 'danger',
   isSubmitting,
   error,
   onConfirm,
   onCancel,
 }: {
+  confirmLabel: string
+  confirmTone?: 'danger' | 'primary'
   isSubmitting: boolean
   error?: string
   onConfirm: (reason: string) => void
@@ -30,9 +34,13 @@ export function RejectReasonForm({
           type="button"
           disabled={isSubmitting || !reason.trim()}
           onClick={() => onConfirm(reason.trim())}
-          className="rounded-md bg-danger px-3 py-1.5 text-sm font-medium text-surface disabled:opacity-60"
+          className={
+            confirmTone === 'danger'
+              ? 'rounded-md bg-danger px-3 py-1.5 text-sm font-medium text-surface disabled:opacity-60'
+              : 'rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-surface disabled:opacity-60'
+          }
         >
-          {t('reject')}
+          {confirmLabel}
         </button>
         <button
           type="button"

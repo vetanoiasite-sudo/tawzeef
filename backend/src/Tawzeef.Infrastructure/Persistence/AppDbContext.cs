@@ -24,6 +24,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityUser
     public DbSet<JobSeekerProfile> JobSeekerProfiles => Set<JobSeekerProfile>();
     public DbSet<JobSeekerDocument> JobSeekerDocuments => Set<JobSeekerDocument>();
     public DbSet<Employer> Employers => Set<Employer>();
+    public DbSet<OfficeDecision> OfficeDecisions => Set<OfficeDecision>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

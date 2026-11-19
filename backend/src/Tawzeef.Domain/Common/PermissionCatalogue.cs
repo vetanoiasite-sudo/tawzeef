@@ -38,5 +38,11 @@ public static class PermissionCatalogue
             .ToList();
 
     /// <summary>Never grantable to OfficeStaff — RBAC_PERMISSIONS.md footnotes 1 and 5.</summary>
-    public static readonly string[] OfficeAdminOnly = ["officeusers.view", "officeusers.invite", "officeusers.edit", "officeusers.deactivate", "complaints.decide"];
+    public static readonly string[] OfficeAdminOnly =
+    [
+        "officeusers.view", "officeusers.invite", "officeusers.edit", "officeusers.deactivate",
+        "complaints.decide",
+        "jobseekers.suspend", "jobseekers.reinstate",
+        "employers.suspend", "employers.reinstate",
+    ];
 }

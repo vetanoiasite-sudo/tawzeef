@@ -19,6 +19,8 @@ internal static class JobSeekerProfileMapping
         CareerSummary = p.CareerSummary,
         ReviewStatus = p.ReviewStatus.ToString(),
         RejectionReason = p.RejectionReason,
+        SuspensionReason = p.SuspensionReason,
+        SuspendedAt = p.SuspendedAt,
         Documents = documents.Select(d => d.ToDto()).ToList(),
     };
 

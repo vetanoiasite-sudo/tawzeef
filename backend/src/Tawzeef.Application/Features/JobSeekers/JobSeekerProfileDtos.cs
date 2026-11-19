@@ -27,6 +27,8 @@ public class JobSeekerProfileDto
     public string? CareerSummary { get; set; }
     public string ReviewStatus { get; set; } = string.Empty;
     public string? RejectionReason { get; set; }
+    public string? SuspensionReason { get; set; }
+    public DateTime? SuspendedAt { get; set; }
     public List<JobSeekerDocumentDto> Documents { get; set; } = [];
 }
 

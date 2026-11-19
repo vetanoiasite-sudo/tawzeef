@@ -39,6 +39,8 @@ export type OfficeJobSeekerDetail = {
   careerSummary: string | null
   reviewStatus: JobSeekerReviewStatusCode
   rejectionReason: string | null
+  suspensionReason: string | null
+  suspendedAt: string | null
   documents: OfficeJobSeekerDocument[]
 }
 

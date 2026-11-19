@@ -26,7 +26,9 @@ public class JobSeekerReviewListItemDto
     public DateTime LastUpdatedAt { get; set; }
 }
 
-public class RejectReasonDto
+/// <summary>A required free-text reason — document/profile reject, suspend, and reinstate all
+/// just need "why", nothing else.</summary>
+public class ReasonDto
 {
     [Required, MaxLength(1000)]
     public string Reason { get; set; } = string.Empty;

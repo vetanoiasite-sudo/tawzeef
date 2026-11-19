@@ -10,6 +10,7 @@ const STATUS_FILTERS: (JobSeekerReviewStatusCode | undefined)[] = [
   'UnderReview',
   'Approved',
   'Rejected',
+  'Suspended',
 ]
 
 const PAGE_SIZE = 20

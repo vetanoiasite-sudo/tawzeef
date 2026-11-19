@@ -2,6 +2,7 @@ using Tawzeef.Application.Common;
 using Tawzeef.Domain.Common;
 using Tawzeef.Domain.Contracts;
 using Tawzeef.Domain.Entities.JobSeekers;
+using Tawzeef.Domain.Entities.Offices;
 using Tawzeef.Domain.Enums;
 
 namespace Tawzeef.Application.Features.JobSeekers;
@@ -125,6 +126,70 @@ public class JobSeekerReviewService(IUnitOfWork uow) : IJobSeekerReviewService
         profile.ReviewStatus = JobSeekerReviewStatus.Rejected;
         profile.RejectionReason = reason.Trim();
         uow.Repository<JobSeekerProfile>().Update(profile);
+        await uow.SaveChangesAsync(ct);
+
+        var documents = await uow.Repository<JobSeekerDocument>().ListAsync(d => d.JobSeekerId == profile.Id && d.IsActive, ct: ct);
+        return ServiceResult<JobSeekerProfileDto>.Success(profile.ToDto(documents));
+    }
+
+    public async Task<ServiceResult<JobSeekerProfileDto>> SuspendAsync(
+        Guid officeId, Guid reviewerId, Guid profileId, string reason, CancellationToken ct = default)
+    {
+        var profile = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.Id == profileId && p.OfficeId == officeId, ct: ct);
+        if (profile is null) return ServiceResult<JobSeekerProfileDto>.NotFound("Job seeker profile not found.");
+
+        // WORKFLOWS_AND_STATE_MACHINES.md §1: Approved -> Suspended only.
+        if (profile.ReviewStatus != JobSeekerReviewStatus.Approved)
+            return ServiceResult<JobSeekerProfileDto>.Conflict("Only an approved profile can be suspended.");
+
+        profile.ReviewStatus = JobSeekerReviewStatus.Suspended;
+        profile.SuspendedAt = DateTime.UtcNow;
+        profile.SuspensionReason = reason.Trim();
+        uow.Repository<JobSeekerProfile>().Update(profile);
+
+        await uow.Repository<OfficeDecision>().AddAsync(new OfficeDecision
+        {
+            Id = Guid.NewGuid(),
+            OfficeId = officeId,
+            TargetType = OfficeDecisionTargetType.JobSeeker,
+            TargetId = profile.Id,
+            DecisionType = OfficeDecisionType.Suspend,
+            Reason = reason.Trim(),
+            DecidedBy = reviewerId,
+        }, ct);
+
+        await uow.SaveChangesAsync(ct);
+
+        var documents = await uow.Repository<JobSeekerDocument>().ListAsync(d => d.JobSeekerId == profile.Id && d.IsActive, ct: ct);
+        return ServiceResult<JobSeekerProfileDto>.Success(profile.ToDto(documents));
+    }
+
+    public async Task<ServiceResult<JobSeekerProfileDto>> ReinstateAsync(
+        Guid officeId, Guid reviewerId, Guid profileId, string reason, CancellationToken ct = default)
+    {
+        var profile = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.Id == profileId && p.OfficeId == officeId, ct: ct);
+        if (profile is null) return ServiceResult<JobSeekerProfileDto>.NotFound("Job seeker profile not found.");
+
+        // WORKFLOWS_AND_STATE_MACHINES.md §1: Suspended -> Approved only.
+        if (profile.ReviewStatus != JobSeekerReviewStatus.Suspended)
+            return ServiceResult<JobSeekerProfileDto>.Conflict("Only a suspended profile can be reinstated.");
+
+        profile.ReviewStatus = JobSeekerReviewStatus.Approved;
+        profile.SuspendedAt = null;
+        profile.SuspensionReason = null;
+        uow.Repository<JobSeekerProfile>().Update(profile);
+
+        await uow.Repository<OfficeDecision>().AddAsync(new OfficeDecision
+        {
+            Id = Guid.NewGuid(),
+            OfficeId = officeId,
+            TargetType = OfficeDecisionTargetType.JobSeeker,
+            TargetId = profile.Id,
+            DecisionType = OfficeDecisionType.Reinstate,
+            Reason = reason.Trim(),
+            DecidedBy = reviewerId,
+        }, ct);
+
         await uow.SaveChangesAsync(ct);
 
         var documents = await uow.Repository<JobSeekerDocument>().ListAsync(d => d.JobSeekerId == profile.Id && d.IsActive, ct: ct);
