@@ -118,7 +118,10 @@ registration requires OTP verification of that number before the account is usab
 // Request — identifier is the mobile number (confirmed)
 { "identifier": "string", "password": "string" }
 // Response data
-{ "accessToken": "string", "refreshToken": "string", "expiresAt": "datetime", "role": "string", "officeId": "guid?" }
+{ "accessToken": "string", "refreshToken": "string", "expiresAt": "datetime", "role": "string", "officeId": "guid?", "permissionCodes": ["string"] }
+// permissionCodes: every catalogued code for OfficeAdmin, the StaffPermissionGrant subset for
+// OfficeStaff, empty for SuperAdmin/JobSeeker/Employer (each covered by its own frontend shortcut
+// instead — RBAC_PERMISSIONS.md §2/§3).
 ```
 
 ---

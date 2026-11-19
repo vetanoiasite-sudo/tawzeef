@@ -46,6 +46,7 @@ export type AuthResult = {
   employerId: string | null
   role: string
   officeId: string | null
+  permissionCodes: string[]
   accessToken: string
   expiresAt: string
 }

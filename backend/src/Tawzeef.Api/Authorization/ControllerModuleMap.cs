@@ -11,5 +11,6 @@ public static class ControllerModuleMap
     {
         ["Offices"] = "offices",
         ["JobSeekers"] = "jobseekers",
+        ["OfficeJobSeekers"] = "jobseekers",
     };
 }

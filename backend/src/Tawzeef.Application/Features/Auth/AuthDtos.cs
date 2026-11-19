@@ -96,6 +96,11 @@ public class AuthResultDto
     public string Role { get; set; } = string.Empty;
     public Guid? OfficeId { get; set; }
 
+    /// <summary>What useAccess().hasPermission() gates the office-staff UI on
+    /// (PROJECT_ARCHITECTURE_FRONTEND.md §13.3) — empty for SuperAdmin/JobSeeker/Employer, who are
+    /// each covered by their own shortcut on the frontend instead (RBAC_PERMISSIONS.md §2/§3).</summary>
+    public List<string> PermissionCodes { get; set; } = [];
+
     public string AccessToken { get; set; } = string.Empty;
     public DateTime ExpiresAt { get; set; }
 }

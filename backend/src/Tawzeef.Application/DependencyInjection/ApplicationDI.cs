@@ -12,6 +12,7 @@ public static class ApplicationDI
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IOfficeService, OfficeService>();
         services.AddScoped<IJobSeekerProfileService, JobSeekerProfileService>();
+        services.AddScoped<IJobSeekerReviewService, JobSeekerReviewService>();
         return services;
     }
 }

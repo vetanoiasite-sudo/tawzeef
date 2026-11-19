@@ -76,7 +76,8 @@ builder.Services.AddAuthorization(options =>
 // 5. CORS — explicit allowlist.
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy => policy.WithOrigins(corsOrigins).AllowAnyHeader().AllowAnyMethod());
+    options.AddDefaultPolicy(policy => policy.WithOrigins(corsOrigins).AllowAnyHeader().AllowAnyMethod()
+        .WithExposedHeaders("X-Pagination"));
 });
 
 // 6. Controllers + global permission filter, Swagger.

@@ -233,6 +233,8 @@ public class AuthService(
             }
         }
 
+        var permissionCodes = await ResolvePermissionCodesAsync(membership, ct);
+
         var (accessToken, expiresAt) = tokenGenerator.GenerateToken(user.Id, user.FullName, user.IsSuperAdmin, membership?.OfficeId);
         return ServiceResult<AuthResultDto>.Success(new AuthResultDto
         {
@@ -242,9 +244,24 @@ public class AuthService(
             EmployerId = employerId,
             Role = role,
             OfficeId = membership?.OfficeId,
+            PermissionCodes = permissionCodes,
             AccessToken = accessToken,
             ExpiresAt = expiresAt,
         });
+    }
+
+    /// <summary>Mirrors Tawzeef.Infrastructure.Authorization.PermissionChecker's own resolution —
+    /// OfficeAdmin holds every catalogued code within their office, OfficeStaff only the
+    /// data-driven subset a StaffPermissionGrant row lists (RBAC_PERMISSIONS.md §1/§7).</summary>
+    private async Task<List<string>> ResolvePermissionCodesAsync(Tawzeef.Domain.Entities.Offices.UserOfficeMembership? membership, CancellationToken ct)
+    {
+        if (membership is null) return [];
+        if (membership.Role == OfficeRole.OfficeAdmin)
+            return Tawzeef.Domain.Common.PermissionCatalogue.All.Select(p => p.Code).ToList();
+
+        var grants = await uow.Repository<Tawzeef.Domain.Entities.Offices.StaffPermissionGrant>().ListAsync(
+            g => g.UserOfficeMembershipId == membership.Id, ct: ct);
+        return grants.Select(g => g.PermissionCode).ToList();
     }
 
     private static string GenerateNumericCode(int length)

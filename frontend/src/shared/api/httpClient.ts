@@ -94,8 +94,43 @@ async function request<T>(
   return envelope.data as T
 }
 
+export type PaginationMeta = { totalCount: number; pageIndex: number; pageSize: number; totalPages: number }
+
+/** BACKEND_GUIDELINES.md §11: paged list endpoints carry their page info in an X-Pagination
+ * response header instead of the ServiceResult envelope. */
+async function requestPaged<T>(path: string, query?: RequestOptions['query']): Promise<{ items: T; pagination: PaginationMeta }> {
+  const headers: HeadersInit = { Accept: 'application/json' }
+  const token = getAuthToken()
+  if (token) headers['Authorization'] = `Bearer ${token}`
+
+  let response: Response
+  try {
+    response = await fetch(buildUrl(path, query), { method: 'GET', headers })
+  } catch {
+    throw new ApiError('network', ['Could not reach the server.'])
+  }
+
+  if (response.status === 401) {
+    onUnauthorized()
+    throw new ApiError('unauthorized', ['Your session has expired.'])
+  }
+
+  const envelope = (await response.json().catch(() => null)) as ApiEnvelope<T> | null
+  if (!response.ok || !envelope?.isSuccess) {
+    throw new ApiError(errorKindFor(response.status), envelope?.errorMessages ?? ['Something went wrong.'])
+  }
+
+  const paginationHeader = response.headers.get('X-Pagination')
+  const pagination: PaginationMeta = paginationHeader
+    ? (JSON.parse(paginationHeader) as PaginationMeta)
+    : { totalCount: 0, pageIndex: 0, pageSize: 0, totalPages: 0 }
+
+  return { items: envelope.data as T, pagination }
+}
+
 export const httpClient = {
   get: <T>(path: string, options?: RequestOptions) => request<T>('GET', path, undefined, options),
+  getPaged: <T>(path: string, query?: RequestOptions['query']) => requestPaged<T>(path, query),
   post: <T>(path: string, body?: unknown, options?: RequestOptions) =>
     request<T>('POST', path, body, options),
   put: <T>(path: string, body?: unknown, options?: RequestOptions) =>
