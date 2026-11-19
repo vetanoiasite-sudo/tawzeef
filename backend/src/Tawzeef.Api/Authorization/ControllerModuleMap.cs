@@ -21,5 +21,7 @@ public static class ControllerModuleMap
         ["OfficeJobAdvertisements"] = "jobadvertisements",
         ["JobSeekerApplications"] = "jobapplications",
         ["EmployerApplications"] = "jobapplications",
+        ["Suggestions"] = "suggestions",
+        ["OfficeSuggestions"] = "suggestions",
     };
 }

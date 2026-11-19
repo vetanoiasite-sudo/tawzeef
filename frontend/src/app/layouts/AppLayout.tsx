@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Link, Outlet } from 'react-router-dom'
+import { NotificationBell } from '@/features/notifications'
 import { useAccess } from '@/shared/auth/useAccess'
 import { useSessionStore } from '@/shared/auth/sessionStore'
 import { TawzeefLogo } from '@/shared/ui/TawzeefLogo'
@@ -20,6 +21,9 @@ export function AppLayout() {
     'officeJobAdsReview',
     'jobSeekerApplications',
     'interviewsAndReports',
+    'suggestions',
+    'officeSuggestionsReview',
+    'notifications',
   ])
   const { isAuthenticated, hasPermission } = useAccess()
   const user = useSessionStore((s) => s.user)
@@ -88,11 +92,22 @@ export function AppLayout() {
                 {t('officeComplaintReview:queueTitle')}
               </Link>
             )}
+            {hasPermission('suggestions.viewown') && (
+              <Link to="/suggestions" className="text-primary">
+                {t('suggestions:pageTitle')}
+              </Link>
+            )}
+            {hasPermission('suggestions.view') && (
+              <Link to="/office/suggestions" className="text-primary">
+                {t('officeSuggestionsReview:queueTitle')}
+              </Link>
+            )}
             {hasPermission('officeusers.view') && (
               <Link to="/office/users" className="text-primary">
                 {t('officeUsers:pageTitle')}
               </Link>
             )}
+            <NotificationBell />
             <span className="text-text">{t('common:welcomeUser', { name: user?.fullName })}</span>
             <button type="button" onClick={clearSession} className="text-primary">
               {t('common:logout')}

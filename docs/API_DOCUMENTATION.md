@@ -496,6 +496,36 @@ points a staff member at this endpoint; it never calls it automatically.
 | `POST` | `/api/notifications/{id:guid}/read` | `notifications.viewown` |
 | `POST` | `/api/notifications/read-all` | `notifications.viewown` |
 
+`notifications.viewown` is granted to every authenticated role without exception
+(RBAC_PERMISSIONS.md §3's matrix: a plain ✅ in every column) — OfficeStaff included, with no
+`StaffPermissionGrant` row needed. `PermissionChecker` special-cases it (and `AuthService`'s
+`permissionCodes` on login mirrors the same special-case, so the frontend's own copy of the rule
+sees it too).
+
+**Implementation note (2026-11-19):** BUSINESS_REQUIREMENTS.md §13 lists ~20 "potential"
+notification events, explicitly not a confirmed exhaustive requirement. This build wires exactly
+four, each one a side effect already written into a confirmed workflow doc rather than a new
+invented trigger:
+- `JobAdvertisement.Approved` / `.Rejected` → the Employer (WORKFLOWS_AND_STATE_MACHINES.md §5's
+  transition table literally lists "Notification → Employer" on both transitions).
+- `Complaint.ThresholdReached` → every active OfficeAdmin of the office, fired once (the triage
+  that makes the valid count *reach* 3, not every one after) — WORKFLOWS_AND_STATE_MACHINES.md
+  §10.3's "System raises an alert/task for the office".
+- `Suggestion.Submitted` → every active OfficeAdmin; `Suggestion.Responded` → the submitter. Not
+  separately documented, but the natural completion of the suggestion review queue this same
+  change adds.
+
+Every other event on §13's list (registration submitted, profile approved/rejected, document
+needs correction, payment confirmed, ad published/nearing expiry/expired, new application,
+application status changed, interview scheduled/changed, hiring follow-up due, complaint
+submitted/status changed, suspension recorded) is a known, deliberately out-of-scope gap — revisit
+per-event if the product owner confirms which ones matter for v1, rather than wiring the whole
+list speculatively. The one WORKFLOWS_AND_STATE_MACHINES.md §9.1 trigger that *is* documented
+("notifies the responsible office staff" when a `HiringFollowUpReport` passes `DueAt`) is also
+deferred — `Overdue` is a read-time computation (§3.9's note), not a database write, so there is no
+save point to raise the notification from without a background job, which this codebase doesn't
+have yet.
+
 ---
 
 ### 3.12 Dashboards & reports

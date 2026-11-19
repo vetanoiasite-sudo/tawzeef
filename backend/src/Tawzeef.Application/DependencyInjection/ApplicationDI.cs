@@ -6,9 +6,11 @@ using Tawzeef.Application.Features.Interviews;
 using Tawzeef.Application.Features.JobAdvertisements;
 using Tawzeef.Application.Features.JobApplications;
 using Tawzeef.Application.Features.JobSeekers;
+using Tawzeef.Application.Features.Notifications;
 using Tawzeef.Application.Features.OfficeUsers;
 using Tawzeef.Application.Features.Offices;
 using Tawzeef.Application.Features.PublicJobs;
+using Tawzeef.Application.Features.Suggestions;
 
 namespace Tawzeef.Application.DependencyInjection;
 
@@ -33,6 +35,9 @@ public static class ApplicationDI
         services.AddScoped<IInterviewService, InterviewService>();
         services.AddScoped<IHiringFollowUpService, HiringFollowUpService>();
         services.AddScoped<IApplicantEvaluationService, ApplicantEvaluationService>();
+        services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<ISuggestionService, SuggestionService>();
+        services.AddScoped<ISuggestionReviewService, SuggestionReviewService>();
         return services;
     }
 }

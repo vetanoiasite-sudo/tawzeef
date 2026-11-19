@@ -40,7 +40,13 @@ const EMPLOYER_OWN_PERMISSIONS = [
 
 // Mirrors PermissionChecker's SharedOwnPermissions — granted to either a JobSeeker or an
 // Employer simply by holding that role.
-const SHARED_OWN_PERMISSIONS = ['complaints.create', 'complaints.viewown']
+const SHARED_OWN_PERMISSIONS = [
+  'complaints.create',
+  'complaints.viewown',
+  'suggestions.create',
+  'suggestions.viewown',
+  'notifications.viewown',
+]
 
 /**
  * Element-level gating uses this (or <Can>), never a raw role-name comparison

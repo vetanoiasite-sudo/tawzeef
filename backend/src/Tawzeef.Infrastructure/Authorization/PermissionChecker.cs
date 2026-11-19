@@ -40,8 +40,13 @@ public class PermissionChecker(AppDbContext context) : IPermissionChecker
         ];
 
     /// <summary>RBAC_PERMISSIONS.md §3: granted to *either* a JobSeeker or an Employer simply by
-    /// holding that role, scoped to exactly the two verbs complaint submission needs today.</summary>
-    private static readonly HashSet<string> SharedOwnPermissions = ["complaints.create", "complaints.viewown"];
+    /// holding that role.</summary>
+    private static readonly HashSet<string> SharedOwnPermissions =
+        [
+            "complaints.create", "complaints.viewown",
+            "suggestions.create", "suggestions.viewown",
+            "notifications.viewown",
+        ];
 
     public async Task<bool> HasPermissionAsync(ICurrentUser user, string permissionCode, CancellationToken ct = default)
     {
@@ -75,6 +80,11 @@ public class PermissionChecker(AppDbContext context) : IPermissionChecker
         return false;
     }
 
+    /// <summary>RBAC_PERMISSIONS.md §3's matrix: every role gets a plain checkmark (✅ own) here,
+    /// OfficeStaff included — unlike every other office permission, this one needs no
+    /// StaffPermissionGrant row at all, just active membership.</summary>
+    private static readonly HashSet<string> UniversalOfficeMemberPermissions = ["notifications.viewown"];
+
     private async Task<bool> HasOfficeMembershipPermissionAsync(Guid userId, Guid officeId, string permissionCode, CancellationToken ct)
     {
         var membership = await context.UserOfficeMemberships
@@ -84,6 +94,7 @@ public class PermissionChecker(AppDbContext context) : IPermissionChecker
 
         if (membership is null) return false;
         if (membership.Role == OfficeRole.OfficeAdmin) return true;
+        if (UniversalOfficeMemberPermissions.Contains(permissionCode)) return true;
 
         // RBAC_PERMISSIONS.md §0 item 8 / footnote 5: a suspension/cooperation-stop decision is
         // OfficeAdmin-only, period — never grantable to OfficeStaff, even with a StaffPermissionGrant

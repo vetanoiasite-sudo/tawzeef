@@ -7,7 +7,9 @@ using Tawzeef.Domain.Entities.Interviews;
 using Tawzeef.Domain.Entities.JobAdvertisements;
 using Tawzeef.Domain.Entities.JobApplications;
 using Tawzeef.Domain.Entities.JobSeekers;
+using Tawzeef.Domain.Entities.Notifications;
 using Tawzeef.Domain.Entities.Offices;
+using Tawzeef.Domain.Entities.Suggestions;
 using Tawzeef.Domain.Identity;
 
 namespace Tawzeef.Infrastructure.Persistence;
@@ -40,6 +42,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityUser
     public DbSet<InterviewReport> InterviewReports => Set<InterviewReport>();
     public DbSet<HiringFollowUpReport> HiringFollowUpReports => Set<HiringFollowUpReport>();
     public DbSet<ApplicantEvaluationReport> ApplicantEvaluationReports => Set<ApplicantEvaluationReport>();
+    public DbSet<Suggestion> Suggestions => Set<Suggestion>();
+    public DbSet<Notification> Notifications => Set<Notification>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

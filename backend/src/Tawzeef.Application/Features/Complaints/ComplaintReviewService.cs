@@ -1,6 +1,7 @@
 using Tawzeef.Application.Common;
 using Tawzeef.Application.Features.Employers;
 using Tawzeef.Application.Features.JobSeekers;
+using Tawzeef.Application.Features.Notifications;
 using Tawzeef.Domain.Common;
 using Tawzeef.Domain.Contracts;
 using Tawzeef.Domain.Entities.Complaints;
@@ -9,8 +10,13 @@ using Tawzeef.Domain.Enums;
 namespace Tawzeef.Application.Features.Complaints;
 
 public class ComplaintReviewService(
-    IUnitOfWork uow, IJobSeekerReviewService jobSeekerReviewService, IEmployerReviewService employerReviewService) : IComplaintReviewService
+    IUnitOfWork uow,
+    IJobSeekerReviewService jobSeekerReviewService,
+    IEmployerReviewService employerReviewService,
+    INotificationService notificationService) : IComplaintReviewService
 {
+    private const int ComplaintThreshold = 3;
+
     public async Task<ServiceResult<PagedResult<ComplaintDto>>> ListQueueAsync(
         Guid officeId, ComplaintQueryDto query, CancellationToken ct = default)
     {
@@ -72,6 +78,28 @@ public class ComplaintReviewService(
         complaint.ReviewedBy = reviewerId;
         complaint.ReviewedAt = DateTime.UtcNow;
         uow.Repository<Complaint>().Update(complaint);
+
+        // WORKFLOWS_AND_STATE_MACHINES.md §10.3: hitting the threshold only ever raises an
+        // alert/task for the office — never an automatic suspension. Fired exactly once, the
+        // triage that makes the count *reach* 3 (not every triage past it), so OfficeAdmins get one
+        // notification per subject, not one per complaint.
+        if (validityDecision == ComplaintValidityDecision.Valid)
+        {
+            // Counts against the database, which doesn't see this complaint's own pending change
+            // yet (SaveChangesAsync hasn't run) — exclude it by id and add 1 for it explicitly,
+            // rather than counting first and saving second, which would need a second commit.
+            var otherValidCount = await uow.Repository<Complaint>().CountAsync(
+                c => c.Id != complaint.Id && c.SubjectType == complaint.SubjectType && c.SubjectId == complaint.SubjectId && c.ValidityDecision == ComplaintValidityDecision.Valid, ct);
+            if (otherValidCount + 1 == ComplaintThreshold)
+            {
+                var subjectNameForAlert = await ComplaintSubjectResolver.ResolveOneNameAsync(uow, complaint.SubjectType, complaint.SubjectId, ct);
+                await notificationService.CreateForOfficeAdminsAsync(
+                    officeId, "Complaint.ThresholdReached",
+                    $"وصلت الشكاوى الصحيحة ضد \"{subjectNameForAlert}\" إلى 3 — يحتاج قرار من إدارة المكتب.",
+                    complaint.SubjectType.ToString(), complaint.SubjectId, ct);
+            }
+        }
+
         await uow.SaveChangesAsync(ct);
 
         var subjectName = await ComplaintSubjectResolver.ResolveOneNameAsync(uow, complaint.SubjectType, complaint.SubjectId, ct);

@@ -1,4 +1,5 @@
 using Tawzeef.Application.Common;
+using Tawzeef.Application.Features.Notifications;
 using Tawzeef.Domain.Common;
 using Tawzeef.Domain.Contracts;
 using Tawzeef.Domain.Entities.Employers;
@@ -7,7 +8,7 @@ using Tawzeef.Domain.Enums;
 
 namespace Tawzeef.Application.Features.JobAdvertisements;
 
-public class JobAdvertisementReviewService(IUnitOfWork uow) : IJobAdvertisementReviewService
+public class JobAdvertisementReviewService(IUnitOfWork uow, INotificationService notificationService) : IJobAdvertisementReviewService
 {
     public async Task<ServiceResult<PagedResult<JobAdvertisementListItemDto>>> ListQueueAsync(
         Guid officeId, JobAdvertisementQueryDto query, CancellationToken ct = default)
@@ -68,6 +69,11 @@ public class JobAdvertisementReviewService(IUnitOfWork uow) : IJobAdvertisementR
         ad.ApprovedAt = DateTime.UtcNow;
         ad.RejectionReason = null;
         uow.Repository<JobAdvertisement>().Update(ad);
+
+        // WORKFLOWS_AND_STATE_MACHINES.md §5 transition table: "Notification -> Employer with
+        // payment instructions".
+        await NotifyEmployerAsync(ad, "JobAdvertisement.Approved", $"تمت الموافقة على إعلان \"{ad.Title}\" — برجاء إتمام السداد لنشره.", ct);
+
         await uow.SaveChangesAsync(ct);
 
         return ServiceResult<JobAdvertisementDto>.Success(ad.ToDto());
@@ -83,9 +89,20 @@ public class JobAdvertisementReviewService(IUnitOfWork uow) : IJobAdvertisementR
         ad.Status = JobAdvertisementStatus.Rejected;
         ad.RejectionReason = reason.Trim();
         uow.Repository<JobAdvertisement>().Update(ad);
+
+        // WORKFLOWS_AND_STATE_MACHINES.md §5 transition table: "Notification -> Employer".
+        await NotifyEmployerAsync(ad, "JobAdvertisement.Rejected", $"تم رفض إعلان \"{ad.Title}\" — السبب: {ad.RejectionReason}", ct);
+
         await uow.SaveChangesAsync(ct);
 
         return ServiceResult<JobAdvertisementDto>.Success(ad.ToDto());
+    }
+
+    private async Task NotifyEmployerAsync(JobAdvertisement ad, string eventType, string message, CancellationToken ct)
+    {
+        var employer = await uow.Repository<Employer>().FindAsync(e => e.Id == ad.EmployerId, ct: ct);
+        if (employer is null) return;
+        await notificationService.CreateAsync(ad.OfficeId, employer.UserId, eventType, message, nameof(JobAdvertisement), ad.Id, ct);
     }
 
     public async Task<ServiceResult<JobAdvertisementDto>> PauseAsync(Guid officeId, Guid id, CancellationToken ct = default)

@@ -6,12 +6,15 @@ import { homeRoutes } from '@/features/home'
 import { interviewsAndReportsRoutes } from '@/features/interviews-and-reports'
 import { jobSeekerApplicationsRoutes } from '@/features/job-seeker-applications'
 import { jobSeekerProfileRoutes } from '@/features/jobseeker-profile'
+import { notificationsRoutes } from '@/features/notifications'
 import { officeComplaintsReviewRoutes } from '@/features/office-complaints-review'
 import { officeEmployerReviewRoutes } from '@/features/office-employer-review'
 import { officeJobAdsReviewRoutes } from '@/features/office-job-ads-review'
 import { officeJobSeekerReviewRoutes } from '@/features/office-jobseeker-review'
+import { officeSuggestionsReviewRoutes } from '@/features/office-suggestions-review'
 import { officeUsersRoutes } from '@/features/office-users'
 import { publicJobsRoutes } from '@/features/public-jobs'
+import { suggestionsRoutes } from '@/features/suggestions'
 import type { AppRouteDef } from './types'
 
 /**
@@ -34,4 +37,7 @@ export const routeRegistry: AppRouteDef[] = [
   ...officeJobAdsReviewRoutes,
   ...jobSeekerApplicationsRoutes,
   ...interviewsAndReportsRoutes,
+  ...suggestionsRoutes,
+  ...officeSuggestionsReviewRoutes,
+  ...notificationsRoutes,
 ]

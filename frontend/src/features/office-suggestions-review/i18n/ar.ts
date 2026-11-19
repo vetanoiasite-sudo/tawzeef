@@ -1,0 +1,23 @@
+export const officeSuggestionsReviewAr = {
+  queueTitle: 'مراجعة الاقتراحات',
+  filterAll: 'الكل',
+  emptyQueue: 'لا توجد اقتراحات',
+  columnContent: 'الاقتراح',
+  columnStatus: 'الحالة',
+  columnDate: 'التاريخ',
+  status: {
+    New: 'جديد',
+    UnderReview: 'قيد المراجعة',
+    Responded: 'تم الرد',
+    Closed: 'مغلق',
+  },
+  viewAction: 'عرض',
+  backToQueue: 'عودة لقائمة الاقتراحات',
+  officeNotesLabel: 'رد المكتب',
+  respondLabel: 'اكتب الرد هنا',
+  respondAction: 'إرسال الرد',
+  alreadyResponded: 'تم الرد على هذا الاقتراح بالفعل',
+  prevPage: 'السابق',
+  nextPage: 'التالي',
+  pageOf: 'صفحة {{current}} من {{total}}',
+}
