@@ -11,4 +11,10 @@ export default defineConfig({
       '@': path.resolve(import.meta.dirname, './src'),
     },
   },
+  build: {
+    // `npm run build` writes straight into the .NET API's wwwroot, so `dotnet run`
+    // (after a build) serves the SPA itself — no separate Vite server needed in production.
+    outDir: path.resolve(import.meta.dirname, '../backend/src/Tawzeef.Api/wwwroot'),
+    emptyOutDir: true,
+  },
 })

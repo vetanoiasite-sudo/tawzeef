@@ -113,6 +113,25 @@ npm run dev
 Conventions: [docs/PROJECT_ARCHITECTURE_FRONTEND.md](docs/PROJECT_ARCHITECTURE_FRONTEND.md).
 `app → features → shared`; path alias `@/` → `src/`.
 
+### Serving the built frontend from the backend (single process)
+
+`npm run build` writes straight into `backend/src/Tawzeef.Api/wwwroot` (see `vite.config.ts`), and
+`Program.cs` serves it with `UseStaticFiles()` + a `MapFallbackToFile("index.html")` SPA fallback
+(so a direct hit on e.g. `/jobs/123` still works, not just in-app navigation). So instead of running
+two servers for a production-style check:
+
+```bash
+cd frontend && npm run build
+cd ../backend && dotnet run --project src/Tawzeef.Api
+```
+
+then open `http://localhost:5280` — both the UI and the API come from that one process. The build
+targets `VITE_API_BASE_URL=same-origin` (`.env.production`), which resolves to
+`window.location.origin` at runtime instead of a fixed URL, so this works on whatever host/port the
+app is actually deployed to. `wwwroot` is git-ignored (generated output); local dev with hot reload
+still uses the separate `npm run dev` Vite server on `:5173` against the backend on `:5280` (CORS,
+`.env.development`), exactly as before.
+
 **Known tooling constraint:** `eslint-plugin-jsx-a11y` and `typescript-eslint` have not yet caught
 up to the latest major versions of ESLint (10) and TypeScript (7 / "tsgo") at time of scaffolding.
 `frontend/package.json` pins `eslint@^9` and `typescript@^5.7` so the full type-checked + a11y +

@@ -117,11 +117,23 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Serve the built React SPA from wwwroot (frontend's `npm run build` writes there directly —
+// see frontend/vite.config.ts). Harmless no-op if wwwroot is empty (e.g. API-only dev workflow
+// with the separate Vite dev server on :5173).
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 app.MapGet("/health", () => Results.Ok(new { status = "ok" })).AllowAnonymous();
+
+// Client-side routing fallback: any request that isn't an API route or a real static file
+// (e.g. a deep link like /jobs/123 hit directly) gets index.html so React Router can take over.
+// AllowAnonymous: the global fallback policy requires auth by default, but the SPA shell itself
+// must load before anyone is logged in.
+app.MapFallbackToFile("index.html").AllowAnonymous();
 
 app.Run();
 

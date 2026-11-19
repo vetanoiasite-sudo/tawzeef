@@ -11,6 +11,9 @@ frontend/dist/
 frontend/.vite/
 npm-debug.log*
 
+# Frontend build output copied into the backend for single-process serving (frontend/vite.config.ts)
+backend/src/Tawzeef.Api/wwwroot/
+
 # Env secrets
 *.env.*.local
 .env.local

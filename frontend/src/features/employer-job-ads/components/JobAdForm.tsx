@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
+import { z } from 'zod'
 import { jobAdFormSchema, type JobAdFormValues } from '../schemas/jobAd.schema'
 import type { JobAdDetail } from '../types/employerJobAds.types'
 import { TextInput, TextArea } from '@/shared/ui/TextInput'
@@ -23,7 +24,7 @@ export function JobAdForm({
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<JobAdFormValues>({
+  } = useForm<z.input<typeof jobAdFormSchema>, unknown, JobAdFormValues>({
     resolver: zodResolver(jobAdFormSchema),
     defaultValues: {
       title: ad?.title ?? '',
