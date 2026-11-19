@@ -5,7 +5,7 @@ import { useSessionStore } from '@/shared/auth/sessionStore'
 import { TawzeefLogo } from '@/shared/ui/TawzeefLogo'
 
 export function AppLayout() {
-  const { t } = useTranslation(['common', 'auth', 'jobSeekerProfile', 'officeJobSeekerReview'])
+  const { t } = useTranslation(['common', 'auth', 'jobSeekerProfile', 'officeJobSeekerReview', 'complaints', 'officeComplaintReview'])
   const { isAuthenticated, hasPermission } = useAccess()
   const user = useSessionStore((s) => s.user)
   const clearSession = useSessionStore((s) => s.clearSession)
@@ -24,6 +24,16 @@ export function AppLayout() {
             {hasPermission('jobseekers.view') && (
               <Link to="/office/job-seekers" className="text-primary">
                 {t('officeJobSeekerReview:queueTitle')}
+              </Link>
+            )}
+            {hasPermission('complaints.viewown') && (
+              <Link to="/complaints" className="text-primary">
+                {t('complaints:pageTitle')}
+              </Link>
+            )}
+            {hasPermission('complaints.view') && (
+              <Link to="/office/complaints" className="text-primary">
+                {t('officeComplaintReview:queueTitle')}
               </Link>
             )}
             <span className="text-text">{t('common:welcomeUser', { name: user?.fullName })}</span>

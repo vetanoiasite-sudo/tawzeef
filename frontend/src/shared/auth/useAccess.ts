@@ -10,6 +10,10 @@ const JOB_SEEKER_OWN_PERMISSIONS = [
   'jobseekers.submit',
 ]
 
+// Mirrors PermissionChecker's SharedOwnPermissions — granted to either a JobSeeker or an
+// Employer simply by holding that role.
+const SHARED_OWN_PERMISSIONS = ['complaints.create', 'complaints.viewown']
+
 /**
  * Element-level gating uses this (or <Can>), never a raw role-name comparison
  * (PROJECT_ARCHITECTURE_FRONTEND.md §13.3). This is a UX layer only — the backend's
@@ -22,6 +26,7 @@ export function useAccess() {
     if (!user) return false
     if (user.isSuperAdmin) return true
     if (user.role === 'JobSeeker' && JOB_SEEKER_OWN_PERMISSIONS.includes(permissionCode)) return true
+    if ((user.role === 'JobSeeker' || user.role === 'Employer') && SHARED_OWN_PERMISSIONS.includes(permissionCode)) return true
     return user.permissions.includes(permissionCode)
   }
 

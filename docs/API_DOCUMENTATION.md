@@ -388,6 +388,7 @@ notification).
 | `POST` | `/api/complaints` | `complaints.create` |
 | `GET` | `/api/complaints/mine` (paged) | `complaints.viewown` |
 | `GET` | `/api/office/complaints` (paged, filter by status/validity/subjectType) | `complaints.view` |
+| `GET` | `/api/office/complaints/{id:guid}` | `complaints.view`, same office — opening a `New` complaint implicitly moves it to `UnderReview`, same convention as `GET /api/office/job-seekers/{id:guid}` |
 | `POST` | `/api/office/complaints/{id:guid}/triage` (set `ValidityDecision`) | `complaints.triage` |
 | `POST` | `/api/office/complaints/{id:guid}/resolve` | `complaints.resolve` |
 | `POST` | `/api/office/complaints/{id:guid}/decide` (fires `OfficeDecision`) | `complaints.decide` — **`OfficeAdmin` only** (confirmed, RBAC_PERMISSIONS.md §0 item 8) |
@@ -403,9 +404,24 @@ notification).
 // TriageComplaintDto
 { "validityDecision": "Valid" }
 
+// ResolveComplaintDto
+{ "outcome": "Resolved", "resolutionNotes": "string" }
+// outcome must be Resolved or Rejected; only legal from UnderReview/WaitingForInformation.
+
 // DecideEnforcementDto
 { "decisionType": "Suspend", "reason": "string" }
+// Requires the complaint's ValidityDecision already be Valid. Response data is the updated
+// JobSeekerProfileDto (§3.4) — decide changes the subject, not the complaint. This slice only
+// supports a JobSeeker subject; an Employer subject returns a Validation error (Employer
+// enforcement isn't built yet).
 ```
+
+Implemented as: both `POST /api/office/job-seekers/{id}/suspend` (§3.4) and
+`POST /api/office/complaints/{id}/decide` route through the same
+`JobSeekerReviewService.SuspendAsync`/`ReinstateAsync` — one underlying code path, one
+`OfficeDecision` audit row per suspension, reached from either URL. Read "the only endpoint that
+may change `JobSeekerProfile.ReviewStatus` to `Suspended`" below as "the only code path", not
+literally one route.
 
 `POST /api/office/complaints/{id}/decide` is the **only** endpoint that may change
 `JobSeekerProfile.ReviewStatus` to `Suspended` or `Employer.CooperationStatus` to `Stopped` — the

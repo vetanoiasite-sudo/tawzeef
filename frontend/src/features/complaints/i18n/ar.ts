@@ -1,0 +1,28 @@
+export const complaintsAr = {
+  pageTitle: 'شكاواي',
+  submitNew: 'تقديم شكوى جديدة',
+  subjectTypeLabel: 'الشكوى ضد',
+  subjectType: {
+    JobSeeker: 'باحث عن عمل',
+    Employer: 'صاحب عمل',
+  },
+  subjectIdLabel: 'رقم الملف (ID)',
+  subjectIdHint: 'رقم ملف الطرف المشتكى عليه — يمكن الحصول عليه من المكتب',
+  complaintTextLabel: 'تفاصيل الشكوى',
+  submit: 'إرسال الشكوى',
+  submitSuccess: 'تم إرسال الشكوى',
+  cancel: 'إلغاء',
+  emptyList: 'لا يوجد شكاوى بعد',
+  columnSubject: 'الطرف المشتكى عليه',
+  columnStatus: 'الحالة',
+  columnDate: 'التاريخ',
+  status: {
+    New: 'جديدة',
+    UnderReview: 'قيد المراجعة',
+    WaitingForInformation: 'بانتظار معلومات',
+    Resolved: 'تم الحل',
+    Rejected: 'مرفوضة',
+    Closed: 'مغلقة',
+  },
+  resolutionNotesLabel: 'ملاحظات المكتب',
+}

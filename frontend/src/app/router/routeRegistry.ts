@@ -1,6 +1,8 @@
 import { authRoutes } from '@/features/auth'
+import { complaintsRoutes } from '@/features/complaints'
 import { homeRoutes } from '@/features/home'
 import { jobSeekerProfileRoutes } from '@/features/jobseeker-profile'
+import { officeComplaintsReviewRoutes } from '@/features/office-complaints-review'
 import { officeJobSeekerReviewRoutes } from '@/features/office-jobseeker-review'
 import type { AppRouteDef } from './types'
 
@@ -14,4 +16,6 @@ export const routeRegistry: AppRouteDef[] = [
   ...authRoutes,
   ...jobSeekerProfileRoutes,
   ...officeJobSeekerReviewRoutes,
+  ...complaintsRoutes,
+  ...officeComplaintsReviewRoutes,
 ]

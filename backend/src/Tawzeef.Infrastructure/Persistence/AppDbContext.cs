@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Tawzeef.Domain.Entities.Auth;
+using Tawzeef.Domain.Entities.Complaints;
 using Tawzeef.Domain.Entities.Employers;
 using Tawzeef.Domain.Entities.JobSeekers;
 using Tawzeef.Domain.Entities.Offices;
@@ -25,6 +26,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityUser
     public DbSet<JobSeekerDocument> JobSeekerDocuments => Set<JobSeekerDocument>();
     public DbSet<Employer> Employers => Set<Employer>();
     public DbSet<OfficeDecision> OfficeDecisions => Set<OfficeDecision>();
+    public DbSet<Complaint> Complaints => Set<Complaint>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

@@ -21,6 +21,12 @@ public class PermissionChecker(AppDbContext context) : IPermissionChecker
     private static readonly HashSet<string> JobSeekerOwnPermissions =
         ["jobseekers.viewown", "jobseekers.editown", "jobseekers.uploaddocuments", "jobseekers.submit"];
 
+    /// <summary>RBAC_PERMISSIONS.md §3: granted to *either* a JobSeeker or an Employer simply by
+    /// holding that role — the first slice of "Employer permission resolution" the class-level
+    /// comment above flags as unimplemented, scoped to exactly the two verbs complaint submission
+    /// needs today.</summary>
+    private static readonly HashSet<string> SharedOwnPermissions = ["complaints.create", "complaints.viewown"];
+
     public async Task<bool> HasPermissionAsync(ICurrentUser user, string permissionCode, CancellationToken ct = default)
     {
         if (user.IsSuperAdmin) return true;
@@ -29,6 +35,13 @@ public class PermissionChecker(AppDbContext context) : IPermissionChecker
         {
             if (user.Id is null) return false;
             return await context.JobSeekerProfiles.AnyAsync(p => p.UserId == user.Id, ct);
+        }
+
+        if (SharedOwnPermissions.Contains(permissionCode))
+        {
+            if (user.Id is null) return false;
+            return await context.JobSeekerProfiles.AnyAsync(p => p.UserId == user.Id, ct)
+                || await context.Employers.AnyAsync(e => e.UserId == user.Id, ct);
         }
 
         if (user.Id is null || user.OfficeId is null) return false;
