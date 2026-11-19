@@ -1,4 +1,5 @@
 using Tawzeef.Application.Common;
+using Tawzeef.Application.Features.Employers;
 using Tawzeef.Application.Features.JobSeekers;
 using Tawzeef.Domain.Common;
 using Tawzeef.Domain.Contracts;
@@ -7,7 +8,8 @@ using Tawzeef.Domain.Enums;
 
 namespace Tawzeef.Application.Features.Complaints;
 
-public class ComplaintReviewService(IUnitOfWork uow, IJobSeekerReviewService jobSeekerReviewService) : IComplaintReviewService
+public class ComplaintReviewService(
+    IUnitOfWork uow, IJobSeekerReviewService jobSeekerReviewService, IEmployerReviewService employerReviewService) : IComplaintReviewService
 {
     public async Task<ServiceResult<PagedResult<ComplaintDto>>> ListQueueAsync(
         Guid officeId, ComplaintQueryDto query, CancellationToken ct = default)
@@ -99,32 +101,65 @@ public class ComplaintReviewService(IUnitOfWork uow, IJobSeekerReviewService job
         return ServiceResult<ComplaintDto>.Success(complaint.ToDto(subjectName));
     }
 
-    public async Task<ServiceResult<JobSeekerProfileDto>> DecideAsync(
+    public async Task<ServiceResult<DecideResultDto>> DecideAsync(
         Guid officeId, Guid reviewerId, Guid id, OfficeDecisionType decisionType, string reason, CancellationToken ct = default)
     {
         var complaint = await uow.Repository<Complaint>().FindAsync(c => c.Id == id && c.OfficeId == officeId, ct: ct);
-        if (complaint is null) return ServiceResult<JobSeekerProfileDto>.NotFound("Complaint not found.");
+        if (complaint is null) return ServiceResult<DecideResultDto>.NotFound("Complaint not found.");
 
         // BUSINESS_REQUIREMENTS.md §11.5 step 3/RBAC_PERMISSIONS.md §0 item 5: only a
         // confirmed-valid complaint may lead to an enforcement decision.
         if (complaint.ValidityDecision != ComplaintValidityDecision.Valid)
-            return ServiceResult<JobSeekerProfileDto>.Invalid("Only a complaint confirmed valid can lead to an enforcement decision.");
+            return ServiceResult<DecideResultDto>.Invalid("Only a complaint confirmed valid can lead to an enforcement decision.");
 
-        if (complaint.SubjectType != ComplaintSubjectType.JobSeeker)
-            return ServiceResult<JobSeekerProfileDto>.Invalid("Employer enforcement isn't built yet — only a Job Seeker subject can be decided on here.");
-
-        // Reuses JobSeekerReviewService's Suspend/Reinstate exactly — that is where the
-        // ReviewStatus transition happens and the OfficeDecision audit row is written
-        // (API_DOCUMENTATION.md §3.10: "the only endpoint that may change ReviewStatus to
-        // Suspended" is read here as "the only code path", not literally one URL — the direct
-        // /office/job-seekers/{id}/suspend route and this one both funnel through it).
-        var result = decisionType switch
+        // Reuses JobSeekerReviewService.Suspend/ReinstateAsync and EmployerReviewService.Stop/
+        // ResumeCooperationAsync exactly — those are where the real status transition happens and
+        // the OfficeDecision audit row is written (API_DOCUMENTATION.md §3.10/§3.5: "the only
+        // endpoint that may change ..." is read here as "the only code path", not literally one
+        // URL — the direct /office/job-seekers|employers/{id}/... routes and this one both funnel
+        // through it).
+        if (complaint.SubjectType == ComplaintSubjectType.JobSeeker)
         {
-            OfficeDecisionType.Suspend => await jobSeekerReviewService.SuspendAsync(officeId, reviewerId, complaint.SubjectId, reason, ct),
-            OfficeDecisionType.Reinstate => await jobSeekerReviewService.ReinstateAsync(officeId, reviewerId, complaint.SubjectId, reason, ct),
-            _ => ServiceResult<JobSeekerProfileDto>.Invalid("That decision type doesn't apply to a Job Seeker subject."),
-        };
-
-        return result;
+            var result = decisionType switch
+            {
+                OfficeDecisionType.Suspend => await jobSeekerReviewService.SuspendAsync(officeId, reviewerId, complaint.SubjectId, reason, ct),
+                OfficeDecisionType.Reinstate => await jobSeekerReviewService.ReinstateAsync(officeId, reviewerId, complaint.SubjectId, reason, ct),
+                _ => ServiceResult<JobSeekerProfileDto>.Invalid("That decision type doesn't apply to a Job Seeker subject."),
+            };
+            if (!result.IsSuccess) return PropagateError<JobSeekerProfileDto>(result);
+            return ServiceResult<DecideResultDto>.Success(new DecideResultDto
+            {
+                SubjectId = result.Data!.Id,
+                SubjectName = result.Data.FullName,
+                Status = result.Data.ReviewStatus,
+            });
+        }
+        else
+        {
+            var result = decisionType switch
+            {
+                OfficeDecisionType.StopCooperation => await employerReviewService.StopCooperationAsync(officeId, reviewerId, complaint.SubjectId, reason, ct),
+                OfficeDecisionType.ResumeCooperation => await employerReviewService.ResumeCooperationAsync(officeId, reviewerId, complaint.SubjectId, reason, ct),
+                _ => ServiceResult<EmployerProfileDto>.Invalid("That decision type doesn't apply to an Employer subject."),
+            };
+            if (!result.IsSuccess) return PropagateError<EmployerProfileDto>(result);
+            return ServiceResult<DecideResultDto>.Success(new DecideResultDto
+            {
+                SubjectId = result.Data!.Id,
+                SubjectName = result.Data.DisplayName,
+                Status = result.Data.CooperationStatus,
+            });
+        }
     }
+
+    /// <summary>ServiceResult.Fail is protected, so a failed ServiceResult&lt;TSource&gt; can't be
+    /// reshaped into a ServiceResult&lt;DecideResultDto&gt; directly — re-derive it from the public
+    /// factory that matches the source's Error category instead.</summary>
+    private static ServiceResult<DecideResultDto> PropagateError<TSource>(ServiceResult<TSource> source) => source.Error switch
+    {
+        ResultError.NotFound => ServiceResult<DecideResultDto>.NotFound(source.ErrorMessages.ToArray()),
+        ResultError.Conflict => ServiceResult<DecideResultDto>.Conflict(source.ErrorMessages.ToArray()),
+        ResultError.Forbidden => ServiceResult<DecideResultDto>.Forbidden(source.ErrorMessages.ToArray()),
+        _ => ServiceResult<DecideResultDto>.Invalid(source.ErrorMessages.ToArray()),
+    };
 }

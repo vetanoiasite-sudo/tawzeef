@@ -12,6 +12,8 @@ public static class ControllerModuleMap
         ["Offices"] = "offices",
         ["JobSeekers"] = "jobseekers",
         ["OfficeJobSeekers"] = "jobseekers",
+        ["Employers"] = "employers",
+        ["OfficeEmployers"] = "employers",
         ["Complaints"] = "complaints",
         ["OfficeComplaints"] = "complaints",
         ["OfficeUsers"] = "officeusers",

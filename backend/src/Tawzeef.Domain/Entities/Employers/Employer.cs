@@ -32,6 +32,8 @@ public class Employer : IEntity
     public string? RejectionReason { get; set; }
 
     public EmployerCooperationStatus CooperationStatus { get; set; } = EmployerCooperationStatus.Active;
+    public string? CooperationStoppedReason { get; set; }
+    public DateTime? CooperationStoppedAt { get; set; }
 
     public Guid? CreatedBy { get; set; }
     public DateTime CreationDate { get; set; } = DateTime.UtcNow;

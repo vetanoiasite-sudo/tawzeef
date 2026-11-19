@@ -228,14 +228,29 @@ an already-approved profile; editing *is* the resubmit.
 
 ### 3.5 Employer company & documents
 
-Mirrors §3.4 with `Employer`/`EmployerDocument` and the `employers.*` permissions. Additional
-endpoint:
+Mirrors §3.4 with `Employer`/`EmployerDocument` and the `employers.*` permissions — same self-service
+shape too (`employers.viewown/.editown/.uploaddocuments/.submit`, granted by having an `Employer`
+row at all, not a staff grant):
 
 | Method | Route | Permission |
 |---|---|---|
-| `GET` | `/api/office/employers/{id:guid}/cooperation-status` | `employers.view` |
-| `POST` | `/api/office/employers/{id:guid}/stop-cooperation` | `complaints.decide` (RBAC_PERMISSIONS.md footnote 5) |
+| `GET` | `/api/employers/me` | `employers.viewown` |
+| `PUT` | `/api/employers/me` | `employers.editown` |
+| `POST` | `/api/employers/me/documents` (`multipart/form-data`, field `documentType`: `CommercialRegister`\|`TaxCard`\|`OwnerNationalId`) | `employers.uploaddocuments` |
+| `POST` | `/api/employers/me/submit` | `employers.submit` |
+| `GET` | `/api/office/employers` (paged, filter by `verificationStatus`) | `employers.view` |
+| `GET` | `/api/office/employers/{id:guid}` | `employers.view`, same office |
+| `POST` | `/api/office/employers/{id:guid}/documents/{documentId:guid}/approve` | `employers.review` |
+| `POST` | `/api/office/employers/{id:guid}/documents/{documentId:guid}/reject` | `employers.review` |
+| `POST` | `/api/office/employers/{id:guid}/approve` | `employers.approve` |
+| `POST` | `/api/office/employers/{id:guid}/reject` | `employers.reject` |
+| `POST` | `/api/office/employers/{id:guid}/stop-cooperation` | `complaints.decide` (RBAC_PERMISSIONS.md footnote 5) — **not** `employers.suspend`, which is seeded but unused |
 | `POST` | `/api/office/employers/{id:guid}/resume-cooperation` | `complaints.decide` |
+
+`EmployerProfileDto` additionally carries `cooperationStatus`, `cooperationStoppedReason`/
+`cooperationStoppedAt` (WORKFLOWS_AND_STATE_MACHINES.md §4 — independent of `verificationStatus`,
+always `Active`/`null` until stopped) and `validComplaintCount` (same §10.3 surfacing as §3.4,
+always 0 on the self-service response).
 
 ---
 

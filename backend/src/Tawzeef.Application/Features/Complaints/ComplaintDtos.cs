@@ -72,3 +72,13 @@ public class DecideEnforcementDto
     [Required, MaxLength(2000)]
     public string Reason { get; set; } = string.Empty;
 }
+
+/// <summary>decide changes the *subject* (a JobSeekerProfile or an Employer), not the complaint —
+/// Status is whichever of the two status fields the decision touched (ReviewStatus for a
+/// JobSeeker, CooperationStatus for an Employer).</summary>
+public class DecideResultDto
+{
+    public Guid SubjectId { get; set; }
+    public string SubjectName { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+}

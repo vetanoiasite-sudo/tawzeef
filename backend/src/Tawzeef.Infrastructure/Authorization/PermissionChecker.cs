@@ -8,10 +8,7 @@ namespace Tawzeef.Infrastructure.Authorization;
 
 /// <summary>
 /// Covers SuperAdmin, OfficeAdmin (full set within their office) and OfficeStaff (data-driven
-/// grants) — RBAC_PERMISSIONS.md §3. Employer permission resolution is deliberately not
-/// implemented yet: that role's fixed per-feature capabilities aren't codified because the
-/// features themselves (JobAdvertisement, JobApplication, …) don't exist yet. Revisit this
-/// method, not the matrix in RBAC_PERMISSIONS.md §3, when those land.
+/// grants) — RBAC_PERMISSIONS.md §3.
 /// </summary>
 public class PermissionChecker(AppDbContext context) : IPermissionChecker
 {
@@ -21,10 +18,12 @@ public class PermissionChecker(AppDbContext context) : IPermissionChecker
     private static readonly HashSet<string> JobSeekerOwnPermissions =
         ["jobseekers.viewown", "jobseekers.editown", "jobseekers.uploaddocuments", "jobseekers.submit"];
 
+    /// <summary>Same idea, for an Employer holding an Employer row — mirrors JobSeekerOwnPermissions.</summary>
+    private static readonly HashSet<string> EmployerOwnPermissions =
+        ["employers.viewown", "employers.editown", "employers.uploaddocuments", "employers.submit"];
+
     /// <summary>RBAC_PERMISSIONS.md §3: granted to *either* a JobSeeker or an Employer simply by
-    /// holding that role — the first slice of "Employer permission resolution" the class-level
-    /// comment above flags as unimplemented, scoped to exactly the two verbs complaint submission
-    /// needs today.</summary>
+    /// holding that role, scoped to exactly the two verbs complaint submission needs today.</summary>
     private static readonly HashSet<string> SharedOwnPermissions = ["complaints.create", "complaints.viewown"];
 
     public async Task<bool> HasPermissionAsync(ICurrentUser user, string permissionCode, CancellationToken ct = default)
@@ -35,6 +34,12 @@ public class PermissionChecker(AppDbContext context) : IPermissionChecker
         {
             if (user.Id is null) return false;
             return await context.JobSeekerProfiles.AnyAsync(p => p.UserId == user.Id, ct);
+        }
+
+        if (EmployerOwnPermissions.Contains(permissionCode))
+        {
+            if (user.Id is null) return false;
+            return await context.Employers.AnyAsync(e => e.UserId == user.Id, ct);
         }
 
         if (SharedOwnPermissions.Contains(permissionCode))

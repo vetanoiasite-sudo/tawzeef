@@ -1,8 +1,10 @@
 import { authRoutes } from '@/features/auth'
 import { complaintsRoutes } from '@/features/complaints'
+import { employerProfileRoutes } from '@/features/employer-profile'
 import { homeRoutes } from '@/features/home'
 import { jobSeekerProfileRoutes } from '@/features/jobseeker-profile'
 import { officeComplaintsReviewRoutes } from '@/features/office-complaints-review'
+import { officeEmployerReviewRoutes } from '@/features/office-employer-review'
 import { officeJobSeekerReviewRoutes } from '@/features/office-jobseeker-review'
 import { officeUsersRoutes } from '@/features/office-users'
 import type { AppRouteDef } from './types'
@@ -16,7 +18,9 @@ export const routeRegistry: AppRouteDef[] = [
   ...homeRoutes,
   ...authRoutes,
   ...jobSeekerProfileRoutes,
+  ...employerProfileRoutes,
   ...officeJobSeekerReviewRoutes,
+  ...officeEmployerReviewRoutes,
   ...complaintsRoutes,
   ...officeComplaintsReviewRoutes,
   ...officeUsersRoutes,

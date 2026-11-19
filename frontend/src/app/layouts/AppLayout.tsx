@@ -5,7 +5,17 @@ import { useSessionStore } from '@/shared/auth/sessionStore'
 import { TawzeefLogo } from '@/shared/ui/TawzeefLogo'
 
 export function AppLayout() {
-  const { t } = useTranslation(['common', 'auth', 'jobSeekerProfile', 'officeJobSeekerReview', 'complaints', 'officeComplaintReview', 'officeUsers'])
+  const { t } = useTranslation([
+    'common',
+    'auth',
+    'jobSeekerProfile',
+    'employerProfile',
+    'officeJobSeekerReview',
+    'officeEmployerReview',
+    'complaints',
+    'officeComplaintReview',
+    'officeUsers',
+  ])
   const { isAuthenticated, hasPermission } = useAccess()
   const user = useSessionStore((s) => s.user)
   const clearSession = useSessionStore((s) => s.clearSession)
@@ -21,9 +31,19 @@ export function AppLayout() {
                 {t('jobSeekerProfile:pageTitle')}
               </Link>
             )}
+            {user?.role === 'Employer' && (
+              <Link to="/company-profile" className="text-primary">
+                {t('employerProfile:pageTitle')}
+              </Link>
+            )}
             {hasPermission('jobseekers.view') && (
               <Link to="/office/job-seekers" className="text-primary">
                 {t('officeJobSeekerReview:queueTitle')}
+              </Link>
+            )}
+            {hasPermission('employers.view') && (
+              <Link to="/office/employers" className="text-primary">
+                {t('officeEmployerReview:queueTitle')}
               </Link>
             )}
             {hasPermission('complaints.viewown') && (

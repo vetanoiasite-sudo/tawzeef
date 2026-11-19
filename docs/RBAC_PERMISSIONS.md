@@ -83,7 +83,7 @@ silently allowed (BACKEND_GUIDELINES §12, "endpoint cannot be classified → re
 | `offices` | `view`, `create`, `edit`, `deactivate` | Super Admin only. |
 | `officeusers` | `view`, `invite`, `edit`, `deactivate` | Manage `OfficeAdmin`/`OfficeStaff` accounts within one office. |
 | `jobseekers` | `view`, `viewown`, `viewdocuments`, `editown`, `uploaddocuments`, `submit`, `review`, `approve`, `reject`, `suspend`, `reinstate` | `review` = move Submitted → Under Review. `viewown`/`editown`/`uploaddocuments`/`submit` are the JobSeeker's own self-service actions — granted by having a `JobSeekerProfile` at all, not by a staff grant (same shape as `jobapplications.viewown`). |
-| `employers` | `view`, `viewdocuments`, `review`, `approve`, `reject`, `suspend`, `reinstate` | |
+| `employers` | `view`, `viewown`, `viewdocuments`, `editown`, `uploaddocuments`, `submit`, `review`, `approve`, `reject`, `suspend`, `reinstate` | Same shape as `jobseekers` — `viewown`/`editown`/`uploaddocuments`/`submit` are the Employer's own self-service actions, granted by having an `Employer` row at all. `suspend`/`reinstate` are seeded but unused: the real stop/resume-cooperation actions are gated by `complaints.decide` instead (API_DOCUMENTATION.md §3.5), consistent with `officedecisions.create`'s footnote 5. |
 | `jobadvertisements` | `view`, `create`, `edit`, `submit`, `review`, `approve`, `reject`, `publish`, `pause`, `close`, `renew` | `create`/`edit`/`submit`/`renew` are Employer actions; the rest are office actions. |
 | `advertisementpayments` | `view`, `record`, `refund` | `record` = confirm a payment (manual or gateway webhook). |
 | `jobapplications` | `view`, `viewown`, `create`, `withdraw`, `updateoutcome` | `viewown` = Job Seeker's own applications only. |
@@ -114,8 +114,10 @@ Legend: **✅ full** · **🟡 scoped** (own records / own office / payment-gate
 | `jobseekers.view` / `.viewdocuments` | 🟡 metadata only (§0.3) | 🟡 own office | 🟡 if granted | — | — |
 | `jobseekers.viewown/editown/uploaddocuments/submit` | — | — | — | — | 🟡 own profile only |
 | `jobseekers.review/approve/reject/suspend/reinstate` | — | 🟡 own office | 🟡 if granted | — | — |
-| `employers.view` / `.viewdocuments` | 🟡 metadata only (§0.3) | 🟡 own office | 🟡 if granted | 🟡 own company only | — |
-| `employers.review/approve/reject/suspend/reinstate` | — | 🟡 own office | 🟡 if granted | — | — |
+| `employers.view` / `.viewdocuments` | 🟡 metadata only (§0.3) | 🟡 own office | 🟡 if granted | — | — |
+| `employers.viewown/editown/uploaddocuments/submit` | — | — | — | 🟡 own company only | — |
+| `employers.review/approve/reject` | — | 🟡 own office | 🟡 if granted | — | — |
+| `employers.suspend/reinstate` | — | — | — | — | — |
 | `jobadvertisements.view` (published, public) | ✅ | ✅ | ✅ | ✅ | ✅ (incl. guests) |
 | `jobadvertisements.create/edit/submit/renew` | — | — | — | 🟡 own company only | — |
 | `jobadvertisements.review/approve/reject/pause/close` | — | 🟡 own office | 🟡 if granted | — | — |

@@ -21,6 +21,7 @@ public class EmployerConfiguration : IEntityTypeConfiguration<Employer>
         b.Property(x => x.RepresentativeName).HasMaxLength(200);
         b.Property(x => x.RepresentativeRole).HasMaxLength(100);
         b.Property(x => x.RejectionReason).HasMaxLength(500);
+        b.Property(x => x.CooperationStoppedReason).HasMaxLength(500);
 
         b.HasIndex(x => x.UserId).IsUnique();
         b.HasIndex(x => new { x.OfficeId, x.VerificationStatus });

@@ -1,5 +1,4 @@
 using Tawzeef.Application.Common;
-using Tawzeef.Application.Features.JobSeekers;
 using Tawzeef.Domain.Common;
 using Tawzeef.Domain.Enums;
 
@@ -18,9 +17,8 @@ public interface IComplaintReviewService
     Task<ServiceResult<ComplaintDto>> ResolveAsync(
         Guid officeId, Guid reviewerId, Guid id, ComplaintStatus outcome, string resolutionNotes, CancellationToken ct = default);
 
-    /// <summary>OfficeAdmin only (RBAC_PERMISSIONS.md §0 item 8). Returns the updated
-    /// JobSeekerProfileDto — decide changes the *subject*, not the complaint
-    /// (API_DOCUMENTATION.md §3.10: the complaint's own Status is untouched by it).</summary>
-    Task<ServiceResult<JobSeekerProfileDto>> DecideAsync(
+    /// <summary>OfficeAdmin only (RBAC_PERMISSIONS.md §0 item 8). decide changes the *subject*, not
+    /// the complaint (API_DOCUMENTATION.md §3.10: the complaint's own Status is untouched by it).</summary>
+    Task<ServiceResult<DecideResultDto>> DecideAsync(
         Guid officeId, Guid reviewerId, Guid id, OfficeDecisionType decisionType, string reason, CancellationToken ct = default);
 }

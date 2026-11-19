@@ -10,6 +10,14 @@ const JOB_SEEKER_OWN_PERMISSIONS = [
   'jobseekers.submit',
 ]
 
+// Mirrors PermissionChecker's EmployerOwnPermissions.
+const EMPLOYER_OWN_PERMISSIONS = [
+  'employers.viewown',
+  'employers.editown',
+  'employers.uploaddocuments',
+  'employers.submit',
+]
+
 // Mirrors PermissionChecker's SharedOwnPermissions — granted to either a JobSeeker or an
 // Employer simply by holding that role.
 const SHARED_OWN_PERMISSIONS = ['complaints.create', 'complaints.viewown']
@@ -26,6 +34,7 @@ export function useAccess() {
     if (!user) return false
     if (user.isSuperAdmin) return true
     if (user.role === 'JobSeeker' && JOB_SEEKER_OWN_PERMISSIONS.includes(permissionCode)) return true
+    if (user.role === 'Employer' && EMPLOYER_OWN_PERMISSIONS.includes(permissionCode)) return true
     if ((user.role === 'JobSeeker' || user.role === 'Employer') && SHARED_OWN_PERMISSIONS.includes(permissionCode)) return true
     return user.permissions.includes(permissionCode)
   }

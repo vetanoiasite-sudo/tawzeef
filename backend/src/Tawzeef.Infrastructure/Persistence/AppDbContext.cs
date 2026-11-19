@@ -25,6 +25,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityUser
     public DbSet<JobSeekerProfile> JobSeekerProfiles => Set<JobSeekerProfile>();
     public DbSet<JobSeekerDocument> JobSeekerDocuments => Set<JobSeekerDocument>();
     public DbSet<Employer> Employers => Set<Employer>();
+    public DbSet<EmployerDocument> EmployerDocuments => Set<EmployerDocument>();
     public DbSet<OfficeDecision> OfficeDecisions => Set<OfficeDecision>();
     public DbSet<Complaint> Complaints => Set<Complaint>();
     public DbSet<OfficeStaffInvite> OfficeStaffInvites => Set<OfficeStaffInvite>();
