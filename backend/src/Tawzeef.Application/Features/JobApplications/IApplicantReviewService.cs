@@ -15,10 +15,3 @@ public interface IApplicantReviewService
     /// NotFound otherwise. Never returns a stream without the gate having passed.</summary>
     Task<ServiceResult<CvFileDto>> GetCvAsync(Guid userId, Guid applicationId, CancellationToken ct = default);
 }
-
-public class CvFileDto
-{
-    public Stream Content { get; set; } = Stream.Null;
-    public string FileName { get; set; } = string.Empty;
-    public string ContentType { get; set; } = string.Empty;
-}

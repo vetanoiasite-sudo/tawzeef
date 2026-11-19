@@ -6,14 +6,12 @@ planning documentation (business requirements, RBAC, database, API, workflows, t
 
 ## Status
 
-No business features yet. Phase 2 Foundation is done on both sides, verified end-to-end:
-- **Backend:** auth, RBAC, tenant model, audit logging, secure file storage (migration applied,
-  `/health` + Swagger checked).
-- **Frontend:** providers, router + guards, layout, design tokens, the shared API client, and the
-  (in-memory, not-yet-wired-to-a-login-screen) session store — checked in the browser, including
-  the 404 page and a one-route (`/`) router tree.
-
-Phase 3 (the first real feature — most likely Job Seeker / Employer registration) is next.
+Auth, Offices, Job Seeker/Employer profile + office review, office staff accounts, Complaints,
+Job Advertisements + Applications + public job search, Interviews + reports, Suggestions, and
+Notifications are built end-to-end (backend + frontend), verified via curl and in the browser.
+Still missing: Dashboards, AuditLog viewing, PlatformSettings, and a way for office staff to
+actually view/download a Job Seeker's or Employer's uploaded document (only approve/reject by id
+exists today — a real gap, not a deferred decision).
 
 ## Repository layout
 
@@ -26,12 +24,56 @@ docs/       Planning documentation — read docs/README.md first
 
 ## Backend
 
+### First-time setup (every machine, not just the first one)
+
+Three things are **deliberately not committed to git** (BACKEND_GUIDELINES.md §14: no secrets in
+`appsettings.json`, ever) and must be set up once per machine before `dotnet run` works:
+
+1. **SQL Server LocalDB** — install it (ships with Visual Studio, or standalone via the
+   [SQL Server Express LocalDB installer](https://learn.microsoft.com/sql/database-engine/configure-windows/sql-server-express-localdb)).
+   Windows/LocalDB only; swap `ConnectionStrings:DefaultConnection` in
+   `appsettings.Development.json` for a real SQL Server/Docker instance on macOS/Linux.
+2. **JWT signing key**, via .NET user-secrets (never appsettings, not even
+   `appsettings.Development.json` — it's still committed to git):
+   ```bash
+   cd backend/src/Tawzeef.Api
+   dotnet user-secrets init   # no-op if UserSecretsId is already in the .csproj
+   dotnet user-secrets set "Jwt:Key" "$(openssl rand -base64 48)"
+   ```
+   (No `openssl`? Any random string of 32+ bytes works — `dotnet user-secrets set "Jwt:Key" "paste-a-long-random-string-here"`.)
+   Without this, the app refuses to start with `Jwt:Key is not configured` — that guard is
+   intentional (BACKEND_GUIDELINES.md §14), not a bug; it means "you haven't done step 2 yet."
+3. **Create/update the database:**
+   ```bash
+   cd backend/src/Tawzeef.Api
+   dotnet ef database update --project ../Tawzeef.Infrastructure --startup-project .
+   ```
+4. **Seed the first Super Admin** (the database starts empty — no office, no users; the test
+   accounts used during development live only in the original dev machine's LocalDB file, never
+   committed to git):
+   ```bash
+   dotnet run -- seed-superadmin 01000000000 "SomeStrongPassword123!" "Your Name"
+   ```
+   From there: log in as that Super Admin → create an office (`POST /api/offices`) → invite
+   yourself as that office's `OfficeAdmin` (`POST /api/office-users/invite`) → accept the invite
+   via OTP (logged to the console by the dev-only `DevLogOtpSender` — search the terminal output
+   for `[DEV OTP]`) to get a real OfficeAdmin login.
+
+Then the usual:
 ```bash
 cd backend
 dotnet build
 dotnet test
 dotnet run --project src/Tawzeef.Api
 ```
+
+**Uploaded documents** (CVs, IDs, legal docs) are written to disk at `App_Data/secure-files`
+relative to `Tawzeef.Api`'s own project folder by default — never inside `wwwroot` (that's served
+publicly by static-file middleware, which this app doesn't even enable; see
+`BUSINESS_REQUIREMENTS.md §17.3` on why these must never be publicly reachable), and never inside
+`bin/`, which `dotnet clean` wipes. Override the location for a real deployment with
+`FileStorage:LocalPath` in configuration (an absolute path outside the repo/deploy tree — a mounted
+volume, a network share).
 
 Conventions: [docs/BACKEND_GUIDELINES.md](docs/BACKEND_GUIDELINES.md). `Api → Application →
 Domain`, `Infrastructure → Domain`; `Application` never references `Infrastructure` or EF Core.

@@ -3,18 +3,11 @@ using Tawzeef.Api.Authorization;
 using Tawzeef.Api.Common;
 using Tawzeef.Application.Features.JobSeekers;
 using Tawzeef.Domain.Contracts;
-using Tawzeef.Domain.Enums;
 
 namespace Tawzeef.Api.Controllers;
 
 /// <summary>Self-service, RBAC_PERMISSIONS.md §2's "...own" verbs — not the office review surface
 /// (that's a later, staff-facing controller using the plain jobseekers.view/.approve/... codes).</summary>
-public class UploadJobSeekerDocumentRequest
-{
-    public JobSeekerDocumentType DocumentType { get; set; }
-    public IFormFile File { get; set; } = null!;
-}
-
 [Route("api/jobseekers")]
 public class JobSeekersController(IJobSeekerProfileService service, ICurrentUser currentUser) : ApiControllerBase
 {

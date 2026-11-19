@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Tawzeef.Domain.Contracts;
 
 namespace Tawzeef.Infrastructure.Storage;
@@ -13,9 +14,14 @@ public class LocalFileStorage : IFileStorage
 {
     private readonly string _rootPath;
 
-    public LocalFileStorage(IConfiguration configuration)
+    public LocalFileStorage(IConfiguration configuration, IHostEnvironment environment)
     {
-        _rootPath = configuration["FileStorage:LocalPath"] ?? Path.Combine(AppContext.BaseDirectory, "App_Data", "secure-files");
+        // Default anchors on ContentRootPath (the project/publish directory), never
+        // AppContext.BaseDirectory — that resolves inside bin/<config>/<tfm>, which `dotnet clean`
+        // or a fresh build wipes, silently deleting every uploaded document. FileStorage:LocalPath
+        // still overrides this for a real deployment (see appsettings.json's comment / the setup
+        // README) — e.g. a mounted volume or network share outside the deploy tree entirely.
+        _rootPath = configuration["FileStorage:LocalPath"] ?? Path.Combine(environment.ContentRootPath, "App_Data", "secure-files");
         Directory.CreateDirectory(_rootPath);
     }
 

@@ -10,8 +10,3 @@ public interface IJobApplicationService
     Task<ServiceResult<PagedResult<MyApplicationListItemDto>>> ListMineAsync(Guid userId, JobApplicationQueryDto query, CancellationToken ct = default);
     Task<ServiceResult> WithdrawAsync(Guid userId, Guid id, CancellationToken ct = default);
 }
-
-public class JobApplicationIdDto
-{
-    public Guid Id { get; set; }
-}

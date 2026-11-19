@@ -9,6 +9,11 @@ public class CreateJobApplicationDto
     public Guid JobAdvertisementId { get; set; }
 }
 
+public class JobApplicationIdDto
+{
+    public Guid Id { get; set; }
+}
+
 public class JobApplicationQueryDto
 {
     public int PageIndex { get; set; }
@@ -54,4 +59,11 @@ public class UpdateApplicationOutcomeDto
 
     [MaxLength(1000)]
     public string? Notes { get; set; }
+}
+
+public class CvFileDto
+{
+    public Stream Content { get; set; } = Stream.Null;
+    public string FileName { get; set; } = string.Empty;
+    public string ContentType { get; set; } = string.Empty;
 }
