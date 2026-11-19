@@ -1,8 +1,16 @@
 import clsx from 'clsx'
 import type { HTMLAttributes } from 'react'
 
-/** The one "surface panel" container — flat style, no shadow (UI_UX_GUIDELINES.md's key-effects:
- * "no gradients/shadows"), a hairline border instead for separation from the muted page background. */
+/** Surface panel — Figma: #FFFFFF bg, 12px radius (radius-300), 1px border, and
+ * a soft brand-tinted shadow (shadow100). */
 export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={clsx('rounded-lg border border-surface-muted bg-surface p-5', className)} {...props} />
+  return (
+    <div
+      className={clsx(
+        'rounded-300 border border-border-primary bg-surface p-6',
+        className,
+      )}
+      {...props}
+    />
+  )
 }

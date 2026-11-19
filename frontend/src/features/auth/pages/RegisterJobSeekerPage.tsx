@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 import { ApiError } from '@/shared/api/types'
 import { useSessionStore } from '@/shared/auth/sessionStore'
-import { TawzeefLogo } from '@/shared/ui/TawzeefLogo'
-import { Card } from '@/shared/ui/Card'
 import { toSessionUser } from '../api/auth.mapper'
 import { useRegisterJobSeeker, useRequestOtp, useVerifyOtp } from '../api/auth.queries'
+import { AuthHeader } from '../components/AuthHeader'
+import { AuthScaffold } from '../components/AuthScaffold'
 import { DetailsStep } from '../components/DetailsStep'
 import { OtpStep } from '../components/OtpStep'
 import { PhoneStep } from '../components/PhoneStep'
@@ -80,55 +80,52 @@ export default function RegisterJobSeekerPage() {
   }
 
   return (
-    <div className="mx-auto flex max-w-md flex-col gap-6 px-4 py-10">
-      <div className="flex flex-col items-center gap-2">
-        <TawzeefLogo height={48} />
-        <h1 className="text-lg font-semibold text-text">{t('registerTitle')}</h1>
-      </div>
-
+    <AuthScaffold maxWidth={520}>
+      <AuthHeader title={t('registerTitle')} />
       <RegistrationStepper current={step} />
 
-      <Card>
-        {step === 'phone' && (
-          <PhoneStep
-            defaultPhoneNumber={phoneNumber}
-            isSubmitting={requestOtp.isPending}
-            submitError={errorMessage(requestOtp.error)}
-            onSubmit={handleRequestOtp}
-          />
-        )}
+      {step === 'phone' && (
+        <PhoneStep
+          defaultPhoneNumber={phoneNumber}
+          isSubmitting={requestOtp.isPending}
+          submitError={errorMessage(requestOtp.error)}
+          onSubmit={handleRequestOtp}
+        />
+      )}
 
-        {step === 'otp' && (
-          <OtpStep
-            phoneNumber={phoneNumber}
-            isSubmitting={verifyOtp.isPending}
-            isResending={requestOtp.isPending}
-            submitError={errorMessage(verifyOtp.error)}
-            onSubmit={handleVerifyOtp}
-            onResend={() => requestOtp.mutate({ phoneNumber })}
-            onChangeNumber={() => setStep('phone')}
-          />
-        )}
+      {step === 'otp' && (
+        <OtpStep
+          phoneNumber={phoneNumber}
+          isSubmitting={verifyOtp.isPending}
+          isResending={requestOtp.isPending}
+          submitError={errorMessage(verifyOtp.error)}
+          onSubmit={handleVerifyOtp}
+          onResend={() => requestOtp.mutate({ phoneNumber })}
+          onChangeNumber={() => setStep('phone')}
+        />
+      )}
 
-        {step === 'details' && (
-          <DetailsStep
-            isSubmitting={registerJobSeeker.isPending}
-            submitError={errorMessage(registerJobSeeker.error)}
-            onSubmit={handleRegister}
-          />
-        )}
-      </Card>
+      {step === 'details' && (
+        <DetailsStep
+          isSubmitting={registerJobSeeker.isPending}
+          submitError={errorMessage(registerJobSeeker.error)}
+          onSubmit={handleRegister}
+        />
+      )}
 
-      <p className="text-center text-sm text-text-muted">
+      <p className="mt-6 text-center text-[14px] text-content-secondary">
         {t('alreadyHaveAccount')}{' '}
-        <Link to="/login" className="font-medium text-primary hover:underline">
+        <Link to="/login" className="font-bold text-brand hover:text-brand-hover hover:underline">
           {t('loginLink')}
-        </Link>{' '}
-        ·{' '}
-        <Link to="/register/employer" className="font-medium text-primary hover:underline">
+        </Link>
+        {' · '}
+        <Link
+          to="/register/employer"
+          className="font-bold text-brand hover:text-brand-hover hover:underline"
+        >
           {t('registerEmployerLink')}
         </Link>
       </p>
-    </div>
+    </AuthScaffold>
   )
 }

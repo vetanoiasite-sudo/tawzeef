@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Link, Outlet } from 'react-router-dom'
+import { Link, Outlet, useLocation } from 'react-router-dom'
 import { NotificationBell } from '@/features/notifications'
 import { useAccess } from '@/shared/auth/useAccess'
 import { useSessionStore } from '@/shared/auth/sessionStore'
@@ -9,7 +9,19 @@ import { TawzeefLogo } from '@/shared/ui/TawzeefLogo'
 const navLinkClasses =
   'inline-flex min-h-9 items-center rounded-md px-2.5 text-sm font-medium text-text-muted transition-colors duration-150 hover:bg-primary/10 hover:text-primary'
 
+// Auth screens are full-canvas (own headline, hero, chrome) — the app header
+// would compete with them, so we skip it on these routes.
+const BARE_ROUTES = ['/login', '/register/job-seeker', '/register/employer', '/accept-invite']
+
 export function AppLayout() {
+  const location = useLocation()
+  if (BARE_ROUTES.includes(location.pathname)) {
+    return <Outlet />
+  }
+  return <AppLayoutChrome />
+}
+
+function AppLayoutChrome() {
   const { t } = useTranslation([
     'common',
     'auth',

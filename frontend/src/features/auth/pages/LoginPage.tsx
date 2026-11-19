@@ -4,10 +4,10 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { ApiError } from '@/shared/api/types'
 import { useSessionStore } from '@/shared/auth/sessionStore'
-import { TawzeefLogo } from '@/shared/ui/TawzeefLogo'
-import { Card } from '@/shared/ui/Card'
-import { TextInput } from '@/shared/ui/TextInput'
 import { Button } from '@/shared/ui/Button'
+import { TextInput } from '@/shared/ui/TextInput'
+import { AuthHeader } from '../components/AuthHeader'
+import { AuthScaffold } from '../components/AuthScaffold'
 import { toSessionUser } from '../api/auth.mapper'
 import { useLogin } from '../api/auth.queries'
 import { loginSchema, type LoginFormValues } from '../schemas/auth.schemas'
@@ -40,55 +40,136 @@ export default function LoginPage() {
   const submitError = login.error instanceof ApiError ? login.error.messages[0] : undefined
 
   return (
-    <div className="mx-auto flex max-w-md flex-col gap-6 px-4 py-10">
-      <div className="flex flex-col items-center gap-2">
-        <TawzeefLogo height={48} />
-        <h1 className="text-lg font-semibold text-text">{t('auth:loginTitle')}</h1>
+    <AuthScaffold>
+      <AuthHeader
+        title={t('auth:loginTitle')}
+        subtitle={t('auth:loginSubtitle', {
+          defaultValue: 'ادخل إلى حسابك للوصول إلى المكاتب والوظائف والطلبات.',
+        })}
+      />
+
+      <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-5">
+        <TextInput
+          id="identifier"
+          type="tel"
+          autoComplete="tel"
+          dir="ltr"
+          placeholder="+20 100 123 4567"
+          label={t('auth:loginIdentifierLabel')}
+          error={errors.identifier ? t(errors.identifier.message ?? '') : undefined}
+          {...register('identifier')}
+        />
+
+        <TextInput
+          id="password"
+          type="password"
+          autoComplete="current-password"
+          placeholder="••••••••"
+          label={t('auth:loginPasswordLabel')}
+          error={errors.password ? t(errors.password.message ?? '') : undefined}
+          {...register('password')}
+        />
+
+        {submitError && (
+          <div
+            role="alert"
+            className="rounded-200 border border-danger/30 bg-negative-soft px-4 py-3 text-[14px] font-medium text-danger"
+          >
+            {submitError}
+          </div>
+        )}
+
+        <Button type="submit" variant="primary" size="lg" fullWidth disabled={login.isPending}>
+          {login.isPending
+            ? t('auth:loginSubmitting', { defaultValue: 'جارٍ تسجيل الدخول...' })
+            : t('auth:loginSubmit')}
+        </Button>
+      </form>
+
+      <div className="my-6 flex items-center gap-3">
+        <span className="h-px flex-1 bg-border-primary" aria-hidden />
+        <span className="text-[12px] font-bold uppercase tracking-[0.12em] text-content-tertiary">
+          {t('auth:orDivider', { defaultValue: 'أو' })}
+        </span>
+        <span className="h-px flex-1 bg-border-primary" aria-hidden />
       </div>
 
-      <Card>
-        <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-4">
-          <TextInput
-            id="identifier"
-            type="tel"
-            autoComplete="tel"
-            label={t('auth:loginIdentifierLabel')}
-            error={errors.identifier ? t(errors.identifier.message ?? '') : undefined}
-            {...register('identifier')}
-          />
-
-          <TextInput
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            label={t('auth:loginPasswordLabel')}
-            error={errors.password ? t(errors.password.message ?? '') : undefined}
-            {...register('password')}
-          />
-
-          {submitError && <p className="text-sm text-danger">{submitError}</p>}
-
-          <Button type="submit" variant="primary" disabled={login.isPending}>
-            {t('auth:loginSubmit')}
-          </Button>
-        </form>
-      </Card>
-
-      <p className="text-center text-sm text-text-muted">
-        {t('auth:noAccount')}{' '}
-        <Link to="/register/job-seeker" className="font-medium text-primary hover:underline">
-          {t('auth:registerLink')}
-        </Link>{' '}
-        ·{' '}
-        <Link to="/register/employer" className="font-medium text-primary hover:underline">
-          {t('auth:registerEmployerLink')}
+      <div className="flex flex-col gap-3">
+        <p className="text-center text-[14px] text-content-secondary">{t('auth:noAccount')}</p>
+        <div className="grid grid-cols-1 gap-2">
+          <AuthLinkButton to="/register/job-seeker" icon={<SeekerIcon />}>
+            {t('auth:registerLink')}
+          </AuthLinkButton>
+          <AuthLinkButton to="/register/employer" icon={<EmployerIcon />}>
+            {t('auth:registerEmployerLink')}
+          </AuthLinkButton>
+        </div>
+        <Link
+          to="/accept-invite"
+          className="mt-1 inline-flex items-center justify-center gap-1.5 text-[14px] font-bold text-brand hover:text-brand-hover hover:underline"
+        >
+          <InviteIcon />
+          <span>{t('auth:acceptInviteLink')}</span>
         </Link>
-      </p>
-      <p className="text-center text-sm text-text-muted">
-        <Link to="/accept-invite" className="font-medium text-primary hover:underline">
-          {t('auth:acceptInviteLink')}
-        </Link>
-      </p>
-    </div>
+      </div>
+    </AuthScaffold>
+  )
+}
+
+function AuthLinkButton({
+  to,
+  icon,
+  children,
+}: {
+  to: string
+  icon: React.ReactNode
+  children: React.ReactNode
+}) {
+  return (
+    <Link
+      to={to}
+      className="group flex h-12 items-center justify-center gap-2 whitespace-nowrap rounded-200 border border-border-primary bg-surface px-3 text-[14px] font-bold text-content-primary transition-colors hover:border-brand hover:text-brand"
+    >
+      {icon}
+      <span>{children}</span>
+    </Link>
+  )
+}
+
+function SeekerIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function EmployerIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="3" y="7" width="18" height="13" rx="2" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M3 12h18" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  )
+}
+
+function InviteIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M4 8l8 5 8-5M4 8v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M4 8l2-3h12l2 3"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   )
 }

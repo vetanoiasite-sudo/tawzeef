@@ -13,7 +13,7 @@ order:
 | 3 | [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) | ضروري (required) | Reviewed 2026-11-18 — endpoint inventory, request/response shapes, error codes. |
 | 4 | [WORKFLOWS_AND_STATE_MACHINES.md](./WORKFLOWS_AND_STATE_MACHINES.md) | مهم جداً (very important) | Reviewed 2026-11-18 — state machines per entity + the 10 end-to-end process diagrams required by BUSINESS_REQUIREMENTS.md §22. |
 | 5 | [TESTING_DOCUMENTATION.md](./TESTING_DOCUMENTATION.md) | مهم جداً (very important) | Reviewed 2026-11-18 — test layers, acceptance test catalogue, E2E smoke suite, Definition of Done. |
-| 6 | [UI_UX_GUIDELINES.md](./UI_UX_GUIDELINES.md) | مهم (important) | Reviewed 2026-11-18 — Wuzzuf-inspired design system, screens, status color mapping, RTL/accessibility checklist. |
+| 6 | *(removed)* `UI_UX_GUIDELINES.md` | لاحقاً (later) | Design system is now the Vitamin (Decathlon) design-system package, re-themed to the Tawzeef indigo brand `#1A23C3`. Status color mapping lives in `frontend/src/shared/ui/statusTags.ts`; palette tokens in `frontend/src/app/styles/globals.css`. |
 | 7 | `DEPLOYMENT_DOCUMENTATION.md` | لاحقاً (later) | **Not drafted yet** — deliberately deferred per the requested priority order. Ask for it once the other six are confirmed. |
 
 ## Decision review (2026-11-18)
@@ -45,11 +45,11 @@ BUSINESS_REQUIREMENTS.md  ──requirements──▶  RBAC_PERMISSIONS.md
 
 RBAC_PERMISSIONS.md       ──who can call it──▶  API_DOCUMENTATION.md
 DATABASE_DOCUMENTATION.md ──shapes the DTOs──▶  API_DOCUMENTATION.md
-WORKFLOWS_AND_STATE_MACHINES.md ──drives the status fields──▶  API_DOCUMENTATION.md, UI_UX_GUIDELINES.md §5
+WORKFLOWS_AND_STATE_MACHINES.md ──drives the status fields──▶  API_DOCUMENTATION.md, statusTags.ts (frontend)
 
 API_DOCUMENTATION.md + RBAC_PERMISSIONS.md + WORKFLOWS_AND_STATE_MACHINES.md
                            ──acceptance criteria──▶  TESTING_DOCUMENTATION.md
 
-PROJECT_ARCHITECTURE_FRONTEND.md ──component/state conventions──▶  UI_UX_GUIDELINES.md
+PROJECT_ARCHITECTURE_FRONTEND.md ──component/state conventions──▶  Vitamin (@vtmn/css) + globals.css tokens
 BACKEND_GUIDELINES.md            ──service/controller conventions──▶  API_DOCUMENTATION.md, DATABASE_DOCUMENTATION.md
 ```

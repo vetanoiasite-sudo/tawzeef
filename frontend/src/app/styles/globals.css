@@ -1,29 +1,94 @@
 @import 'tailwindcss';
 
-/* Cairo: single Arabic+Latin family, varying weight for hierarchy — avoids mixing two different
- * Arabic scripts (e.g. Kufi headings + Naskh body), which risks reading as inconsistent rather
- * than deliberate. UI_UX_GUIDELINES.md §2.2: "pick one pairing and commit." */
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap');
-
 /*
- * Design tokens — Tailwind v4 generates utilities (bg-primary, text-primary-dark, …) straight
- * from this @theme block. Mirrored in theme.ts for the rare case JS needs the raw value (e.g. an
- * inline style, a chart color) — keep the two in sync by hand; there are only a few tokens.
- * Confirmed palette: docs/UI_UX_GUIDELINES.md §2.1 and §5.
+ * Design tokens sourced from the Tawzeef Figma design system
+ * (file 839ffyH8ess3EDBEN7BXlt). Fonts are loaded from <head> in index.html so
+ * they can precede the Tailwind-generated CSS without breaking @import order.
+ *
+ * Tailwind v4 reads this @theme block to emit utilities such as bg-primary,
+ * text-content-secondary, rounded-radius-200, etc. theme.ts mirrors the raw
+ * values for the rare JS consumer.
  */
 @theme {
-  --color-primary: #0a66c2;
-  --color-primary-dark: #072f5f;
-  --color-primary-accent: #70b5f9;
+  /* Brand — Tawzeef indigo #1A23C3 (hsl 237, 76%, 43%).
+   * hover / active are darker shades, soft / softer are near-white tints. */
+  --color-brand: #1a23c3;
+  --color-brand-hover: #161da2;
+  --color-brand-active: #121887;
+  --color-brand-soft: #eef0fa;
+  --color-brand-softer: #f5f6fc;
+
+  /* Legacy token names mapped to the new brand so existing components keep
+   * working without a full rename sweep. */
+  --color-primary: #1a23c3;
+  --color-primary-dark: #121887;
+  --color-primary-accent: #eef0fa;
+
+  /* Content */
+  --color-content-primary: #001018;
+  --color-content-secondary: #4e5d6b;
+  --color-content-tertiary: #687787;
+  --color-content-action: #161da2;
+  --color-content-active: #1a23c3;
+  --color-content-accent: #001018;
+  --color-content-reversed: #ffffff;
+
+  /* Legacy "text" tokens */
+  --color-text: #001018;
+  --color-text-muted: #4e5d6b;
+  --color-text-subtle: #687787;
+
+  /* Surfaces */
   --color-surface: #ffffff;
-  --color-surface-muted: #f6f7f8;
-  --color-text: #141413;
-  --color-text-muted: #6b7280;
-  --color-success: #16a34a;
+  --color-surface-muted: #f3f5f7;
+  --color-surface-strong: #e9edf0;
+
+  /* Borders */
+  --color-border-primary: #d9dde1;
+  --color-border-secondary: #d9dde1;
+  --color-border-inactive: #8996a2;
+  --color-border-active: #007dbc;
+
+  /* Status */
+  --color-success: #23a942;
+  --color-danger: #e3262f;
   --color-warning: #d97706;
-  --color-danger: #dc2626;
+  --color-info: #007dbc;
   --color-neutral: #8a8f98;
-  --color-info: #2563eb;
+
+  /* Accent (vivid yellow from the system) */
+  --color-accent: #ffea28;
+  --color-accent-hover: #fff48d;
+  --color-accent-active: #fff9c7;
+
+  /* Soft tints used for alerts, empty states, warning backgrounds */
+  --color-orange-50: #fff3ed;
+  --color-positive-soft: #e7f6ea;
+  --color-negative-soft: #fde8ea;
+
+  /* Radii (Figma radius-100..800) → utilities: rounded-100 … rounded-800 */
+  --radius-100: 4px;
+  --radius-200: 8px;
+  --radius-300: 12px;
+  --radius-400: 16px;
+  --radius-500: 20px;
+  --radius-600: 24px;
+  --radius-700: 32px;
+  --radius-800: 48px;
+
+  /* Shadows (brand-tinted drop shadows at ~10% opacity) → utilities: shadow-100 … shadow-400 */
+  --shadow-100: 0 6px 6px 0 rgba(18, 24, 135, 0.1);
+  --shadow-200: 0 12px 12px 0 rgba(18, 24, 135, 0.1);
+  --shadow-300: 0 24px 24px 0 rgba(18, 24, 135, 0.1);
+  --shadow-400: 0 48px 48px 0 rgba(18, 24, 135, 0.1);
+
+  /* Font families — Arabic uses Noto Kufi Arabic (per the requirement); Latin
+   * uses Roboto from the Figma design system. Display headings reuse the sans
+   * stack so Arabic headlines stay in Noto Kufi. */
+  --font-sans: 'Noto Kufi Arabic', 'Roboto', system-ui, 'Segoe UI', Tahoma,
+    sans-serif;
+  --font-latin: 'Roboto', system-ui, 'Segoe UI', Tahoma, sans-serif;
+  --font-display: 'Noto Kufi Arabic', 'Roboto', system-ui, sans-serif;
 }
 
 *,
@@ -32,10 +97,87 @@
   box-sizing: border-box;
 }
 
+/*
+ * Tailwind v4 defaults a bare `border` to `border-color: currentColor` (black
+ * in a light theme) instead of the v3 gray-200. Force a neutral default so no
+ * element accidentally renders a black hairline — any component that wants a
+ * specific border color still wins via its own `border-*` utility.
+ */
+*,
+::before,
+::after {
+  border-color: var(--color-border-primary);
+}
+
+html,
 body {
   margin: 0;
-  font-family: 'Cairo', system-ui, 'Segoe UI', Tahoma, sans-serif;
   color-scheme: light;
-  color: var(--color-text);
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-content-primary);
   background-color: var(--color-surface-muted);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Latin blocks (English, numbers, emails) inside an RTL page look cleaner in
+ * Roboto; mark them with lang="en" or wrap in a .latin class. */
+[lang='en'],
+.latin,
+input[type='tel'],
+input[type='email'],
+input[type='password'],
+input[type='number'] {
+  font-family: var(--font-latin);
+}
+
+/* Shared focus ring token so every interactive element is consistent. */
+:where(button, a, input, select, textarea, [role='button']):focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/*
+ * Vitamin brand token override — Decathlon's default brand is a cyan #007DBC,
+ * but Tawzeef's brand is indigo #1A23C3 ≈ hsl(237, 76%, 43%). Vitamin builds
+ * every brand utility (vtmn-btn primary, vtmn-link, badges, …) from these
+ * HSL-split tokens, so overriding the triplet re-colors the whole chain.
+ */
+:root {
+  /* brand primary */
+  --vtmn-semantic-color_background-brand-primary: #1a23c3;
+  --vtmn-semantic-color_background-brand-primary--h: 237;
+  --vtmn-semantic-color_background-brand-primary--s: 76%;
+  --vtmn-semantic-color_background-brand-primary--l: 43%;
+
+  /* hover (darker) */
+  --vtmn-semantic-color_hover-brand: #161da2;
+  --vtmn-semantic-color_hover-brand--h: 237;
+  --vtmn-semantic-color_hover-brand--s: 76%;
+  --vtmn-semantic-color_hover-brand--l: 36%;
+
+  /* active (darker still) */
+  --vtmn-semantic-color_active-brand: #121887;
+  --vtmn-semantic-color_active-brand--h: 237;
+  --vtmn-semantic-color_active-brand--s: 76%;
+  --vtmn-semantic-color_active-brand--l: 30%;
+
+  /* brand soft (light tint) */
+  --vtmn-semantic-color_background-brand-secondary: #eef0fa;
+  --vtmn-semantic-color_background-brand-secondary--h: 237;
+  --vtmn-semantic-color_background-brand-secondary--s: 76%;
+  --vtmn-semantic-color_background-brand-secondary--l: 95%;
+
+  /* legacy base-color aliases some Vitamin components still reference */
+  --vtmn-color_brand: #1a23c3;
+  --vtmn-color_brand-digital: #1a23c3;
+  --vtmn-color_brand-digital-dark-1: #161da2;
+  --vtmn-color_brand-digital-dark-2: #121887;
+  --vtmn-color_brand-digital-light-1: #e0e3f5;
+  --vtmn-color_brand-digital-light-2: #eef0fa;
+  --vtmn-color_brand-digital-light-3: #f5f6fc;
 }

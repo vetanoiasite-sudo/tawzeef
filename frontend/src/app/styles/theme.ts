@@ -1,21 +1,45 @@
 /**
- * Design tokens — single source for both the CSS variables below and any UI-kit theme config
- * added later. Confirmed palette: docs/UI_UX_GUIDELINES.md §2.1 and §5 (status color mapping).
+ * Design tokens mirror — values come from Vitamin (@vtmn/css) re-themed to the
+ * Tawzeef indigo brand `#1A23C3`. Mirrors globals.css @theme for the rare JS
+ * consumer (inline styles, chart colors, StatusTag badges). Keep both in sync
+ * by hand — the set is small.
  */
 export const theme = {
   color: {
-    primary: '#0A66C2',
-    primaryDark: '#072F5F',
-    primaryAccent: '#70B5F9',
+    // Brand (Tawzeef indigo)
+    brand: '#1A23C3',
+    brandHover: '#161DA2',
+    brandActive: '#121887',
+    brandSoft: '#EEF0FA',
+
+    // Legacy aliases — same values as the brand tokens
+    primary: '#1A23C3',
+    primaryDark: '#121887',
+    primaryAccent: '#EEF0FA',
+
+    // Content
+    contentPrimary: '#001018',
+    contentSecondary: '#4E5D6B',
+    contentTertiary: '#687787',
+    contentReversed: '#FFFFFF',
+    text: '#001018',
+    textMuted: '#4E5D6B',
+
+    // Surfaces & borders
     surface: '#FFFFFF',
-    surfaceMuted: '#F6F7F8',
-    text: '#141413',
-    textMuted: '#6B7280',
-    success: '#16A34A',
+    surfaceMuted: '#F3F5F7',
+    borderPrimary: '#D9DDE1',
+    borderInactive: '#8996A2',
+
+    // Status
+    success: '#23A942',
+    danger: '#E3262F',
     warning: '#D97706',
-    danger: '#DC2626',
+    info: '#1A23C3',
     neutral: '#8A8F98',
-    info: '#2563EB',
+
+    // Accent (brand yellow — used by the logo arrows and highlight chips)
+    accent: '#FFE343',
   },
 } as const
 

@@ -3,11 +3,11 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { ApiError } from '@/shared/api/types'
 import { useSessionStore } from '@/shared/auth/sessionStore'
-import { TawzeefLogo } from '@/shared/ui/TawzeefLogo'
-import { Card } from '@/shared/ui/Card'
 import { toSessionUser } from '../api/auth.mapper'
 import { useAcceptStaffInvite, useRequestOtp, useVerifyOtp } from '../api/auth.queries'
 import { AcceptInvitePasswordStep } from '../components/AcceptInvitePasswordStep'
+import { AuthHeader } from '../components/AuthHeader'
+import { AuthScaffold } from '../components/AuthScaffold'
 import { OtpStep } from '../components/OtpStep'
 import { PhoneStep } from '../components/PhoneStep'
 import { RegistrationStepper } from '../components/RegistrationStepper'
@@ -72,44 +72,38 @@ export default function AcceptStaffInvitePage() {
   }
 
   return (
-    <div className="mx-auto flex max-w-md flex-col gap-6 px-4 py-10">
-      <div className="flex flex-col items-center gap-2">
-        <TawzeefLogo height={48} />
-        <h1 className="text-lg font-semibold text-text">{t('acceptInviteTitle')}</h1>
-      </div>
-
+    <AuthScaffold maxWidth={520}>
+      <AuthHeader title={t('acceptInviteTitle')} />
       <RegistrationStepper current={step} />
 
-      <Card>
-        {step === 'phone' && (
-          <PhoneStep
-            defaultPhoneNumber={phoneNumber}
-            isSubmitting={requestOtp.isPending}
-            submitError={errorMessage(requestOtp.error)}
-            onSubmit={handleRequestOtp}
-          />
-        )}
+      {step === 'phone' && (
+        <PhoneStep
+          defaultPhoneNumber={phoneNumber}
+          isSubmitting={requestOtp.isPending}
+          submitError={errorMessage(requestOtp.error)}
+          onSubmit={handleRequestOtp}
+        />
+      )}
 
-        {step === 'otp' && (
-          <OtpStep
-            phoneNumber={phoneNumber}
-            isSubmitting={verifyOtp.isPending}
-            isResending={requestOtp.isPending}
-            submitError={errorMessage(verifyOtp.error)}
-            onSubmit={handleVerifyOtp}
-            onResend={() => requestOtp.mutate({ phoneNumber, purpose: 'StaffInvite' })}
-            onChangeNumber={() => setStep('phone')}
-          />
-        )}
+      {step === 'otp' && (
+        <OtpStep
+          phoneNumber={phoneNumber}
+          isSubmitting={verifyOtp.isPending}
+          isResending={requestOtp.isPending}
+          submitError={errorMessage(verifyOtp.error)}
+          onSubmit={handleVerifyOtp}
+          onResend={() => requestOtp.mutate({ phoneNumber, purpose: 'StaffInvite' })}
+          onChangeNumber={() => setStep('phone')}
+        />
+      )}
 
-        {step === 'details' && (
-          <AcceptInvitePasswordStep
-            isSubmitting={acceptInvite.isPending}
-            submitError={errorMessage(acceptInvite.error)}
-            onSubmit={handleAccept}
-          />
-        )}
-      </Card>
-    </div>
+      {step === 'details' && (
+        <AcceptInvitePasswordStep
+          isSubmitting={acceptInvite.isPending}
+          submitError={errorMessage(acceptInvite.error)}
+          onSubmit={handleAccept}
+        />
+      )}
+    </AuthScaffold>
   )
 }

@@ -2,34 +2,51 @@ import clsx from 'clsx'
 import { type ButtonHTMLAttributes, forwardRef } from 'react'
 
 type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'success' | 'ghost'
+type ButtonSize = 'sm' | 'md' | 'lg'
 
+// Minimal, flat Figma-aligned button styling — brand fill on primary, hairline
+// borders elsewhere, no drop shadows, no glows. Label stays on a single line
+// via whitespace-nowrap so long translations never wrap.
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
-  primary: 'bg-primary text-surface hover:bg-primary-dark',
-  secondary: 'border border-surface-muted bg-surface text-text hover:border-primary/40 hover:text-primary',
-  danger: 'border border-danger/40 text-danger hover:bg-danger/10',
-  success: 'bg-success text-surface hover:bg-success/90',
-  ghost: 'text-primary hover:bg-primary/10',
+  primary: 'bg-brand text-white hover:bg-brand-hover active:bg-brand-active',
+  secondary:
+    'border border-border-primary bg-surface text-content-primary hover:border-brand hover:text-brand',
+  danger: 'border border-danger/40 bg-surface text-danger hover:bg-danger hover:text-white',
+  success: 'bg-success text-white hover:bg-success/90',
+  ghost: 'text-brand hover:bg-brand-soft',
 }
 
-/** UI_UX_GUIDELINES.md §1.5 — the one button component, used everywhere instead of ad-hoc
- * Tailwind classes repeated per page. Min 44px touch target, visible focus ring, consistent
- * 150–200ms transition (the "Flat Design" style's own key-effects guidance). */
-export const Button = forwardRef<HTMLButtonElement, ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant }>(
-  function Button({ variant = 'primary', className, disabled, ...props }, ref) {
-    return (
-      <button
-        ref={ref}
-        type={props.type ?? 'button'}
-        disabled={disabled}
-        className={clsx(
-          'inline-flex min-h-11 items-center justify-center gap-1.5 rounded-md px-4 text-sm font-medium transition-colors duration-150',
-          'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
-          'disabled:cursor-not-allowed disabled:opacity-60',
-          VARIANT_CLASSES[variant],
-          className,
-        )}
-        {...props}
-      />
-    )
-  },
-)
+const SIZE_CLASSES: Record<ButtonSize, string> = {
+  sm: 'h-9 min-h-9 px-4 text-[14px]',
+  md: 'h-12 min-h-12 px-6 text-[16px]',
+  lg: 'h-12 min-h-12 px-6 text-[16px]',
+}
+
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: ButtonVariant
+  size?: ButtonSize
+  fullWidth?: boolean
+}
+
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  { variant = 'primary', size = 'md', fullWidth, className, disabled, ...props },
+  ref,
+) {
+  return (
+    <button
+      ref={ref}
+      type={props.type ?? 'button'}
+      disabled={disabled}
+      className={clsx(
+        'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-200 font-bold tracking-[0.01em] transition-colors duration-150',
+        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand',
+        'disabled:cursor-not-allowed disabled:opacity-60',
+        SIZE_CLASSES[size],
+        VARIANT_CLASSES[variant],
+        fullWidth && 'w-full',
+        className,
+      )}
+      {...props}
+    />
+  )
+})
