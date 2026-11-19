@@ -22,6 +22,10 @@ if (args.Length > 0 && args[0] == "seed-superadmin")
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Set DataDirectory to %USERPROFILE% so that LocalDB AttachDBFilename=|DataDirectory|\Tawzeef.Dev.mdf
+// resolves to the same location on every developer machine (mirrors the LocalDB default path).
+AppDomain.CurrentDomain.SetData("DataDirectory", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+
 // 1. Configuration guards — fail fast (BACKEND_GUIDELINES.md §14).
 var jwtKey = builder.Configuration["Jwt:Key"];
 if (string.IsNullOrWhiteSpace(jwtKey))
