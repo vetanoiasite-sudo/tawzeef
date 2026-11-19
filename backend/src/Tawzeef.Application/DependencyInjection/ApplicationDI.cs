@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Tawzeef.Application.Features.Auth;
 using Tawzeef.Application.Features.Complaints;
 using Tawzeef.Application.Features.JobSeekers;
+using Tawzeef.Application.Features.OfficeUsers;
 using Tawzeef.Application.Features.Offices;
 
 namespace Tawzeef.Application.DependencyInjection;
@@ -16,6 +17,7 @@ public static class ApplicationDI
         services.AddScoped<IJobSeekerReviewService, JobSeekerReviewService>();
         services.AddScoped<IComplaintService, ComplaintService>();
         services.AddScoped<IComplaintReviewService, ComplaintReviewService>();
+        services.AddScoped<IOfficeUserService, OfficeUserService>();
         return services;
     }
 }

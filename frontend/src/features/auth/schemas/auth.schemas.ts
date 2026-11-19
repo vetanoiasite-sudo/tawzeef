@@ -39,6 +39,11 @@ export const employerDetailsSchema = z.object({
 })
 export type EmployerDetailsFormValues = z.infer<typeof employerDetailsSchema>
 
+export const acceptInvitePasswordSchema = z.object({
+  password: z.string().min(8, 'validation:passwordTooShort'),
+})
+export type AcceptInvitePasswordFormValues = z.infer<typeof acceptInvitePasswordSchema>
+
 export const loginSchema = z.object({
   identifier: phoneSchema,
   password: z.string().min(1, 'validation:required'),

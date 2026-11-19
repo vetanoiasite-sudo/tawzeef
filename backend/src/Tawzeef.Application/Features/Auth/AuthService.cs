@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Tawzeef.Application.Common;
+using Tawzeef.Domain.Common;
 using Tawzeef.Domain.Contracts;
 using Tawzeef.Domain.Entities.Auth;
 using Tawzeef.Domain.Entities.Employers;
@@ -189,6 +190,88 @@ public class AuthService(
             FullName = user.FullName,
             EmployerId = employer.Id,
             Role = "Employer",
+            AccessToken = accessToken,
+            ExpiresAt = expiresAt,
+        });
+    }
+
+    public async Task<ServiceResult<AuthResultDto>> AcceptStaffInviteAsync(AcceptOfficeInviteDto dto, CancellationToken ct = default)
+    {
+        var phoneNumber = dto.MobileNumber.Trim();
+
+        var otpMatches = await uow.Repository<OtpVerification>().ListAsync(
+            o => o.PhoneNumber == phoneNumber && o.Purpose == OtpPurpose.StaffInvite
+                 && o.VerifiedToken == dto.OtpToken && o.VerifiedTokenUsedAt == null
+                 && o.VerifiedTokenExpiresAt > DateTime.UtcNow,
+            ct: ct);
+        var verifiedOtp = otpMatches.FirstOrDefault();
+        if (verifiedOtp is null)
+            return ServiceResult<AuthResultDto>.Invalid("Phone verification has expired — verify the number again.");
+
+        var pendingInvites = await uow.Repository<OfficeStaffInvite>().ListAsync(
+            i => i.MobileNumber == phoneNumber && i.AcceptedAt == null, ct: ct);
+        var invite = pendingInvites.OrderByDescending(i => i.CreationDate).FirstOrDefault();
+        if (invite is null) return ServiceResult<AuthResultDto>.NotFound("No pending invite for this number.");
+
+        if (await userManager.FindByNameAsync(phoneNumber) is not null)
+            return ServiceResult<AuthResultDto>.Conflict("This mobile number is already registered.");
+
+        var user = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            UserName = phoneNumber,
+            PhoneNumber = phoneNumber,
+            PhoneNumberConfirmed = true, // just proved via OTP
+            FullName = invite.FullName,
+        };
+
+        var createResult = await userManager.CreateAsync(user, dto.Password);
+        if (!createResult.Succeeded)
+            return ServiceResult<AuthResultDto>.Invalid(createResult.Errors.Select(e => e.Description));
+
+        var membership = new UserOfficeMembership
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            OfficeId = invite.OfficeId,
+            Role = invite.Role,
+            MembershipStatus = MembershipStatus.Active,
+        };
+        await uow.Repository<UserOfficeMembership>().AddAsync(membership, ct);
+
+        var permissionCodes = invite.Role == OfficeRole.OfficeAdmin
+            ? PermissionCatalogue.All.Select(p => p.Code).ToList()
+            : invite.PermissionCodesCsv.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
+
+        if (invite.Role == OfficeRole.OfficeStaff)
+        {
+            foreach (var code in permissionCodes)
+            {
+                await uow.Repository<StaffPermissionGrant>().AddAsync(new StaffPermissionGrant
+                {
+                    Id = Guid.NewGuid(),
+                    UserOfficeMembershipId = membership.Id,
+                    PermissionCode = code,
+                }, ct);
+            }
+        }
+
+        invite.AcceptedAt = DateTime.UtcNow;
+        uow.Repository<OfficeStaffInvite>().Update(invite);
+
+        verifiedOtp.VerifiedTokenUsedAt = DateTime.UtcNow;
+        uow.Repository<OtpVerification>().Update(verifiedOtp);
+
+        await uow.SaveChangesAsync(ct);
+
+        var (accessToken, expiresAt) = tokenGenerator.GenerateToken(user.Id, user.FullName, isSuperAdmin: false, officeId: membership.OfficeId);
+        return ServiceResult<AuthResultDto>.Success(new AuthResultDto
+        {
+            UserId = user.Id,
+            FullName = user.FullName,
+            Role = invite.Role.ToString(),
+            OfficeId = membership.OfficeId,
+            PermissionCodes = permissionCodes,
             AccessToken = accessToken,
             ExpiresAt = expiresAt,
         });

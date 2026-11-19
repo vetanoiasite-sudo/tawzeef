@@ -2,15 +2,24 @@
 
 export type RequestOtpPayload = {
   phoneNumber: string
+  /** "Registration" | "StaffInvite" — omitted defaults to Registration on the backend. */
+  purpose?: string
 }
 
 export type VerifyOtpPayload = {
   phoneNumber: string
   code: string
+  purpose?: string
 }
 
 export type OtpVerifiedResult = {
   otpToken: string
+}
+
+export type AcceptStaffInvitePayload = {
+  mobileNumber: string
+  otpToken: string
+  password: string
 }
 
 export type RegisterJobSeekerPayload = {

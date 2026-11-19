@@ -75,6 +75,20 @@ public class RegisterEmployerDto
     public string DisplayName { get; set; } = string.Empty;
 }
 
+/// <summary>The invitee sets their own password here — the inviting OfficeAdmin/SuperAdmin never
+/// sets or sees it (OfficeStaffInvite doc comment).</summary>
+public class AcceptOfficeInviteDto
+{
+    [Required, MaxLength(30)]
+    public string MobileNumber { get; set; } = string.Empty;
+
+    [Required]
+    public string OtpToken { get; set; } = string.Empty;
+
+    [Required, MinLength(8)]
+    public string Password { get; set; } = string.Empty;
+}
+
 public class LoginDto
 {
     [Required]

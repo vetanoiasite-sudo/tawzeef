@@ -25,6 +25,13 @@ public class AuthController(IAuthService service) : ApiControllerBase
     public async Task<IActionResult> RegisterEmployer([FromBody] RegisterEmployerDto dto, CancellationToken ct)
         => Respond(await service.RegisterEmployerAsync(dto, ct));
 
+    /// <summary>Only reachable after an OfficeAdmin/SuperAdmin invite — see
+    /// OfficeUsersController.Invite. Mirrors register/job-seeker: the invitee proves their own
+    /// number with OtpPurpose.StaffInvite and sets their own password here.</summary>
+    [HttpPost("accept-staff-invite")]
+    public async Task<IActionResult> AcceptStaffInvite([FromBody] AcceptOfficeInviteDto dto, CancellationToken ct)
+        => Respond(await service.AcceptStaffInviteAsync(dto, ct));
+
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto dto, CancellationToken ct)
         => Respond(await service.LoginAsync(dto, ct));

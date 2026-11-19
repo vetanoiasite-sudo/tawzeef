@@ -31,4 +31,7 @@ export const authAr = {
   loginIdentifierLabel: 'رقم الهاتف',
   loginPasswordLabel: 'كلمة المرور',
   loginSubmit: 'تسجيل الدخول',
+  acceptInviteTitle: 'تفعيل دعوة انضمام للمكتب',
+  acceptInviteSubmit: 'تفعيل الحساب',
+  acceptInviteLink: 'عندك دعوة انضمام لمكتب؟ فعّل حسابك هنا',
 }

@@ -97,6 +97,11 @@ export default function LoginPage() {
           {t('auth:registerEmployerLink')}
         </Link>
       </p>
+      <p className="text-center text-sm text-text-muted">
+        <Link to="/accept-invite" className="text-primary">
+          {t('auth:acceptInviteLink')}
+        </Link>
+      </p>
     </div>
   )
 }

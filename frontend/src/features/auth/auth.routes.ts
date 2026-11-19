@@ -18,4 +18,9 @@ export const authRoutes: AppRouteDef[] = [
     Component: lazy(() => import('./pages/LoginPage')),
     access: { public: true },
   },
+  {
+    path: '/accept-invite',
+    Component: lazy(() => import('./pages/AcceptStaffInvitePage')),
+    access: { public: true },
+  },
 ]

@@ -25,6 +25,10 @@ export function useRegisterEmployer() {
   return useMutation({ mutationFn: authApi.registerEmployer })
 }
 
+export function useAcceptStaffInvite() {
+  return useMutation({ mutationFn: authApi.acceptStaffInvite })
+}
+
 export function useLogin() {
   return useMutation({ mutationFn: authApi.login })
 }

@@ -149,17 +149,34 @@ registration requires OTP verification of that number before the account is usab
 | Method | Route | Permission |
 |---|---|---|
 | `GET` | `/api/office-users` (scoped to caller's office) | `officeusers.view` |
-| `POST` | `/api/office-users/invite` | `officeusers.invite` |
+| `POST` | `/api/office-users/invite` | `officeusers.invite` — **SuperAdmin may target any office (the "first OfficeAdmin" case, BUSINESS_REQUIREMENTS.md §12.3); an OfficeAdmin always invites into their own office** |
 | `PUT` | `/api/office-users/{id:guid}/permissions` | `officeusers.edit` |
 | `DELETE` | `/api/office-users/{id:guid}` (revoke) | `officeusers.deactivate` |
+| `POST` | `/api/auth/accept-staff-invite` | public — the invitee only, see below |
 
 ```json
 // InviteOfficeStaffDto
-{ "fullName": "string", "email": "string", "role": "OfficeStaff", "permissionCodes": ["jobseekers.view", "jobseekers.review"] }
+{ "fullName": "string", "mobileNumber": "string", "role": "OfficeStaff", "permissionCodes": ["jobseekers.view", "jobseekers.review"], "officeId": "guid?" }
+// officeId is read only for a SuperAdmin caller (required then) — an OfficeAdmin's own office is
+// used regardless of what's sent. Login is by mobile number platform-wide (§0 item 10), so this
+// uses mobileNumber, not the email the original draft of this section showed — no email-sending
+// capability exists in this app.
+
+// AcceptOfficeInviteDto (POST /api/auth/accept-staff-invite)
+{ "mobileNumber": "string", "otpToken": "string", "password": "string" }
 ```
 
+Implemented as the same OTP-then-self-registration shape as job-seeker/employer registration
+(§3.1), not an admin-set or emailed password: `invite` only records who's invited (into
+`OfficeStaffInvite`, not yet a real account); the invitee proves their own number via
+`POST /api/auth/otp/request`/`otp/verify` with `"purpose": "StaffInvite"`, then calls
+`accept-staff-invite` to set their own password — nobody but the invitee ever sets or sees it. The
+response is an ordinary `AuthResultDto` (§3.1), i.e. accepting logs you in immediately.
+
 `permissionCodes` is validated against the seeded `PermissionDefinition` catalogue
-(DATABASE_DOCUMENTATION.md §3) — an unknown code is a `400 Validation` error, not silently ignored.
+(DATABASE_DOCUMENTATION.md §3) — an unknown code is a `400 Validation` error, not silently ignored,
+and so is any `PermissionCatalogue.OfficeAdminOnly` code (RBAC_PERMISSIONS.md footnote 5) — those
+can never be granted to an OfficeStaff invite regardless of who's inviting.
 
 ---
 
