@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Tawzeef.Api.Authentication;
 using Tawzeef.Api.Authorization;
@@ -17,6 +18,12 @@ using Tawzeef.Infrastructure.DependencyInjection;
 if (args.Length > 0 && args[0] == "seed-superadmin")
 {
     await SeedSuperAdminAsync(args);
+    return;
+}
+
+if (args.Length > 0 && args[0] == "seed-demo")
+{
+    await SeedDemoAsync();
     return;
 }
 
@@ -181,6 +188,137 @@ static async Task SeedSuperAdminAsync(string[] cliArgs)
     Console.WriteLine(result.Succeeded
         ? $"SuperAdmin created: {user.Id}"
         : string.Join("; ", result.Errors.Select(e => e.Description)));
+}
+
+// -------------------------------------------------------------------------- //
+//  seed-demo — populate the LocalDB dev database with enough data for the    //
+//  public /jobs surface to show something real: one office, one approved     //
+//  employer, and a dozen varied, published job advertisements. Idempotent —  //
+//  re-running the command does nothing after the first run.                  //
+// -------------------------------------------------------------------------- //
+static async Task SeedDemoAsync()
+{
+    const string DEMO_OFFICE_CODE = "DEMO";
+    const string DEMO_EMPLOYER_PHONE = "01999999999";
+    const string DEMO_EMPLOYER_PASSWORD = "Demo_1234567!";
+
+    var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
+        ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")
+        ?? "Production";
+    AppDomain.CurrentDomain.SetData("DataDirectory", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+    var hostBuilder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = environmentName });
+    hostBuilder.Services.AddInfrastructure(hostBuilder.Configuration);
+    hostBuilder.Services.AddScoped<ICurrentUser, SystemCurrentUser>();
+    using var host = hostBuilder.Build();
+    using var scope = host.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<Tawzeef.Infrastructure.Persistence.AppDbContext>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+    await db.Database.MigrateAsync();
+
+    if (await db.EmploymentOffices.AnyAsync(o => o.Code == DEMO_OFFICE_CODE))
+    {
+        Console.WriteLine("Demo data already seeded — nothing to do.");
+        return;
+    }
+
+    var office = new Tawzeef.Domain.Entities.Offices.EmploymentOffice
+    {
+        Id = Guid.NewGuid(),
+        Name = "Demo Employment Office",
+        ArName = "مكتب التوظيف التجريبي",
+        Code = DEMO_OFFICE_CODE,
+        City = "القاهرة",
+        Address = "شارع التجربة، القاهرة",
+        Phone = "01111111111",
+        Email = "demo-office@example.com",
+        Status = Tawzeef.Domain.Enums.OfficeStatus.Active,
+    };
+    db.EmploymentOffices.Add(office);
+    await db.SaveChangesAsync();
+
+    var employerUser = new ApplicationUser
+    {
+        Id = Guid.NewGuid(),
+        UserName = DEMO_EMPLOYER_PHONE,
+        PhoneNumber = DEMO_EMPLOYER_PHONE,
+        PhoneNumberConfirmed = true,
+        FullName = "شركة النيل للتجارة (تجريبي)",
+    };
+    var createResult = await userManager.CreateAsync(employerUser, DEMO_EMPLOYER_PASSWORD);
+    if (!createResult.Succeeded)
+    {
+        Console.WriteLine("Failed to create demo employer user: " + string.Join("; ", createResult.Errors.Select(e => e.Description)));
+        return;
+    }
+
+    var employer = new Tawzeef.Domain.Entities.Employers.Employer
+    {
+        Id = Guid.NewGuid(),
+        OfficeId = office.Id,
+        UserId = employerUser.Id,
+        LegalName = "شركة النيل للتجارة ش.م.م",
+        DisplayName = "النيل للتجارة",
+        BusinessActivity = "تجارة عامة وتوريدات",
+        Address = "شارع التحرير، وسط البلد",
+        City = "القاهرة",
+        RepresentativeName = "ممثل الشركة",
+        VerificationStatus = Tawzeef.Domain.Enums.EmployerVerificationStatus.Approved,
+        ApprovedAt = DateTime.UtcNow,
+        CooperationStatus = Tawzeef.Domain.Enums.EmployerCooperationStatus.Active,
+    };
+    db.Employers.Add(employer);
+    await db.SaveChangesAsync();
+
+    var now = DateTime.UtcNow;
+    var cities = new[] { "القاهرة", "الجيزة", "الإسكندرية", "الدقهلية", "الشرقية", "الغربية", "المنوفية", "القليوبية" };
+    var categories = new[] { "مبيعات", "محاسبة ومالية", "تكنولوجيا المعلومات", "إداري وسكرتارية", "خدمة العملاء", "لوجستيات ونقل", "هندسة وتشغيل", "صحة وتمريض" };
+    var titles = new[]
+    {
+        ("مندوب مبيعات ميداني", "مبيعات", Tawzeef.Domain.Enums.EmploymentType.FullTime, 6000m, 9000m),
+        ("محاسب أول", "محاسبة ومالية", Tawzeef.Domain.Enums.EmploymentType.FullTime, 10000m, 14000m),
+        ("مطور واجهات أمامية React", "تكنولوجيا المعلومات", Tawzeef.Domain.Enums.EmploymentType.FullTime, 15000m, 25000m),
+        ("سكرتيرة تنفيذية", "إداري وسكرتارية", Tawzeef.Domain.Enums.EmploymentType.FullTime, 7000m, 10000m),
+        ("ممثل خدمة عملاء (كول سنتر)", "خدمة العملاء", Tawzeef.Domain.Enums.EmploymentType.FullTime, 6500m, 8500m),
+        ("مسؤول مخازن", "لوجستيات ونقل", Tawzeef.Domain.Enums.EmploymentType.FullTime, 7500m, 10000m),
+        ("مهندس كهرباء", "هندسة وتشغيل", Tawzeef.Domain.Enums.EmploymentType.FullTime, 12000m, 16000m),
+        ("ممرضة أطفال", "صحة وتمريض", Tawzeef.Domain.Enums.EmploymentType.PartTime, 5000m, 7000m),
+        ("مصمم جرافيك (دوام جزئي)", "تكنولوجيا المعلومات", Tawzeef.Domain.Enums.EmploymentType.PartTime, 4000m, 6500m),
+        ("مدير فرع", "إداري وسكرتارية", Tawzeef.Domain.Enums.EmploymentType.FullTime, 20000m, 28000m),
+        ("مشرف تشغيل مصنع", "هندسة وتشغيل", Tawzeef.Domain.Enums.EmploymentType.FullTime, 11000m, 15000m),
+        ("كاشير سوبر ماركت", "مبيعات", Tawzeef.Domain.Enums.EmploymentType.FullTime, 5500m, 7000m),
+    };
+
+    var ads = titles.Select((row, i) => new Tawzeef.Domain.Entities.JobAdvertisements.JobAdvertisement
+    {
+        Id = Guid.NewGuid(),
+        OfficeId = office.Id,
+        EmployerId = employer.Id,
+        Title = row.Item1,
+        Category = row.Item2,
+        EmploymentType = row.Item3,
+        SalaryMin = row.Item4,
+        SalaryMax = row.Item5,
+        City = cities[i % cities.Length],
+        Description = $"فرصة عمل مميزة في {row.Item2}. التواصل والتقديم عن طريق مكتب التوظيف فقط.",
+        ExperienceRequirement = i % 3 == 0 ? "مبتدئ" : i % 3 == 1 ? "٢ - ٥ سنوات" : "خبرة ٥ سنوات فأكثر",
+        WorkingHours = "من الأحد إلى الخميس، ٩ صباحاً حتى ٥ مساءً",
+        Address = cities[i % cities.Length],
+        VacancyCount = (i % 3) + 1,
+        Status = Tawzeef.Domain.Enums.JobAdvertisementStatus.Published,
+        SubmittedAt = now.AddDays(-(i + 2)),
+        ApprovedAt = now.AddDays(-(i + 1)),
+        PublishedAt = now.AddDays(-i),
+        ExpiresAt = now.AddDays(15 - i),
+    }).ToList();
+
+    db.JobAdvertisements.AddRange(ads);
+    await db.SaveChangesAsync();
+
+    Console.WriteLine($"Seeded demo data:");
+    Console.WriteLine($"  office:   {office.Id}  ({office.Code} / {office.ArName})");
+    Console.WriteLine($"  employer: {employer.Id} ({employer.DisplayName}, login {DEMO_EMPLOYER_PHONE} / {DEMO_EMPLOYER_PASSWORD})");
+    Console.WriteLine($"  ads:      {ads.Count} published, 15-day window");
 }
 
 /// <summary>The audit-stamping actor for CLI bootstrap work (BACKEND_GUIDELINES.md §13 — "a

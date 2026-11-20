@@ -1,16 +1,18 @@
 import clsx from 'clsx'
 import { type ButtonHTMLAttributes, forwardRef } from 'react'
 
-type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'success' | 'ghost'
+type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'danger' | 'success' | 'ghost'
 type ButtonSize = 'sm' | 'md' | 'lg'
 
-// Minimal, flat Figma-aligned button styling — brand fill on primary, hairline
-// borders elsewhere, no drop shadows, no glows. Label stays on a single line
-// via whitespace-nowrap so long translations never wrap.
+// Minimal, flat Vitamin-aligned button styling — brand fill on primary, hairline
+// borders on secondary, text-only + underline on tertiary. Label stays on a
+// single line via whitespace-nowrap so long translations never wrap.
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   primary: 'bg-brand text-white hover:bg-brand-hover active:bg-brand-active',
   secondary:
     'border border-border-primary bg-surface text-content-primary hover:border-brand hover:text-brand',
+  tertiary:
+    'text-brand underline underline-offset-4 decoration-2 hover:text-brand-hover hover:decoration-brand-hover active:text-brand-active',
   danger: 'border border-danger/40 bg-surface text-danger hover:bg-danger hover:text-white',
   success: 'bg-success text-white hover:bg-success/90',
   ghost: 'text-brand hover:bg-brand-soft',

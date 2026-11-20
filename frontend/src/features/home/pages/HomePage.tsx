@@ -1,14 +1,16 @@
-import { useState, type FormEvent } from 'react'
+import clsx from 'clsx'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 import { useJobSearch } from '@/features/public-jobs/api/publicJobs.queries'
 import type { JobListItem } from '@/features/public-jobs/types/publicJobs.types'
 import { Button } from '@/shared/ui/Button'
 
-/** Egyptian governorates surfaced on the home page for quick browse-by-city.
- * Free-text filter on the backend today (no City lookup table yet — see the
- * known-gaps section in docs/UI_UX_GUIDELINES.md replacement notes). */
-const TOP_CITIES = [
+/** Egyptian governorates — the full 27, surfaced in the hero search autocomplete
+ * and the "Browse by governorate" tile grid. The backend filters city as a
+ * free-text Contains (no City lookup table yet), so the list is purely a UI
+ * convenience. */
+const ALL_GOVERNORATES = [
   'القاهرة',
   'الجيزة',
   'الإسكندرية',
@@ -17,7 +19,29 @@ const TOP_CITIES = [
   'الغربية',
   'المنوفية',
   'القليوبية',
+  'البحيرة',
+  'كفر الشيخ',
+  'دمياط',
+  'بورسعيد',
+  'الإسماعيلية',
+  'السويس',
+  'شمال سيناء',
+  'جنوب سيناء',
+  'الفيوم',
+  'بني سويف',
+  'المنيا',
+  'أسيوط',
+  'سوهاج',
+  'قنا',
+  'الأقصر',
+  'أسوان',
+  'البحر الأحمر',
+  'الوادي الجديد',
+  'مطروح',
 ] as const
+
+/** Governorates shown in the "Browse by governorate" quick-access grid. */
+const TOP_CITIES = ALL_GOVERNORATES.slice(0, 8)
 
 /** Hard-coded categories — mirrors the categories used across the ad flow. */
 const TOP_CATEGORIES = [
@@ -52,6 +76,10 @@ function HeroSearch() {
   const [keyword, setKeyword] = useState('')
   const [city, setCity] = useState('')
 
+  // Read the total open-jobs count for the hero "X open jobs" badge.
+  const countQuery = useJobSearch({ pageIndex: 0, pageSize: 1 })
+  const totalOpenJobs = countQuery.data?.pagination?.totalCount ?? 0
+
   function onSearch(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const params = new URLSearchParams()
@@ -60,9 +88,13 @@ function HeroSearch() {
     void navigate(`/jobs${params.toString() ? `?${params.toString()}` : ''}`)
   }
 
+  function scrollPastHero() {
+    window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })
+  }
+
   return (
     <section
-      className="relative isolate overflow-hidden"
+      className="relative isolate -mt-16 flex min-h-screen w-full flex-col overflow-hidden"
       style={{
         backgroundImage: 'url(/images/auth-bg.jpg)',
         backgroundSize: 'cover',
@@ -74,47 +106,174 @@ function HeroSearch() {
         className="absolute inset-0 -z-10"
         style={{ background: 'linear-gradient(180deg, rgba(0,16,24,0.72) 0%, rgba(18,24,135,0.72) 100%)' }}
       />
-      <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 py-20 text-center text-white sm:py-28">
-        <h1 className="max-w-3xl text-[36px] font-extrabold leading-[1.2] sm:text-[48px]">
-          وظيفتك المناسبة تبدأ من هنا
+
+      <div className="flex w-full flex-1 flex-col items-center justify-center gap-6 px-4 pb-16 pt-24 text-center text-white sm:px-8 sm:pb-20 sm:pt-32 xl:px-16 2xl:px-24">
+        <h1 className="max-w-3xl text-[40px] font-extrabold leading-[1.25] sm:text-[56px] sm:leading-[1.2] xl:text-[64px]">
+          وظيفتك المناسبة
+          <br />
+          تبدأ من{' '}
+          <span className="text-[#FFE343] underline decoration-brand decoration-[6px] underline-offset-[14px]">
+            هنا
+          </span>
         </h1>
-        <p className="max-w-2xl text-[16px] leading-[26px] text-white/85 sm:text-[18px]">
-          منصة توظيف موثوقة مدارة من مكاتب العمل الكنسية — تصفّح، قدِّم، وقابل أصحاب
-          العمل عن طريق مكتبك.
+        <p className="max-w-[460px] text-[16px] leading-[26px] text-white/85 sm:text-[18px] sm:leading-[30px]">
+          منصة توظيف موثوقة من مكاتب العمل الكنسية — تصفّح وقدِّم عن طريق مكتبك.
         </p>
 
         <form
           onSubmit={onSearch}
-          className="mt-4 flex w-full max-w-3xl flex-col gap-2 rounded-300 bg-white p-2 shadow-200 sm:flex-row"
+          className="mt-6 flex w-full max-w-4xl flex-col gap-2 rounded-300 bg-white p-2 shadow-200 sm:flex-row sm:items-center"
         >
-          <div className="flex min-w-0 flex-1 items-center gap-2 border-border-primary px-3 sm:border-e">
+          <div className="flex min-w-0 flex-[2] items-center gap-2 border-border-primary px-3 sm:border-e">
             <SearchIcon />
             <input
               type="search"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              placeholder="عنوان الوظيفة، شركة، كلمة مفتاحية"
+              placeholder="ابحث بالمسمى الوظيفي أو الكلمة المفتاحية"
               className="min-w-0 flex-1 bg-transparent py-3 text-[15px] text-content-primary outline-none placeholder:text-content-tertiary"
               aria-label="كلمة البحث"
             />
           </div>
-          <div className="flex min-w-0 flex-1 items-center gap-2 px-3">
-            <PinIcon />
-            <input
-              type="search"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="المحافظة"
-              className="min-w-0 flex-1 bg-transparent py-3 text-[15px] text-content-primary outline-none placeholder:text-content-tertiary"
-              aria-label="المحافظة"
-            />
-          </div>
-          <Button type="submit" variant="primary" size="lg" className="sm:min-w-[140px]">
+
+          <CityAutocomplete value={city} onChange={setCity} />
+
+          {/* Open-jobs count lives inside the bar, between the city field and the
+           *  submit button — like the Wuzzuf-style "X Open Jobs" badge. */}
+          <span className="hidden whitespace-nowrap px-3 text-[13px] font-medium text-content-tertiary sm:inline">
+            {countQuery.isLoading
+              ? '...'
+              : `${totalOpenJobs.toLocaleString('ar-EG')} وظيفة متاحة`}
+          </span>
+
+          <Button type="submit" variant="primary" size="lg" className="sm:min-w-[120px]">
             بحث
           </Button>
         </form>
       </div>
+
+      {/* Scroll-down affordance at the bottom of the hero */}
+      <button
+        type="button"
+        onClick={scrollPastHero}
+        aria-label="التمرير لعرض المزيد"
+        className="relative z-10 mx-auto mb-10 flex h-11 w-11 animate-bounce items-center justify-center rounded-full border border-white/30 bg-white/10 text-white backdrop-blur-sm transition-colors hover:border-white hover:bg-white/20"
+      >
+        <ChevronDownIcon />
+      </button>
     </section>
+  )
+}
+
+function ChevronDownIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+/* -------------------------------------------------------------------------- */
+/* City autocomplete — type-ahead picker for the hero search                  */
+/* -------------------------------------------------------------------------- */
+
+function CityAutocomplete({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false)
+  const [highlight, setHighlight] = useState(0)
+  const rootRef = useRef<HTMLDivElement | null>(null)
+
+  const query = value.trim()
+  const suggestions = query
+    ? ALL_GOVERNORATES.filter((g) => g.includes(query)).slice(0, 8)
+    : ALL_GOVERNORATES.slice(0, 8)
+
+  // Close on outside click.
+  useEffect(() => {
+    if (!open) return
+    function onDown(e: MouseEvent) {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [open])
+
+  function selectSuggestion(s: string) {
+    onChange(s)
+    setOpen(false)
+  }
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (!open) {
+      if (e.key === 'ArrowDown') {
+        setOpen(true)
+        e.preventDefault()
+      }
+      return
+    }
+    if (e.key === 'ArrowDown') {
+      setHighlight((h) => Math.min(h + 1, suggestions.length - 1))
+      e.preventDefault()
+    } else if (e.key === 'ArrowUp') {
+      setHighlight((h) => Math.max(h - 1, 0))
+      e.preventDefault()
+    } else if (e.key === 'Enter') {
+      if (suggestions[highlight]) {
+        selectSuggestion(suggestions[highlight])
+        e.preventDefault()
+      }
+    } else if (e.key === 'Escape') {
+      setOpen(false)
+    }
+  }
+
+  return (
+    <div ref={rootRef} className="relative flex min-w-0 flex-1">
+      <div className="flex min-w-0 flex-1 items-center gap-2 px-3">
+        <PinIcon />
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => {
+            onChange(e.target.value)
+            setOpen(true)
+            setHighlight(0)
+          }}
+          onFocus={() => setOpen(true)}
+          onKeyDown={onKeyDown}
+          placeholder="المحافظة"
+          aria-label="المحافظة"
+          aria-autocomplete="list"
+          aria-expanded={open}
+          role="combobox"
+          className="min-w-0 flex-1 bg-transparent py-3 text-[15px] text-content-primary outline-none placeholder:text-content-tertiary"
+        />
+      </div>
+      {open && suggestions.length > 0 && (
+        <ul
+          role="listbox"
+          className="absolute end-0 start-0 top-full z-20 mt-1 max-h-72 overflow-auto rounded-200 border border-border-primary bg-white py-1 text-start shadow-200"
+        >
+          {suggestions.map((s, i) => (
+            <li
+              key={s}
+              role="option"
+              aria-selected={i === highlight}
+              onMouseDown={(e) => {
+                e.preventDefault()
+                selectSuggestion(s)
+              }}
+              onMouseEnter={() => setHighlight(i)}
+              className={clsx(
+                'cursor-pointer px-4 py-2 text-[14px] text-content-primary',
+                i === highlight ? 'bg-brand-soft text-brand' : 'hover:bg-surface-muted',
+              )}
+            >
+              {s}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   )
 }
 
@@ -127,8 +286,18 @@ function LatestJobs() {
   const jobs: JobListItem[] = data?.items ?? []
 
   return (
-    <section className="mx-auto w-full max-w-6xl px-4 py-16">
-      <SectionHeader title="أحدث الوظائف" action={<Link to="/jobs" className="text-[14px] font-bold text-brand hover:text-brand-hover hover:underline">عرض كل الوظائف</Link>} />
+    <section className="w-full px-4 py-16 sm:px-8 xl:px-16 2xl:px-24">
+      <SectionHeader
+        title="أحدث الوظائف"
+        action={
+          <Link
+            to="/jobs"
+            className="text-[14px] font-bold text-brand underline underline-offset-4 decoration-2 hover:text-brand-hover hover:decoration-brand-hover"
+          >
+            عرض كل الوظائف
+          </Link>
+        }
+      />
 
       {isLoading && <GridSkeleton />}
       {isError && (
@@ -201,8 +370,8 @@ function GridSkeleton() {
 
 function BrowseByCategory() {
   return (
-    <section className="bg-surface">
-      <div className="mx-auto w-full max-w-6xl px-4 py-16">
+    <section className="bg-brand-soft">
+      <div className="w-full px-4 py-16 sm:px-8 xl:px-16 2xl:px-24">
         <SectionHeader title="تصفّح حسب الفئة" />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {TOP_CATEGORIES.map((c) => (
@@ -222,7 +391,7 @@ function BrowseByCategory() {
 
 function BrowseByCity() {
   return (
-    <section className="mx-auto w-full max-w-6xl px-4 py-16">
+    <section className="w-full px-4 py-16 sm:px-8 xl:px-16 2xl:px-24">
       <SectionHeader title="تصفّح حسب المحافظة" />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
         {TOP_CITIES.map((city) => (
@@ -247,7 +416,7 @@ function JoinTawzeefCTA() {
   const { t } = useTranslation('auth')
   return (
     <section className="bg-brand-soft">
-      <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-4 px-4 py-16 md:grid-cols-2">
+      <div className="grid w-full grid-cols-1 gap-4 px-4 py-16 sm:px-8 md:grid-cols-2 xl:px-16 2xl:px-24">
         <CtaCard
           title="هل تبحث عن عمل؟"
           body="سجّل حسابك وقدّم على وظائف موثوقة من خلال مكتبك."
