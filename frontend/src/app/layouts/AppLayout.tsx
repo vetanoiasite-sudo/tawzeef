@@ -103,6 +103,16 @@ function AppLayoutChrome() {
 
             {isAuthenticated && (
               <>
+                {user?.role === 'JobSeeker' && (
+                  <Link to="/dashboard" className={navLinkClasses}>
+                    {t('jobSeekerProfile:dashboardNav')}
+                  </Link>
+                )}
+                {user?.role === 'Employer' && (
+                  <Link to="/employer/dashboard" className={navLinkClasses}>
+                    {t('employerProfile:dashboardNav')}
+                  </Link>
+                )}
                 <Link to="/jobs" className={navLinkClasses}>
                   الوظائف
                 </Link>

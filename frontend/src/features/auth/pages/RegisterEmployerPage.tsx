@@ -75,7 +75,7 @@ export default function RegisterEmployerPage() {
       {
         onSuccess: (result) => {
           setSession(result.accessToken, toSessionUser(result))
-          void navigate('/', { replace: true })
+          void navigate('/employer/dashboard', { replace: true })
         },
       },
     )

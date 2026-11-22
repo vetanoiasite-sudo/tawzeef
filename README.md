@@ -26,29 +26,16 @@ docs/       Planning documentation — read docs/README.md first
 
 ### First-time setup (every machine, not just the first one)
 
-Three things are **deliberately not committed to git** (BACKEND_GUIDELINES.md §14: no secrets in
-`appsettings.json`, ever) and must be set up once per machine before `dotnet run` works:
-
 1. **SQL Server LocalDB** — install it (ships with Visual Studio, or standalone via the
    [SQL Server Express LocalDB installer](https://learn.microsoft.com/sql/database-engine/configure-windows/sql-server-express-localdb)).
    Windows/LocalDB only; swap `ConnectionStrings:DefaultConnection` in
    `appsettings.Development.json` for a real SQL Server/Docker instance on macOS/Linux.
-2. **JWT signing key**, via .NET user-secrets (never appsettings, not even
-   `appsettings.Development.json` — it's still committed to git):
-   ```bash
-   cd backend/src/Tawzeef.Api
-   dotnet user-secrets init   # no-op if UserSecretsId is already in the .csproj
-   dotnet user-secrets set "Jwt:Key" "$(openssl rand -base64 48)"
-   ```
-   (No `openssl`? Any random string of 32+ bytes works — `dotnet user-secrets set "Jwt:Key" "paste-a-long-random-string-here"`.)
-   Without this, the app refuses to start with `Jwt:Key is not configured` — that guard is
-   intentional (BACKEND_GUIDELINES.md §14), not a bug; it means "you haven't done step 2 yet."
-3. **Create/update the database:**
+2. **Create/update the database:**
    ```bash
    cd backend/src/Tawzeef.Api
    dotnet ef database update --project ../Tawzeef.Infrastructure --startup-project .
    ```
-4. **Seed the first Super Admin** (the database starts empty — no office, no users; the test
+3. **Seed the first Super Admin** (the database starts empty — no office, no users; the test
    accounts used during development live only in the original dev machine's LocalDB file, never
    committed to git):
    ```bash
@@ -59,6 +46,13 @@ Three things are **deliberately not committed to git** (BACKEND_GUIDELINES.md §
    via OTP (logged to the console by the dev-only `DevLogOtpSender` — search the terminal output
    for `[DEV OTP]`) to get a real OfficeAdmin login.
 
+**JWT signing key:** `appsettings.Development.json` ships a committed dev-only key (requested
+explicitly, to remove the per-machine setup step) so every clone works identically with zero
+config. This is intentionally **not** how a real deployment is configured — a production
+environment must still set `JWT__Key` via an environment variable or secret store, never read it
+from a committed file; the app's own startup guard in `Program.cs` already refuses to boot outside
+Development with no key configured, so this shortcut can't leak into production by accident.
+
 Then the usual:
 ```bash
 cd backend
@@ -68,12 +62,12 @@ dotnet run --project src/Tawzeef.Api
 ```
 
 **Uploaded documents** (CVs, IDs, legal docs) are written to disk at `App_Data/secure-files`
-relative to `Tawzeef.Api`'s own project folder by default — never inside `wwwroot` (that's served
-publicly by static-file middleware, which this app doesn't even enable; see
-`BUSINESS_REQUIREMENTS.md §17.3` on why these must never be publicly reachable), and never inside
-`bin/`, which `dotnet clean` wipes. Override the location for a real deployment with
-`FileStorage:LocalPath` in configuration (an absolute path outside the repo/deploy tree — a mounted
-volume, a network share).
+relative to `Tawzeef.Api`'s own project folder by default — never inside `wwwroot` (that folder now
+*is* served publicly by static-file middleware, since it hosts the built frontend SPA — see "Serving
+the built frontend from the backend" below; see `BUSINESS_REQUIREMENTS.md §17.3` on why secure
+documents must never sit in a publicly-reachable folder), and never inside `bin/`, which
+`dotnet clean` wipes. Override the location for a real deployment with `FileStorage:LocalPath` in
+configuration (an absolute path outside the repo/deploy tree — a mounted volume, a network share).
 
 Conventions: [docs/BACKEND_GUIDELINES.md](docs/BACKEND_GUIDELINES.md). `Api → Application →
 Domain`, `Infrastructure → Domain`; `Application` never references `Infrastructure` or EF Core.

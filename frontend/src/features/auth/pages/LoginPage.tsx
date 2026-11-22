@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { ApiError } from '@/shared/api/types'
 import { useSessionStore } from '@/shared/auth/sessionStore'
+import { roleLandingPath } from '@/shared/auth/roleLandingPath'
 import { Button } from '@/shared/ui/Button'
 import { TextInput } from '@/shared/ui/TextInput'
 import { AuthHeader } from '../components/AuthHeader'
@@ -30,9 +31,11 @@ export default function LoginPage() {
       onSuccess: (result) => {
         setSession(result.accessToken, toSessionUser(result))
         // Same-origin relative path only (PROJECT_ARCHITECTURE_FRONTEND.md §13.1) — never follow
-        // an absolute/external redirect target from a query param.
+        // an absolute/external redirect target from a query param. With no explicit `redirect`,
+        // land on the role's own dashboard rather than the public homepage, so logging in
+        // visibly changes the page instead of looking identical to being logged out.
         const redirect = searchParams.get('redirect')
-        void navigate(redirect?.startsWith('/') ? redirect : '/', { replace: true })
+        void navigate(redirect?.startsWith('/') ? redirect : roleLandingPath(result.role), { replace: true })
       },
     })
   }

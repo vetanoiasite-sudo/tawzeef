@@ -73,7 +73,7 @@ export default function RegisterJobSeekerPage() {
       {
         onSuccess: (result) => {
           setSession(result.accessToken, toSessionUser(result))
-          void navigate('/', { replace: true })
+          void navigate('/dashboard', { replace: true })
         },
       },
     )

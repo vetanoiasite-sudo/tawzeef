@@ -1,5 +1,15 @@
 export const jobSeekerProfileAr = {
   pageTitle: 'ملفي الشخصي',
+  dashboardNav: 'لوحة التحكم',
+  dashboardGreeting: 'أهلًا بك، {{name}}',
+  profileStatusCard: 'حالة ملفك الشخصي',
+  completeProfileAction: 'استكمال الملف الشخصي',
+  viewProfileAction: 'عرض الملف الشخصي',
+  applicationsCountLabel: 'عدد طلباتك',
+  viewApplicationsAction: 'عرض كل طلباتي',
+  latestJobsSection: 'أحدث الوظائف المتاحة',
+  browseAllJobsAction: 'استعرض كل الوظائف',
+  noJobsYet: 'لا توجد وظائف متاحة حاليًا',
   statusLabel: 'حالة الملف',
   rejectionReasonLabel: 'سبب الرفض',
   status: {

@@ -1,5 +1,17 @@
 export const employerProfileAr = {
   pageTitle: 'ملف الشركة',
+  dashboardTitle: 'لوحة التحكم',
+  dashboardNav: 'لوحة التحكم',
+  dashboardGreeting: 'أهلًا بك، {{name}}',
+  profileStatusCard: 'حالة توثيق الشركة',
+  completeProfileAction: 'استكمال ملف الشركة',
+  viewProfileAction: 'عرض ملف الشركة',
+  activeAdsCountLabel: 'عدد إعلاناتك النشطة',
+  totalAdsCountLabel: 'إجمالي الإعلانات',
+  myJobAdsSection: 'إعلاناتك الوظيفية',
+  createJobAdAction: 'إنشاء إعلان وظيفة جديد',
+  viewAllJobAdsAction: 'عرض كل الإعلانات',
+  noJobAdsYet: 'لم تنشئ أي إعلان وظيفي بعد',
   statusLabel: 'حالة التوثيق',
   rejectionReasonLabel: 'سبب الرفض',
   status: {
