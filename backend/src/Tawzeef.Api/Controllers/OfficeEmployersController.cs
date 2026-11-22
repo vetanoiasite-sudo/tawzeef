@@ -20,6 +20,21 @@ public class OfficeEmployersController(IEmployerReviewService service, ICurrentU
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
         => Respond(await service.GetByIdAsync(RequireOfficeId(), id, ct));
 
+    /// <summary>Not a signed, short-lived URL token (no such file-serving infrastructure exists
+    /// yet) — an ordinary authenticated GET, re-checking office ownership on every call, streamed
+    /// through the existing IFileStorage abstraction. Mirrors OfficeJobSeekersController's exact
+    /// pattern.</summary>
+    [HttpGet("{id:guid}/documents/{documentId:guid}/download")]
+    [RequiresPermission("employers.viewdocuments")]
+    public async Task<IActionResult> DownloadDocument(Guid id, Guid documentId, CancellationToken ct)
+    {
+        var result = await service.GetDocumentFileAsync(RequireOfficeId(), id, documentId, ct);
+        if (!result.IsSuccess) return Respond(result);
+
+        var file = result.Data!;
+        return File(file.Content, string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType, file.FileName);
+    }
+
     [HttpPost("{id:guid}/documents/{documentId:guid}/approve")]
     [RequiresPermission("employers.review")]
     public async Task<IActionResult> ApproveDocument(Guid id, Guid documentId, CancellationToken ct)

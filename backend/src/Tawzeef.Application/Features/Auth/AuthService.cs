@@ -345,11 +345,15 @@ public class AuthService(
         var grants = await uow.Repository<Tawzeef.Domain.Entities.Offices.StaffPermissionGrant>().ListAsync(
             g => g.UserOfficeMembershipId == membership.Id, ct: ct);
 
-        // Mirrors PermissionChecker.UniversalOfficeMemberPermissions — a code OfficeStaff holds
+        // Mirrors PermissionChecker.UniversalOfficeMemberPermissions — codes OfficeStaff holds
         // from active membership alone, with no StaffPermissionGrant row. Without this, the login
-        // response's permissionCodes (what the frontend's useAccess reads) would omit it for a
+        // response's permissionCodes (what the frontend's useAccess reads) would omit them for a
         // zero-grant staff member even though the backend's own filter already allows the call.
-        return grants.Select(g => g.PermissionCode).Append("notifications.viewown").Distinct().ToList();
+        return grants.Select(g => g.PermissionCode)
+            .Append("notifications.viewown")
+            .Append("dashboards.view")
+            .Distinct()
+            .ToList();
     }
 
     private static string GenerateNumericCode(int length)

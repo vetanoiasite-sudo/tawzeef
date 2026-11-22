@@ -10,6 +10,9 @@ public interface IEmployerReviewService
 
     Task<ServiceResult<EmployerProfileDto>> GetByIdAsync(Guid officeId, Guid id, CancellationToken ct = default);
 
+    Task<ServiceResult<EmployerDocumentFileDto>> GetDocumentFileAsync(
+        Guid officeId, Guid employerId, Guid documentId, CancellationToken ct = default);
+
     Task<ServiceResult<EmployerDocumentDto>> ApproveDocumentAsync(
         Guid officeId, Guid reviewerId, Guid employerId, Guid documentId, CancellationToken ct = default);
 

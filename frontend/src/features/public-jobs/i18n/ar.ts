@@ -2,6 +2,7 @@ export const publicJobsAr = {
   pageTitle: 'الوظائف المتاحة',
   searchPlaceholder: 'ابحث عن وظيفة...',
   cityPlaceholder: 'المدينة',
+  cityAll: 'كل المحافظات',
   categoryPlaceholder: 'التخصص',
   employmentTypeAll: 'كل أنواع العمل',
   employmentType: {

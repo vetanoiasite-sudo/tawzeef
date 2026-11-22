@@ -2,46 +2,16 @@ import clsx from 'clsx'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
-import { useJobSearch } from '@/features/public-jobs/api/publicJobs.queries'
+import { useJobSearch, usePublicPlatformStats } from '@/features/public-jobs/api/publicJobs.queries'
 import type { JobListItem } from '@/features/public-jobs/types/publicJobs.types'
 import { Button } from '@/shared/ui/Button'
-
-/** Egyptian governorates — the full 27, surfaced in the hero search autocomplete
- * and the "Browse by governorate" tile grid. The backend filters city as a
- * free-text Contains (no City lookup table yet), so the list is purely a UI
- * convenience. */
-const ALL_GOVERNORATES = [
-  'القاهرة',
-  'الجيزة',
-  'الإسكندرية',
-  'الدقهلية',
-  'الشرقية',
-  'الغربية',
-  'المنوفية',
-  'القليوبية',
-  'البحيرة',
-  'كفر الشيخ',
-  'دمياط',
-  'بورسعيد',
-  'الإسماعيلية',
-  'السويس',
-  'شمال سيناء',
-  'جنوب سيناء',
-  'الفيوم',
-  'بني سويف',
-  'المنيا',
-  'أسيوط',
-  'سوهاج',
-  'قنا',
-  'الأقصر',
-  'أسوان',
-  'البحر الأحمر',
-  'الوادي الجديد',
-  'مطروح',
-] as const
+import { Reveal } from '@/shared/ui/Reveal'
+import { useCountUp } from '@/shared/hooks/useCountUp'
+import { useReveal } from '@/shared/hooks/useReveal'
+import { EGYPT_GOVERNORATES } from '@/shared/constants/governorates'
 
 /** Governorates shown in the "Browse by governorate" quick-access grid. */
-const TOP_CITIES = ALL_GOVERNORATES.slice(0, 8)
+const TOP_CITIES = EGYPT_GOVERNORATES.slice(0, 8)
 
 /** Hard-coded categories — mirrors the categories used across the ad flow. */
 const TOP_CATEGORIES = [
@@ -59,11 +29,58 @@ export default function HomePage() {
   return (
     <div className="flex flex-col">
       <HeroSearch />
+      <TrustStats />
       <LatestJobs />
       <BrowseByCategory />
       <BrowseByCity />
       <JoinTawzeefCTA />
     </div>
+  )
+}
+
+/* -------------------------------------------------------------------------- */
+/* Trust strip — real platform counts, animated in on first view              */
+/* -------------------------------------------------------------------------- */
+
+function TrustStats() {
+  const { ref, visible } = useReveal<HTMLDivElement>()
+  const { data } = usePublicPlatformStats()
+
+  const jobs = useCountUp(data?.activeJobsCount ?? 0, visible && !!data)
+  const employers = useCountUp(data?.approvedEmployersCount ?? 0, visible && !!data)
+  const jobSeekers = useCountUp(data?.approvedJobSeekersCount ?? 0, visible && !!data)
+
+  const stats = [
+    { icon: <BriefcaseIcon />, value: jobs, label: 'وظيفة متاحة الآن' },
+    { icon: <BuildingIcon />, value: employers, label: 'مكتب عمل موثّق' },
+    { icon: <UsersIcon />, value: jobSeekers, label: 'باحث عمل معتمد' },
+  ]
+
+  return (
+    <section ref={ref} className="w-full border-b border-border-primary bg-surface px-4 py-10 sm:px-8 xl:px-16 2xl:px-24">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+        {stats.map((s, i) => (
+          <div
+            key={s.label}
+            style={{ transitionDelay: visible ? `${i * 100}ms` : '0ms' }}
+            className={clsx(
+              'flex items-center justify-center gap-4 transition-[opacity,transform] duration-700 ease-out sm:justify-start',
+              visible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0',
+            )}
+          >
+            <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand">
+              {s.icon}
+            </span>
+            <div className="flex flex-col">
+              <span className="text-[28px] font-extrabold leading-tight text-content-primary tabular-nums">
+                {s.value.toLocaleString('ar-EG')}+
+              </span>
+              <span className="text-[13px] font-medium text-content-secondary">{s.label}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
   )
 }
 
@@ -184,8 +201,8 @@ function CityAutocomplete({ value, onChange }: { value: string; onChange: (v: st
 
   const query = value.trim()
   const suggestions = query
-    ? ALL_GOVERNORATES.filter((g) => g.includes(query)).slice(0, 8)
-    : ALL_GOVERNORATES.slice(0, 8)
+    ? EGYPT_GOVERNORATES.filter((g) => g.includes(query)).slice(0, 8)
+    : EGYPT_GOVERNORATES.slice(0, 8)
 
   // Close on outside click.
   useEffect(() => {
@@ -287,17 +304,19 @@ function LatestJobs() {
 
   return (
     <section className="w-full px-4 py-16 sm:px-8 xl:px-16 2xl:px-24">
-      <SectionHeader
-        title="أحدث الوظائف"
-        action={
-          <Link
-            to="/jobs"
-            className="text-[14px] font-bold text-brand underline underline-offset-4 decoration-2 hover:text-brand-hover hover:decoration-brand-hover"
-          >
-            عرض كل الوظائف
-          </Link>
-        }
-      />
+      <Reveal>
+        <SectionHeader
+          title="أحدث الوظائف"
+          action={
+            <Link
+              to="/jobs"
+              className="text-[14px] font-bold text-brand underline underline-offset-4 decoration-2 hover:text-brand-hover hover:decoration-brand-hover"
+            >
+              عرض كل الوظائف
+            </Link>
+          }
+        />
+      </Reveal>
 
       {isLoading && <GridSkeleton />}
       {isError && (
@@ -307,11 +326,11 @@ function LatestJobs() {
         <p className="text-[14px] text-content-secondary">لا توجد وظائف منشورة حالياً.</p>
       )}
       {!isLoading && jobs.length > 0 && (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Reveal delayMs={100} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {jobs.map((job) => (
             <JobCard key={job.id} job={job} />
           ))}
-        </div>
+        </Reveal>
       )}
     </section>
   )
@@ -321,7 +340,7 @@ function JobCard({ job }: { job: JobListItem }) {
   return (
     <Link
       to={`/jobs/${job.id}`}
-      className="group flex h-full flex-col justify-between rounded-300 border border-border-primary bg-surface p-4 transition-colors hover:border-brand"
+      className="group flex h-full flex-col justify-between rounded-300 border border-border-primary bg-surface p-4 transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-1 hover:border-brand hover:shadow-200"
     >
       <div className="flex flex-col gap-1.5">
         <h3 className="line-clamp-2 text-[15px] font-bold leading-[20px] text-content-primary group-hover:text-brand">
@@ -372,18 +391,23 @@ function BrowseByCategory() {
   return (
     <section className="bg-brand-soft">
       <div className="w-full px-4 py-16 sm:px-8 xl:px-16 2xl:px-24">
-        <SectionHeader title="تصفّح حسب الفئة" />
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        <Reveal>
+          <SectionHeader title="تصفّح حسب الفئة" />
+        </Reveal>
+        <Reveal delayMs={100} className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {TOP_CATEGORIES.map((c) => (
             <Link
               key={c.key}
               to={`/jobs?category=${encodeURIComponent(c.label)}`}
-              className="flex h-20 items-center justify-center rounded-300 border border-border-primary bg-surface px-4 text-center text-[14px] font-bold text-content-primary transition-colors hover:border-brand hover:text-brand"
+              className="group flex h-24 flex-col items-center justify-center gap-2 rounded-300 border border-border-primary bg-surface px-4 text-center transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-1 hover:border-brand hover:shadow-200"
             >
-              {c.label}
+              <span className="text-content-tertiary transition-colors group-hover:text-brand">
+                <CategoryIcon categoryKey={c.key} />
+              </span>
+              <span className="text-[14px] font-bold text-content-primary group-hover:text-brand">{c.label}</span>
             </Link>
           ))}
-        </div>
+        </Reveal>
       </div>
     </section>
   )
@@ -392,18 +416,20 @@ function BrowseByCategory() {
 function BrowseByCity() {
   return (
     <section className="w-full px-4 py-16 sm:px-8 xl:px-16 2xl:px-24">
-      <SectionHeader title="تصفّح حسب المحافظة" />
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+      <Reveal>
+        <SectionHeader title="تصفّح حسب المحافظة" />
+      </Reveal>
+      <Reveal delayMs={100} className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
         {TOP_CITIES.map((city) => (
           <Link
             key={city}
             to={`/jobs?city=${encodeURIComponent(city)}`}
-            className="flex h-16 items-center justify-center rounded-200 border border-border-primary bg-surface px-3 text-[14px] font-bold text-content-primary transition-colors hover:border-brand hover:text-brand"
+            className="flex h-16 items-center justify-center rounded-200 border border-border-primary bg-surface px-3 text-[14px] font-bold text-content-primary transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-brand hover:text-brand hover:shadow-100"
           >
             {city}
           </Link>
         ))}
-      </div>
+      </Reveal>
     </section>
   )
 }
@@ -416,7 +442,7 @@ function JoinTawzeefCTA() {
   const { t } = useTranslation('auth')
   return (
     <section className="bg-brand-soft">
-      <div className="grid w-full grid-cols-1 gap-4 px-4 py-16 sm:px-8 md:grid-cols-2 xl:px-16 2xl:px-24">
+      <Reveal className="grid w-full grid-cols-1 gap-4 px-4 py-16 sm:px-8 md:grid-cols-2 xl:px-16 2xl:px-24">
         <CtaCard
           title="هل تبحث عن عمل؟"
           body="سجّل حسابك وقدّم على وظائف موثوقة من خلال مكتبك."
@@ -429,7 +455,7 @@ function JoinTawzeefCTA() {
           actionHref="/register/employer"
           actionLabel={t('registerEmployerLink')}
         />
-      </div>
+      </Reveal>
     </section>
   )
 }
@@ -446,7 +472,7 @@ function CtaCard({
   actionLabel: string
 }) {
   return (
-    <div className="flex flex-col items-start gap-3 rounded-300 border border-border-primary bg-surface p-6">
+    <div className="flex flex-col items-start gap-3 rounded-300 border border-border-primary bg-surface p-6 transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-200">
       <h3 className="text-[20px] font-bold text-content-primary">{title}</h3>
       <p className="text-[14px] leading-[22px] text-content-secondary">{body}</p>
       <Link to={actionHref} className="mt-auto">
@@ -491,4 +517,112 @@ function PinIcon() {
       <circle cx="12" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.8" />
     </svg>
   )
+}
+
+/* -------------------------------------------------------------------------- */
+/* Trust-strip icons                                                          */
+/* -------------------------------------------------------------------------- */
+
+function BriefcaseIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="3" y="7" width="18" height="13" rx="2" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M3 12h18" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  )
+}
+
+function BuildingIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="4" y="3" width="16" height="18" rx="1" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M8 8h2M14 8h2M8 12h2M14 12h2M8 16h2M14 16h2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function UsersIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="9" cy="8" r="3" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M3 20c0-3 2.7-5 6-5s6 2 6 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M16 4.2a3 3 0 0 1 0 5.6M19.5 20c0-2.6-1.8-4.4-4-4.9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+/* -------------------------------------------------------------------------- */
+/* Category tile icons                                                        */
+/* -------------------------------------------------------------------------- */
+
+function CategoryIcon({ categoryKey }: { categoryKey: (typeof TOP_CATEGORIES)[number]['key'] }) {
+  const props = { width: 24, height: 24, viewBox: '0 0 24 24', fill: 'none', 'aria-hidden': true } as const
+  switch (categoryKey) {
+    case 'office':
+      return (
+        <svg {...props}>
+          <rect x="3" y="4" width="18" height="14" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
+          <path d="M3 9h18M8 4v-.01M8 14h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+      )
+    case 'sales':
+      return (
+        <svg {...props}>
+          <path d="M3 17l5-5 4 4 8-9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M15 7h5v5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )
+    case 'accounting':
+      return (
+        <svg {...props}>
+          <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
+          <path d="M9 9.5c0-1 1-1.8 3-1.8s3 .8 3 1.8-1 1.5-3 1.8-3 .8-3 1.9 1 1.8 3 1.8 3-.8 3-1.8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+      )
+    case 'it':
+      return (
+        <svg {...props}>
+          <rect x="3" y="5" width="18" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
+          <path d="M8 21h8M12 17v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+      )
+    case 'retail':
+      return (
+        <svg {...props}>
+          <path d="M4 8l1.5-4h13L20 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M4 8h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+          <path d="M9 12a3 3 0 0 0 6 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+      )
+    case 'logistics':
+      return (
+        <svg {...props}>
+          <rect x="2" y="8" width="12" height="9" rx="1" stroke="currentColor" strokeWidth="1.8" />
+          <path d="M14 11h4l3 3v3h-7v-6Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+          <circle cx="6.5" cy="18.5" r="1.6" stroke="currentColor" strokeWidth="1.6" />
+          <circle cx="17" cy="18.5" r="1.6" stroke="currentColor" strokeWidth="1.6" />
+        </svg>
+      )
+    case 'engineering':
+      return (
+        <svg {...props}>
+          <path
+            d="M14.7 6.3a3 3 0 0 1-3.9 3.9l-6 6a2 2 0 1 0 2.8 2.8l6-6a3 3 0 0 1 3.9-3.9l-2.1 2.1-1.4-1.4 2.1-2.1Z"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinejoin="round"
+          />
+        </svg>
+      )
+    case 'health':
+      return (
+        <svg {...props}>
+          <path d="M12 21s-7-4.4-9.3-9A5 5 0 0 1 12 6a5 5 0 0 1 9.3 6c-2.3 4.6-9.3 9-9.3 9Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+          <path d="M9.5 12h2M12 9.5v5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+      )
+    default:
+      return null
+  }
 }

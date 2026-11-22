@@ -19,4 +19,9 @@ public class PublicJobsController(IPublicJobSearchService service) : ApiControll
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
         => Respond(await service.GetByIdAsync(id, ct));
+
+    /// <summary>Home page "trust strip" — real platform counts, no fabricated numbers.</summary>
+    [HttpGet("stats")]
+    public async Task<IActionResult> GetStats(CancellationToken ct)
+        => Respond(await service.GetPlatformStatsAsync(ct));
 }

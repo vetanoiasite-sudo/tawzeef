@@ -8,4 +8,5 @@ public interface IPublicJobSearchService
 {
     Task<ServiceResult<PagedResult<JobListItemDto>>> SearchAsync(JobSearchQueryDto query, CancellationToken ct = default);
     Task<ServiceResult<JobDetailsDto>> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<ServiceResult<PublicPlatformStatsDto>> GetPlatformStatsAsync(CancellationToken ct = default);
 }

@@ -8,8 +8,26 @@ using Tawzeef.Domain.Enums;
 
 namespace Tawzeef.Application.Features.JobSeekers;
 
-public class JobSeekerReviewService(IUnitOfWork uow) : IJobSeekerReviewService
+public class JobSeekerReviewService(IUnitOfWork uow, IFileStorage fileStorage) : IJobSeekerReviewService
 {
+    /// <summary>jobseekers.viewdocuments — a reviewer streams the actual file, not just its
+    /// review-status metadata. Reuses the same office+profile ownership check every other
+    /// document action on this profile already goes through.</summary>
+    public async Task<ServiceResult<JobSeekerDocumentFileDto>> GetDocumentFileAsync(
+        Guid officeId, Guid profileId, Guid documentId, CancellationToken ct = default)
+    {
+        var (document, error) = await LoadReviewableDocumentAsync(officeId, profileId, documentId, ct);
+        if (error is not null) return ServiceResult<JobSeekerDocumentFileDto>.NotFound(error);
+
+        var stream = await fileStorage.OpenReadAsync(document!.SecureFileReference, ct);
+        return ServiceResult<JobSeekerDocumentFileDto>.Success(new JobSeekerDocumentFileDto
+        {
+            Content = stream,
+            FileName = document.OriginalFileName,
+            ContentType = document.MimeType,
+        });
+    }
+
     public async Task<ServiceResult<PagedResult<JobSeekerReviewListItemDto>>> ListQueueAsync(
         Guid officeId, JobSeekerReviewQueryDto query, CancellationToken ct = default)
     {

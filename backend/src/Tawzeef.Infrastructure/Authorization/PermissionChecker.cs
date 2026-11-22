@@ -82,8 +82,11 @@ public class PermissionChecker(AppDbContext context) : IPermissionChecker
 
     /// <summary>RBAC_PERMISSIONS.md §3's matrix: every role gets a plain checkmark (✅ own) here,
     /// OfficeStaff included — unlike every other office permission, this one needs no
-    /// StaffPermissionGrant row at all, just active membership.</summary>
-    private static readonly HashSet<string> UniversalOfficeMemberPermissions = ["notifications.viewown"];
+    /// StaffPermissionGrant row at all, just active membership. "dashboards.view" joins this set
+    /// because the office overview page (counts drawn from whatever queues the viewer already has
+    /// access to) is baseline for any active office member, not a selectively-grantable review
+    /// permission.</summary>
+    private static readonly HashSet<string> UniversalOfficeMemberPermissions = ["notifications.viewown", "dashboards.view"];
 
     private async Task<bool> HasOfficeMembershipPermissionAsync(Guid userId, Guid officeId, string permissionCode, CancellationToken ct)
     {

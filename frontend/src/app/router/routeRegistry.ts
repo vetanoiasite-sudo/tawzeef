@@ -8,6 +8,7 @@ import { jobSeekerApplicationsRoutes } from '@/features/job-seeker-applications'
 import { jobSeekerProfileRoutes } from '@/features/jobseeker-profile'
 import { notificationsRoutes } from '@/features/notifications'
 import { officeComplaintsReviewRoutes } from '@/features/office-complaints-review'
+import { officeDashboardRoutes } from '@/features/office-dashboard'
 import { officeEmployerReviewRoutes } from '@/features/office-employer-review'
 import { officeJobAdsReviewRoutes } from '@/features/office-job-ads-review'
 import { officeJobSeekerReviewRoutes } from '@/features/office-jobseeker-review'
@@ -25,6 +26,7 @@ import type { AppRouteDef } from './types'
 export const routeRegistry: AppRouteDef[] = [
   ...homeRoutes,
   ...authRoutes,
+  ...officeDashboardRoutes,
   ...jobSeekerProfileRoutes,
   ...employerProfileRoutes,
   ...officeJobSeekerReviewRoutes,

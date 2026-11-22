@@ -3,6 +3,7 @@ using Tawzeef.Domain.Common;
 using Tawzeef.Domain.Contracts;
 using Tawzeef.Domain.Entities.Employers;
 using Tawzeef.Domain.Entities.JobAdvertisements;
+using Tawzeef.Domain.Entities.JobSeekers;
 using Tawzeef.Domain.Enums;
 
 namespace Tawzeef.Application.Features.PublicJobs;
@@ -51,6 +52,24 @@ public class PublicJobSearchService(IUnitOfWork uow) : IPublicJobSearchService
             PageIndex = page.PageIndex,
             PageSize = page.PageSize,
             TotalCount = page.TotalCount,
+        });
+    }
+
+    public async Task<ServiceResult<PublicPlatformStatsDto>> GetPlatformStatsAsync(CancellationToken ct = default)
+    {
+        var now = DateTime.UtcNow;
+        var activeJobs = await uow.Repository<JobAdvertisement>().CountAsync(
+            a => a.Status == JobAdvertisementStatus.Published && (a.ExpiresAt == null || a.ExpiresAt > now), ct);
+        var approvedEmployers = await uow.Repository<Employer>().CountAsync(
+            e => e.VerificationStatus == EmployerVerificationStatus.Approved, ct);
+        var approvedJobSeekers = await uow.Repository<JobSeekerProfile>().CountAsync(
+            p => p.ReviewStatus == JobSeekerReviewStatus.Approved, ct);
+
+        return ServiceResult<PublicPlatformStatsDto>.Success(new PublicPlatformStatsDto
+        {
+            ActiveJobsCount = activeJobs,
+            ApprovedEmployersCount = approvedEmployers,
+            ApprovedJobSeekersCount = approvedJobSeekers,
         });
     }
 

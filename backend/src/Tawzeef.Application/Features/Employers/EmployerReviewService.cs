@@ -8,8 +8,26 @@ using Tawzeef.Domain.Enums;
 
 namespace Tawzeef.Application.Features.Employers;
 
-public class EmployerReviewService(IUnitOfWork uow) : IEmployerReviewService
+public class EmployerReviewService(IUnitOfWork uow, IFileStorage fileStorage) : IEmployerReviewService
 {
+    /// <summary>employers.viewdocuments — a reviewer streams the actual file, not just its
+    /// review-status metadata. Reuses the same office+employer ownership check every other
+    /// document action on this employer already goes through.</summary>
+    public async Task<ServiceResult<EmployerDocumentFileDto>> GetDocumentFileAsync(
+        Guid officeId, Guid employerId, Guid documentId, CancellationToken ct = default)
+    {
+        var (document, error) = await LoadReviewableDocumentAsync(officeId, employerId, documentId, ct);
+        if (error is not null) return ServiceResult<EmployerDocumentFileDto>.NotFound(error);
+
+        var stream = await fileStorage.OpenReadAsync(document!.SecureFileReference, ct);
+        return ServiceResult<EmployerDocumentFileDto>.Success(new EmployerDocumentFileDto
+        {
+            Content = stream,
+            FileName = document.OriginalFileName,
+            ContentType = document.MimeType,
+        });
+    }
+
     public async Task<ServiceResult<PagedResult<EmployerReviewListItemDto>>> ListQueueAsync(
         Guid officeId, EmployerReviewQueryDto query, CancellationToken ct = default)
     {

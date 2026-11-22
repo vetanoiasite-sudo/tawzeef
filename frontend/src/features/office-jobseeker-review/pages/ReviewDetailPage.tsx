@@ -122,6 +122,7 @@ export default function ReviewDetailPage() {
           <DocumentReviewRow
             key={document.id}
             document={document}
+            profileId={profileId}
             isApproving={approveDocument.isPending}
             isRejecting={rejectDocument.isPending}
             rejectError={rejectDocument.variables?.documentId === document.id ? errorMessage(rejectDocument.error) : undefined}

@@ -30,6 +30,15 @@ public class JobListItemDto
     public DateTime? ExpiresAt { get; set; }
 }
 
+/// <summary>Home page "trust strip" — real counts, no fabricated numbers. Anonymous, cheap
+/// (three COUNT queries), never includes anything identifying.</summary>
+public class PublicPlatformStatsDto
+{
+    public int ActiveJobsCount { get; set; }
+    public int ApprovedEmployersCount { get; set; }
+    public int ApprovedJobSeekersCount { get; set; }
+}
+
 /// <summary>No employerEmail/employerPhone field at all — not a null one — API_DOCUMENTATION.md
 /// §3.7: there must be nothing for a bug or devtools session to expose.</summary>
 public class JobDetailsDto

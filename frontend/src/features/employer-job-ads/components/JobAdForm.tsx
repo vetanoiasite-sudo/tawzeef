@@ -7,6 +7,7 @@ import type { JobAdDetail } from '../types/employerJobAds.types'
 import { TextInput, TextArea } from '@/shared/ui/TextInput'
 import { Select } from '@/shared/ui/Select'
 import { Button } from '@/shared/ui/Button'
+import { EGYPT_GOVERNORATES } from '@/shared/constants/governorates'
 
 export function JobAdForm({
   ad,
@@ -63,7 +64,17 @@ export function JobAdForm({
 
         <TextInput id="category" label={t('employerJobAds:categoryLabel')} {...register('category')} />
 
-        <TextInput id="city" label={t('employerJobAds:cityLabel')} {...register('city')} />
+        {/* A governorate dropdown, not free text — public search filters by this same fixed
+         *  list (frontend/src/shared/constants/governorates.ts), so a typed city name here
+         *  would silently never match a search. */}
+        <Select id="city" label={t('employerJobAds:cityLabel')} {...register('city')}>
+          <option value="">—</option>
+          {EGYPT_GOVERNORATES.map((g) => (
+            <option key={g} value={g}>
+              {g}
+            </option>
+          ))}
+        </Select>
 
         <Select id="employmentType" label={t('employerJobAds:employmentTypeLabel')} {...register('employmentType')}>
           <option value="">—</option>

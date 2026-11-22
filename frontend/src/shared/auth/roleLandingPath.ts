@@ -7,6 +7,9 @@ export function roleLandingPath(role: string): string {
       return '/dashboard'
     case 'Employer':
       return '/employer/dashboard'
+    case 'OfficeAdmin':
+    case 'OfficeStaff':
+      return '/office/dashboard'
     default:
       return '/'
   }

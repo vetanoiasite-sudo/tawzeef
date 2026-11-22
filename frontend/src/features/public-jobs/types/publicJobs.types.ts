@@ -33,6 +33,13 @@ export type JobDetails = {
   contactNote: string
 }
 
+/** Home page "trust strip" — real platform counts. */
+export type PublicPlatformStats = {
+  activeJobsCount: number
+  approvedEmployersCount: number
+  approvedJobSeekersCount: number
+}
+
 export type JobSearchFilter = {
   keyword?: string
   city?: string

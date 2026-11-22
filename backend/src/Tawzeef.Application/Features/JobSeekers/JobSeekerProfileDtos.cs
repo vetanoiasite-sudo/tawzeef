@@ -12,6 +12,15 @@ public class JobSeekerDocumentDto
     public DateTime UploadedAt { get; set; }
 }
 
+/// <summary>Mirrors JobApplications/JobApplicationDtos.cs's CvFileDto — same "stream straight
+/// through IFileStorage, no signed URL" pattern (RBAC_PERMISSIONS.md §4.4/§5).</summary>
+public class JobSeekerDocumentFileDto
+{
+    public Stream Content { get; set; } = Stream.Null;
+    public string FileName { get; set; } = string.Empty;
+    public string ContentType { get; set; } = string.Empty;
+}
+
 public class JobSeekerProfileDto
 {
     public Guid Id { get; set; }

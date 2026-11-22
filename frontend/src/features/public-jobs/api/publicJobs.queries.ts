@@ -17,3 +17,11 @@ export function useJobDetails(id: string) {
     enabled: id.length > 0,
   })
 }
+
+export function usePublicPlatformStats() {
+  return useQuery({
+    queryKey: publicJobsKeys.stats(),
+    queryFn: publicJobsApi.getStats,
+    staleTime: 60_000,
+  })
+}

@@ -6,6 +6,7 @@ using Tawzeef.Domain.Contracts;
 using Tawzeef.Domain.Identity;
 using Tawzeef.Infrastructure.Authentication;
 using Tawzeef.Infrastructure.Authorization;
+using Tawzeef.Infrastructure.BackgroundJobs;
 using Tawzeef.Infrastructure.Notifications;
 using Tawzeef.Infrastructure.Persistence;
 using Tawzeef.Infrastructure.Storage;
@@ -39,6 +40,7 @@ public static class InfrastructureDI
         services.AddSingleton<IFileStorage, LocalFileStorage>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<IOtpSender, DevLogOtpSender>();
+        services.AddHostedService<JobAdvertisementExpiryService>();
 
         return services;
     }

@@ -2,12 +2,14 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ReasonForm } from './ReasonForm'
 import type { OfficeJobSeekerDocument } from '../types/officeJobSeekerReview.types'
+import { httpClient } from '@/shared/api/httpClient'
 import { Card } from '@/shared/ui/Card'
 import { Button } from '@/shared/ui/Button'
 import { StatusTag } from '@/shared/ui/StatusTag'
 
 export function DocumentReviewRow({
   document,
+  profileId,
   isApproving,
   isRejecting,
   rejectError,
@@ -15,6 +17,7 @@ export function DocumentReviewRow({
   onReject,
 }: {
   document: OfficeJobSeekerDocument
+  profileId: string
   isApproving: boolean
   isRejecting: boolean
   rejectError?: string
@@ -23,6 +26,24 @@ export function DocumentReviewRow({
 }) {
   const { t } = useTranslation('officeJobSeekerReview')
   const [showReject, setShowReject] = useState(false)
+  const [downloading, setDownloading] = useState(false)
+
+  async function handleDownload() {
+    setDownloading(true)
+    try {
+      const { blob, fileName } = await httpClient.getBlob(
+        `/api/office/job-seekers/${profileId}/documents/${document.id}/download`,
+      )
+      const url = URL.createObjectURL(blob)
+      const link = window.document.createElement('a')
+      link.href = url
+      link.download = fileName
+      link.click()
+      URL.revokeObjectURL(url)
+    } finally {
+      setDownloading(false)
+    }
+  }
 
   return (
     <Card className="flex flex-col gap-2">
@@ -41,6 +62,10 @@ export function DocumentReviewRow({
           {t('rejectionReasonLabel')}: {document.rejectionReason}
         </p>
       )}
+
+      <Button variant="secondary" disabled={downloading} onClick={() => void handleDownload()} className="self-start">
+        {t('downloadAction')}
+      </Button>
 
       {document.reviewStatus === 'Pending' && !showReject && (
         <div className="flex gap-2">

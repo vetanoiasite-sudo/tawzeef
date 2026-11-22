@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { ApiError } from '@/shared/api/types'
 import { useSessionStore } from '@/shared/auth/sessionStore'
+import { roleLandingPath } from '@/shared/auth/roleLandingPath'
 import { toSessionUser } from '../api/auth.mapper'
 import { useAcceptStaffInvite, useRequestOtp, useVerifyOtp } from '../api/auth.queries'
 import { AcceptInvitePasswordStep } from '../components/AcceptInvitePasswordStep'
@@ -65,7 +66,7 @@ export default function AcceptStaffInvitePage() {
       {
         onSuccess: (result) => {
           setSession(result.accessToken, toSessionUser(result))
-          void navigate('/', { replace: true })
+          void navigate(roleLandingPath(result.role), { replace: true })
         },
       },
     )
