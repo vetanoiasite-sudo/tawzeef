@@ -29,7 +29,10 @@ public static class InfrastructureDI
 
         services.AddIdentityCore<ApplicationUser>(options =>
         {
-            options.User.RequireUniqueEmail = false; // confirmed: login is by phone, not email
+            // Office staff/SuperAdmin accounts never collect an email, so Identity can't enforce
+            // uniqueness globally — JobSeeker/Employer email uniqueness is checked manually in
+            // AuthService.RegisterJobSeekerAsync/RegisterEmployerAsync instead (AuthDtos.cs).
+            options.User.RequireUniqueEmail = false;
             options.Password.RequiredLength = 8;
         })
             .AddEntityFrameworkStores<AppDbContext>();

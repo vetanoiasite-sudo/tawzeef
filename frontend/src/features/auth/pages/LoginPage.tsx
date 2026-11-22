@@ -54,10 +54,9 @@ export default function LoginPage() {
       <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-5">
         <TextInput
           id="identifier"
-          type="tel"
-          autoComplete="tel"
-          dir="ltr"
-          placeholder="+20 100 123 4567"
+          type="text"
+          autoComplete="username"
+          placeholder={t('auth:loginIdentifierPlaceholder')}
           label={t('auth:loginIdentifierLabel')}
           error={errors.identifier ? t(errors.identifier.message ?? '') : undefined}
           {...register('identifier')}

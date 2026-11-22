@@ -66,7 +66,7 @@ export default function RegisterEmployerPage() {
         representativeName: values.representativeName,
         mobileNumber: phoneNumber,
         otpToken,
-        email: values.email || undefined,
+        email: values.email,
         password: values.password,
         officeId: values.officeId,
         legalName: values.legalName,

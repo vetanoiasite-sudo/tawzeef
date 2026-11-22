@@ -38,8 +38,12 @@ public class RegisterJobSeekerDto
     [Required]
     public string OtpToken { get; set; } = string.Empty;
 
-    [MaxLength(200), EmailAddress]
-    public string? Email { get; set; }
+    /// <summary>Required (unlike MobileNumber's OTP step, which stays as-is) — login is by email
+    /// for JobSeeker/Employer accounts now (temporary product decision), so every new account
+    /// needs one. Office staff/SuperAdmin accounts are untouched — still phone-only, no email ever
+    /// collected for them (AuthService.LoginAsync falls back to phone lookup for those).</summary>
+    [Required, MaxLength(200), EmailAddress]
+    public string Email { get; set; } = string.Empty;
 
     [Required, MinLength(8)]
     public string Password { get; set; } = string.Empty;
@@ -59,8 +63,9 @@ public class RegisterEmployerDto
     [Required]
     public string OtpToken { get; set; } = string.Empty;
 
-    [MaxLength(200), EmailAddress]
-    public string? Email { get; set; }
+    /// <summary>Required — same reasoning as RegisterJobSeekerDto.Email.</summary>
+    [Required, MaxLength(200), EmailAddress]
+    public string Email { get; set; } = string.Empty;
 
     [Required, MinLength(8)]
     public string Password { get; set; } = string.Empty;
@@ -89,6 +94,10 @@ public class AcceptOfficeInviteDto
     public string Password { get; set; } = string.Empty;
 }
 
+/// <summary>Identifier is an email for JobSeeker/Employer accounts (temporary product decision —
+/// those registration flows now require an email) and a phone number for OfficeAdmin/OfficeStaff/
+/// SuperAdmin accounts, which are still phone-only (no email ever collected for them). AuthService
+/// tries an email lookup first, then falls back to the phone/username lookup — see LoginAsync.</summary>
 public class LoginDto
 {
     [Required]

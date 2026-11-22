@@ -66,7 +66,7 @@ export default function RegisterJobSeekerPage() {
         fullName: values.fullName,
         mobileNumber: phoneNumber,
         otpToken,
-        email: values.email || undefined,
+        email: values.email,
         password: values.password,
         officeId: values.officeId,
       },

@@ -89,13 +89,17 @@ public class AuthService(
         if (await userManager.FindByNameAsync(phoneNumber) is not null)
             return ServiceResult<AuthResultDto>.Conflict("This mobile number is already registered.");
 
+        var email = dto.Email.Trim();
+        if (await userManager.FindByEmailAsync(email) is not null)
+            return ServiceResult<AuthResultDto>.Conflict("This email is already registered.");
+
         var user = new ApplicationUser
         {
             Id = Guid.NewGuid(),
             UserName = phoneNumber,
             PhoneNumber = phoneNumber,
             PhoneNumberConfirmed = true, // just proved via OTP
-            Email = dto.Email,
+            Email = email,
             FullName = dto.FullName.Trim(),
         };
 
@@ -151,13 +155,17 @@ public class AuthService(
         if (await userManager.FindByNameAsync(phoneNumber) is not null)
             return ServiceResult<AuthResultDto>.Conflict("This mobile number is already registered.");
 
+        var email = dto.Email.Trim();
+        if (await userManager.FindByEmailAsync(email) is not null)
+            return ServiceResult<AuthResultDto>.Conflict("This email is already registered.");
+
         var user = new ApplicationUser
         {
             Id = Guid.NewGuid(),
             UserName = phoneNumber,
             PhoneNumber = phoneNumber,
             PhoneNumberConfirmed = true, // just proved via OTP
-            Email = dto.Email,
+            Email = email,
             FullName = dto.RepresentativeName.Trim(),
         };
 
@@ -279,9 +287,12 @@ public class AuthService(
 
     public async Task<ServiceResult<AuthResultDto>> LoginAsync(LoginDto dto, CancellationToken ct = default)
     {
-        var user = await userManager.FindByNameAsync(dto.Identifier.Trim());
+        var identifier = dto.Identifier.Trim();
+        // Email first (JobSeeker/Employer accounts), then phone/username (OfficeAdmin/OfficeStaff/
+        // SuperAdmin, which never collect an email) — see LoginDto's doc comment.
+        var user = await userManager.FindByEmailAsync(identifier) ?? await userManager.FindByNameAsync(identifier);
         if (user is null || !await userManager.CheckPasswordAsync(user, dto.Password))
-            return ServiceResult<AuthResultDto>.Invalid("Incorrect phone number or password.");
+            return ServiceResult<AuthResultDto>.Invalid("Incorrect email/phone number or password.");
 
         if (user.AccountStatus != AccountStatus.Active)
             return ServiceResult<AuthResultDto>.Forbidden("This account is not active.");

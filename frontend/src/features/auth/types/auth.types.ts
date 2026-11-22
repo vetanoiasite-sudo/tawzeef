@@ -26,7 +26,7 @@ export type RegisterJobSeekerPayload = {
   fullName: string
   mobileNumber: string
   otpToken: string
-  email?: string
+  email: string
   password: string
   officeId: string
 }
@@ -35,7 +35,7 @@ export type RegisterEmployerPayload = {
   representativeName: string
   mobileNumber: string
   otpToken: string
-  email?: string
+  email: string
   password: string
   officeId: string
   legalName: string

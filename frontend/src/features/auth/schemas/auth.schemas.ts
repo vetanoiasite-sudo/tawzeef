@@ -23,7 +23,8 @@ export type VerifyOtpFormValues = z.infer<typeof verifyOtpSchema>
 
 export const jobSeekerDetailsSchema = z.object({
   fullName: z.string().trim().min(2, 'validation:required').max(200, 'validation:tooLong'),
-  email: z.union([z.literal(''), z.email('validation:emailFormat')]),
+  // Required — login is by email for JobSeeker/Employer accounts now (temporary product decision).
+  email: z.email('validation:emailFormat'),
   password: z.string().min(8, 'validation:passwordTooShort'),
   officeId: z.string().min(1, 'validation:required'),
 })
@@ -33,7 +34,7 @@ export const employerDetailsSchema = z.object({
   representativeName: z.string().trim().min(2, 'validation:required').max(200, 'validation:tooLong'),
   legalName: z.string().trim().min(2, 'validation:required').max(250, 'validation:tooLong'),
   displayName: z.string().trim().min(2, 'validation:required').max(250, 'validation:tooLong'),
-  email: z.union([z.literal(''), z.email('validation:emailFormat')]),
+  email: z.email('validation:emailFormat'),
   password: z.string().min(8, 'validation:passwordTooShort'),
   officeId: z.string().min(1, 'validation:required'),
 })
@@ -44,8 +45,11 @@ export const acceptInvitePasswordSchema = z.object({
 })
 export type AcceptInvitePasswordFormValues = z.infer<typeof acceptInvitePasswordSchema>
 
+// Email for JobSeeker/Employer, phone for OfficeAdmin/OfficeStaff/SuperAdmin — the one login
+// screen serves both, so this only checks non-empty and leaves the actual format to the backend
+// (AuthDtos.cs LoginDto's doc comment).
 export const loginSchema = z.object({
-  identifier: phoneSchema,
+  identifier: z.string().trim().min(1, 'validation:required'),
   password: z.string().min(1, 'validation:required'),
 })
 export type LoginFormValues = z.infer<typeof loginSchema>
