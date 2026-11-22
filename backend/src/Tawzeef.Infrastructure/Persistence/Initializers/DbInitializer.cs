@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Tawzeef.Domain.Common;
 using Tawzeef.Domain.Contracts;
 using Tawzeef.Domain.Entities.Offices;
+using Tawzeef.Domain.Entities.Platform;
 
 namespace Tawzeef.Infrastructure.Persistence.Initializers;
 
@@ -25,6 +26,22 @@ public class DbInitializer(AppDbContext context) : IDbInitializer
                 Code = seed.Code,
                 Module = seed.Module,
                 Action = seed.Action,
+                Description = seed.Description,
+            });
+        }
+
+        await context.SaveChangesAsync(ct);
+
+        var existingSettingKeys = await context.PlatformSettings.Select(s => s.Key).ToListAsync(ct);
+        var missingSettings = PlatformSettingKeys.All.Where(s => !existingSettingKeys.Contains(s.Key));
+
+        foreach (var seed in missingSettings)
+        {
+            context.PlatformSettings.Add(new PlatformSetting
+            {
+                Id = Guid.NewGuid(),
+                Key = seed.Key,
+                Value = seed.DefaultValue,
                 Description = seed.Description,
             });
         }

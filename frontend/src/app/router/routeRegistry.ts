@@ -1,3 +1,4 @@
+import { auditLogRoutes } from '@/features/audit-log'
 import { authRoutes } from '@/features/auth'
 import { complaintsRoutes } from '@/features/complaints'
 import { employerJobAdsRoutes } from '@/features/employer-job-ads'
@@ -14,8 +15,10 @@ import { officeJobAdsReviewRoutes } from '@/features/office-job-ads-review'
 import { officeJobSeekerReviewRoutes } from '@/features/office-jobseeker-review'
 import { officeSuggestionsReviewRoutes } from '@/features/office-suggestions-review'
 import { officeUsersRoutes } from '@/features/office-users'
+import { platformSettingsRoutes } from '@/features/platform-settings'
 import { publicJobsRoutes } from '@/features/public-jobs'
 import { suggestionsRoutes } from '@/features/suggestions'
+import { superAdminRoutes } from '@/features/super-admin'
 import type { AppRouteDef } from './types'
 
 /**
@@ -27,6 +30,7 @@ export const routeRegistry: AppRouteDef[] = [
   ...homeRoutes,
   ...authRoutes,
   ...officeDashboardRoutes,
+  ...superAdminRoutes,
   ...jobSeekerProfileRoutes,
   ...employerProfileRoutes,
   ...officeJobSeekerReviewRoutes,
@@ -42,4 +46,6 @@ export const routeRegistry: AppRouteDef[] = [
   ...suggestionsRoutes,
   ...officeSuggestionsReviewRoutes,
   ...notificationsRoutes,
+  ...auditLogRoutes,
+  ...platformSettingsRoutes,
 ]

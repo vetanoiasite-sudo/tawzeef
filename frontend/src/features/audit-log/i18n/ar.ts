@@ -1,0 +1,25 @@
+export const auditLogAr = {
+  pageTitle: 'سجل التدقيق',
+  filterAll: 'الكل',
+  columnDate: 'التاريخ',
+  columnAction: 'الإجراء',
+  columnTarget: 'على',
+  columnBy: 'بواسطة',
+  columnReason: 'السبب',
+  columnOffice: 'المكتب',
+  targetType: {
+    JobSeeker: 'باحث عن عمل',
+    Employer: 'صاحب عمل',
+  },
+  decisionType: {
+    Suspend: 'إيقاف',
+    Reinstate: 'إعادة تفعيل',
+    StopCooperation: 'إيقاف التعاون',
+    ResumeCooperation: 'استئناف التعاون',
+  },
+  emptyLog: 'لا يوجد سجل تدقيق مطابق',
+  officeFilterAll: 'كل المكاتب',
+  officeFilterLabel: 'المكتب',
+  targetTypeFilterLabel: 'النوع',
+  decisionTypeFilterLabel: 'الإجراء',
+}

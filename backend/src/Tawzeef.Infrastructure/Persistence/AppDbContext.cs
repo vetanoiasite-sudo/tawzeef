@@ -9,6 +9,7 @@ using Tawzeef.Domain.Entities.JobApplications;
 using Tawzeef.Domain.Entities.JobSeekers;
 using Tawzeef.Domain.Entities.Notifications;
 using Tawzeef.Domain.Entities.Offices;
+using Tawzeef.Domain.Entities.Platform;
 using Tawzeef.Domain.Entities.Suggestions;
 using Tawzeef.Domain.Identity;
 
@@ -44,6 +45,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityUser
     public DbSet<ApplicantEvaluationReport> ApplicantEvaluationReports => Set<ApplicantEvaluationReport>();
     public DbSet<Suggestion> Suggestions => Set<Suggestion>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<PlatformSetting> PlatformSettings => Set<PlatformSetting>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

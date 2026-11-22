@@ -23,5 +23,6 @@ public static class ControllerModuleMap
         ["EmployerApplications"] = "jobapplications",
         ["Suggestions"] = "suggestions",
         ["OfficeSuggestions"] = "suggestions",
+        ["PlatformSettings"] = "platformsettings",
     };
 }

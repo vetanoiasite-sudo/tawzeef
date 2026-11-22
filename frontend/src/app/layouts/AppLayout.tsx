@@ -37,6 +37,7 @@ function AppLayoutChrome() {
     'officeComplaintReview',
     'officeUsers',
     'officeDashboard',
+    'superAdmin',
     'publicJobs',
     'employerJobAds',
     'officeJobAdsReview',
@@ -45,6 +46,8 @@ function AppLayoutChrome() {
     'suggestions',
     'officeSuggestionsReview',
     'notifications',
+    'auditLog',
+    'platformSettings',
   ])
   const { isAuthenticated, hasPermission } = useAccess()
   const user = useSessionStore((s) => s.user)
@@ -125,6 +128,11 @@ function AppLayoutChrome() {
                 {t('officeDashboard:dashboardNav')}
               </Link>
             )}
+            {user?.role === 'SuperAdmin' && (
+              <Link to="/super-admin/dashboard" className={linkClassName}>
+                {t('superAdmin:dashboardNav')}
+              </Link>
+            )}
             <Link to="/jobs" className={linkClassName}>
               الوظائف
             </Link>
@@ -195,6 +203,16 @@ function AppLayoutChrome() {
             {hasPermission('officeusers.view') && (
               <Link to="/office/users" className={linkClassName}>
                 {t('officeUsers:pageTitle')}
+              </Link>
+            )}
+            {hasPermission('auditlogs.view') && (
+              <Link to="/audit-log" className={linkClassName}>
+                {t('auditLog:pageTitle')}
+              </Link>
+            )}
+            {hasPermission('platformsettings.view') && (
+              <Link to="/super-admin/settings" className={linkClassName}>
+                {t('platformSettings:nav')}
               </Link>
             )}
           </>

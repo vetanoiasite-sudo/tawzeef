@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Tawzeef.Application.Features.AuditLog;
 using Tawzeef.Application.Features.Auth;
 using Tawzeef.Application.Features.Complaints;
 using Tawzeef.Application.Features.Employers;
@@ -9,6 +10,7 @@ using Tawzeef.Application.Features.JobSeekers;
 using Tawzeef.Application.Features.Notifications;
 using Tawzeef.Application.Features.OfficeUsers;
 using Tawzeef.Application.Features.Offices;
+using Tawzeef.Application.Features.PlatformSettings;
 using Tawzeef.Application.Features.PublicJobs;
 using Tawzeef.Application.Features.Suggestions;
 
@@ -38,6 +40,8 @@ public static class ApplicationDI
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<ISuggestionService, SuggestionService>();
         services.AddScoped<ISuggestionReviewService, SuggestionReviewService>();
+        services.AddScoped<IAuditLogService, AuditLogService>();
+        services.AddScoped<IPlatformSettingsService, PlatformSettingsService>();
         return services;
     }
 }

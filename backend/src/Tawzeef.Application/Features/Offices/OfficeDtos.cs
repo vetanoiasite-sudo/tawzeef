@@ -46,3 +46,32 @@ public class PublicOfficeDto
     public string Name { get; set; } = string.Empty;
     public string? City { get; set; }
 }
+
+/// <summary>Code is immutable once an office exists — it's the tenant key other records link to.</summary>
+public class UpdateOfficeDto
+{
+    [Required, MaxLength(200)]
+    public string Name { get; set; } = string.Empty;
+
+    [MaxLength(200)]
+    public string? ArName { get; set; }
+
+    [MaxLength(300)]
+    public string? Address { get; set; }
+
+    [MaxLength(100)]
+    public string? City { get; set; }
+
+    [MaxLength(30)]
+    public string? Phone { get; set; }
+
+    [MaxLength(200), EmailAddress]
+    public string? Email { get; set; }
+}
+
+public class OfficePlatformStatsDto
+{
+    public int TotalOfficesCount { get; set; }
+    public int ActiveOfficesCount { get; set; }
+    public int InactiveOfficesCount { get; set; }
+}

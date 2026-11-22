@@ -19,6 +19,7 @@ export type StatusDomain =
   | 'hiringFollowUp'
   | 'applicantEvaluation'
   | 'officeMembership'
+  | 'office'
 
 const TABLES: Record<StatusDomain, Record<string, StatusTone>> = {
   jobSeekerReview: {
@@ -114,6 +115,10 @@ const TABLES: Record<StatusDomain, Record<string, StatusTone>> = {
     Invited: 'warning',
     Active: 'success',
     Revoked: 'danger',
+  },
+  office: {
+    Active: 'success',
+    Inactive: 'neutral',
   },
 }
 

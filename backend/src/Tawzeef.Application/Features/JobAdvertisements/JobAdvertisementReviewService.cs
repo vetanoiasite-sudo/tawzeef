@@ -1,5 +1,6 @@
 using Tawzeef.Application.Common;
 using Tawzeef.Application.Features.Notifications;
+using Tawzeef.Application.Features.PlatformSettings;
 using Tawzeef.Domain.Common;
 using Tawzeef.Domain.Contracts;
 using Tawzeef.Domain.Entities.Employers;
@@ -8,7 +9,8 @@ using Tawzeef.Domain.Enums;
 
 namespace Tawzeef.Application.Features.JobAdvertisements;
 
-public class JobAdvertisementReviewService(IUnitOfWork uow, INotificationService notificationService) : IJobAdvertisementReviewService
+public class JobAdvertisementReviewService(
+    IUnitOfWork uow, INotificationService notificationService, IPlatformSettingsService platformSettings) : IJobAdvertisementReviewService
 {
     public async Task<ServiceResult<PagedResult<JobAdvertisementListItemDto>>> ListQueueAsync(
         Guid officeId, JobAdvertisementQueryDto query, CancellationToken ct = default)
@@ -152,7 +154,9 @@ public class JobAdvertisementReviewService(IUnitOfWork uow, INotificationService
             EmployerId = ad.EmployerId,
             JobAdvertisementId = ad.Id,
             Amount = dto.Amount,
-            Currency = string.IsNullOrWhiteSpace(dto.Currency) ? "EGP" : dto.Currency.Trim().ToUpperInvariant(),
+            Currency = string.IsNullOrWhiteSpace(dto.Currency)
+                ? await platformSettings.GetValueAsync(PlatformSettingKeys.AdvertisementDefaultFeeCurrency, "EGP", ct)
+                : dto.Currency.Trim().ToUpperInvariant(),
             PaymentStatus = PaymentStatus.Paid,
             PaymentMethod = "Manual",
             PaidAt = DateTime.UtcNow,
@@ -160,10 +164,13 @@ public class JobAdvertisementReviewService(IUnitOfWork uow, INotificationService
         };
         await uow.Repository<AdvertisementPayment>().AddAsync(payment, ct);
 
-        // WORKFLOWS_AND_STATE_MACHINES.md §5 confirmed item 15: the 15-day clock anchors on publish time.
+        // WORKFLOWS_AND_STATE_MACHINES.md §5 confirmed item 15: the clock anchors on publish time.
+        // Duration is a platform setting now (platformsettings.edit), defaulting to the documented 15 days.
+        var durationDaysRaw = await platformSettings.GetValueAsync(PlatformSettingKeys.AdvertisementDurationDays, "15", ct);
+        var durationDays = int.TryParse(durationDaysRaw, out var parsedDays) ? parsedDays : 15;
         ad.Status = JobAdvertisementStatus.Published;
         ad.PublishedAt = DateTime.UtcNow;
-        ad.ExpiresAt = ad.PublishedAt.Value.AddDays(15);
+        ad.ExpiresAt = ad.PublishedAt.Value.AddDays(durationDays);
         uow.Repository<JobAdvertisement>().Update(ad);
 
         await uow.SaveChangesAsync(ct);

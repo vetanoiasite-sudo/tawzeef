@@ -3,6 +3,8 @@
  * (office staff keep their permission-gated nav links instead). */
 export function roleLandingPath(role: string): string {
   switch (role) {
+    case 'SuperAdmin':
+      return '/super-admin/dashboard'
     case 'JobSeeker':
       return '/dashboard'
     case 'Employer':
