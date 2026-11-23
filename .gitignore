@@ -2,6 +2,8 @@
 backend/**/bin/
 backend/**/obj/
 backend/**/App_Data/
+backend/publish/
+backend/*.zip
 *.user
 *.suo
 
