@@ -77,20 +77,15 @@ function AppLayoutChrome() {
     }
   }, [menuOpen])
 
-  const navLinkClasses = clsx(
-    'inline-flex h-10 items-center rounded-200 px-3 text-[14px] font-bold transition-colors duration-150',
-    'lg:h-10',
-    overHero
-      ? 'text-white/90 hover:bg-white/10 hover:text-white'
-      : 'text-content-secondary hover:bg-brand-soft hover:text-brand',
-  )
-  // Same links, full-width rows — used inside the mobile dropdown panel instead.
-  const mobileNavLinkClasses =
+  // Every link lives in the side drawer now, on every screen size — this app's nav list has
+  // grown to ~15 items for office roles, which read as a cluttered horizontal bar on desktop
+  // long before it would ever wrap on a phone, so a dedicated inline desktop nav isn't kept
+  // around for comparison; one drawer behavior to maintain beats two.
+  const drawerLinkClasses =
     'flex h-12 items-center rounded-200 px-3 text-[15px] font-bold text-content-secondary transition-colors duration-150 hover:bg-brand-soft hover:text-brand'
 
-  // Parameterized so the identical link list can render twice — compact inline for the desktop
-  // nav, full-width/larger touch targets for the mobile dropdown panel — without duplicating the
-  // ~15-link conditional list itself.
+  // Parameterized even though only one caller remains below — keeps the ~15-link conditional
+  // list itself in one place if a second rendering context ever comes back.
   function renderNavLinks(linkClassName: string) {
     return (
       <>
@@ -223,30 +218,9 @@ function AppLayoutChrome() {
     )
   }
 
-  const sessionControls = isAuthenticated ? (
-    <>
-      <NotificationBell />
-      <span
-        className={clsx(
-          'hidden text-[14px] lg:inline',
-          overHero ? 'text-white' : 'text-content-primary',
-        )}
-      >
-        {t('common:welcomeUser', { name: user?.fullName })}
-      </span>
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={clearSession}
-        className={clsx(
-          overHero &&
-            '!border-white/40 !bg-transparent !text-white hover:!border-white hover:!bg-white/10 hover:!text-white',
-        )}
-      >
-        {t('common:logout')}
-      </Button>
-    </>
-  ) : (
+  // Welcome text + logout move into the drawer footer below (every screen size now, not just
+  // mobile) — the header itself only ever needs the sign-in CTA for an anonymous visitor.
+  const sessionControls = isAuthenticated ? null : (
     <Link to="/login" className="shrink-0">
       <Button variant="primary" size="sm">
         {t('auth:loginLink')}
@@ -267,9 +241,8 @@ function AppLayoutChrome() {
         )}
       >
         <div className="flex h-16 w-full items-center px-4 sm:px-8 xl:px-16 2xl:px-24">
-          {/* Three-column header on large screens: logo (start) · centered nav · session
-           *  controls (end). Below `lg` the nav collapses behind a hamburger button instead —
-           *  the full link list (up to ~13 items for office roles) never fits a phone width. */}
+          {/* Logo (start) · session controls + hamburger (end) — the nav link list itself
+           *  always lives in the side drawer, never inline here (see drawerLinkClasses above). */}
           <div className="flex flex-1 items-center">
             <Link to="/" className="shrink-0">
               <TawzeefLogo
@@ -280,26 +253,12 @@ function AppLayoutChrome() {
             </Link>
           </div>
 
-          <nav className="hidden shrink-0 items-center gap-1 lg:flex">
-            {renderNavLinks(navLinkClasses)}
-          </nav>
-
           <div className="flex flex-1 items-center justify-end gap-2">
-            <div
-              className={clsx(
-                'hidden shrink-0 items-center gap-3 border-s ps-3 lg:flex',
-                overHero ? 'border-white/20 text-white' : 'border-border-primary',
-              )}
-            >
-              {sessionControls}
-            </div>
+            {sessionControls}
 
-            {/* Mobile: notification bell (when signed in) stays visible next to the toggle. */}
-            {isAuthenticated && (
-              <span className="lg:hidden">
-                <NotificationBell />
-              </span>
-            )}
+            {/* Notification bell (when signed in) stays visible next to the toggle, on every
+             *  screen size — the welcome text / logout combo moved into the drawer footer. */}
+            {isAuthenticated && <NotificationBell />}
 
             <button
               type="button"
@@ -307,7 +266,7 @@ function AppLayoutChrome() {
               aria-label={menuOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
               aria-expanded={menuOpen}
               className={clsx(
-                'flex size-10 shrink-0 items-center justify-center rounded-200 transition-colors duration-150 lg:hidden',
+                'flex size-10 shrink-0 items-center justify-center rounded-200 transition-colors duration-150',
                 overHero
                   ? 'text-white hover:bg-white/10'
                   : 'text-content-primary hover:bg-brand-soft',
@@ -319,12 +278,13 @@ function AppLayoutChrome() {
         </div>
       </header>
 
-      {/* Mobile nav drawer — slides in from the end edge (the left, in RTL) matching the
-       *  menu icon position. Backdrop click, Escape, or a route change all close it. */}
+      {/* Nav drawer — slides in from the end edge (the left, in RTL) matching the menu icon
+       *  position, on every screen size (see drawerLinkClasses above). Backdrop click, Escape,
+       *  or a route change all close it. */}
       <div
         aria-hidden={!menuOpen}
         className={clsx(
-          'fixed inset-0 z-40 bg-black/40 transition-opacity duration-300 lg:hidden',
+          'fixed inset-0 z-40 bg-black/40 transition-opacity duration-300',
           menuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
         )}
         onClick={() => setMenuOpen(false)}
@@ -335,7 +295,7 @@ function AppLayoutChrome() {
         aria-label="القائمة"
         className={clsx(
           'fixed inset-y-0 end-0 z-50 flex w-[85%] max-w-[340px] flex-col bg-surface shadow-[0_0_32px_rgba(0,0,0,0.18)]',
-          'transition-transform duration-300 ease-out lg:hidden',
+          'transition-transform duration-300 ease-out',
           menuOpen
             ? 'translate-x-0'
             : '-translate-x-full rtl:-translate-x-full ltr:translate-x-full',
@@ -356,7 +316,7 @@ function AppLayoutChrome() {
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 py-3">
-          <nav className="flex flex-col gap-0.5">{renderNavLinks(mobileNavLinkClasses)}</nav>
+          <nav className="flex flex-col gap-0.5">{renderNavLinks(drawerLinkClasses)}</nav>
         </div>
 
         <div className="flex shrink-0 flex-col gap-3 border-t border-border-primary px-4 py-3">
