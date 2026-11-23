@@ -26,6 +26,14 @@ public class Employer : IEntity
     public string? RepresentativeName { get; set; }
     public string? RepresentativeRole { get; set; }
 
+    /// <summary>Company logo — unlike every other upload in this app, this is meant to be
+    /// publicly visible on job listings, so it's served through an [AllowAnonymous] endpoint
+    /// instead of the authenticated-only document download pattern. No review workflow: a new
+    /// upload just replaces the previous one.</summary>
+    public string? LogoStorageKey { get; set; }
+    public string? LogoOriginalFileName { get; set; }
+    public string? LogoContentType { get; set; }
+
     public EmployerVerificationStatus VerificationStatus { get; set; } = EmployerVerificationStatus.Draft;
     public Guid? ApprovedBy { get; set; }
     public DateTime? ApprovedAt { get; set; }

@@ -29,6 +29,7 @@ export type EmployerProfile = {
   companyPhone: string | null
   representativeName: string | null
   representativeRole: string | null
+  logoUrl: string | null
   verificationStatus: EmployerVerificationStatusCode
   rejectionReason: string | null
   cooperationStatus: EmployerCooperationStatusCode

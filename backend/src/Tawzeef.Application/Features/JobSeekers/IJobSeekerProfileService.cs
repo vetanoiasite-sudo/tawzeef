@@ -19,4 +19,16 @@ public interface IJobSeekerProfileService
         CancellationToken ct = default);
 
     Task<ServiceResult<JobSeekerProfileDto>> SubmitForReviewAsync(Guid userId, CancellationToken ct = default);
+
+    /// <summary>Optional, no review workflow — unlike UploadDocumentAsync. image/jpeg or image/png
+    /// only. Replaces (and deletes) any previous photo.</summary>
+    Task<ServiceResult<JobSeekerProfileDto>> UploadPhotoAsync(
+        Guid userId,
+        Stream content,
+        string originalFileName,
+        string contentType,
+        long fileSizeBytes,
+        CancellationToken ct = default);
+
+    Task<ServiceResult<JobSeekerDocumentFileDto>> GetPhotoAsync(Guid userId, CancellationToken ct = default);
 }

@@ -13,6 +13,12 @@ public interface IJobSeekerReviewService
     Task<ServiceResult<JobSeekerDocumentFileDto>> GetDocumentFileAsync(
         Guid officeId, Guid profileId, Guid documentId, CancellationToken ct = default);
 
+    /// <summary>The profile's optional photo (JobSeekerProfile.PhotoStorageKey) — never exposed to
+    /// an employer, only office staff reviewing the profile (and the job seeker themselves, via
+    /// JobSeekersController.GetPhoto).</summary>
+    Task<ServiceResult<JobSeekerDocumentFileDto>> GetPhotoAsync(
+        Guid officeId, Guid profileId, CancellationToken ct = default);
+
     Task<ServiceResult<JobSeekerDocumentDto>> ApproveDocumentAsync(
         Guid officeId, Guid reviewerId, Guid profileId, Guid documentId, CancellationToken ct = default);
 

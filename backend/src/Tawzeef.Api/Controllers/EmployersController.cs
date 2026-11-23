@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Tawzeef.Api.Authorization;
 using Tawzeef.Api.Common;
@@ -37,6 +38,32 @@ public class EmployersController(IEmployerProfileService service, ICurrentUser c
     [RequiresPermission("employers.submit")]
     public async Task<IActionResult> SubmitForReview(CancellationToken ct)
         => Respond(await service.SubmitForReviewAsync(RequireUserId(), ct));
+
+    /// <summary>No review workflow — a logo upload just replaces the previous one. Reuses
+    /// employers.editown, same as every other self-service profile edit.</summary>
+    [HttpPost("me/logo")]
+    [RequiresPermission("employers.editown")]
+    public async Task<IActionResult> UploadLogo(IFormFile file, CancellationToken ct)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { message = "A file is required." });
+
+        await using var stream = file.OpenReadStream();
+        return Respond(await service.UploadLogoAsync(RequireUserId(), stream, file.FileName, file.ContentType, file.Length, ct));
+    }
+
+    /// <summary>The one file this app serves to an anonymous caller — a company logo is meant for
+    /// public job listings, not sensitive like every other upload here (EmployerLogoStorageKey's
+    /// doc comment on the Employer entity).</summary>
+    [HttpGet("{id:guid}/logo")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetLogo(Guid id, CancellationToken ct)
+    {
+        var logo = await service.GetLogoFileAsync(id, ct);
+        if (logo is null) return NotFound();
+
+        return File(logo.Content, logo.ContentType);
+    }
 
     private Guid RequireUserId() => currentUser.Id ?? throw new UnauthorizedAccessException();
 }

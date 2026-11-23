@@ -14,6 +14,7 @@ export const officeJobSeekerReviewApi = {
       pageSize: filter.pageSize,
     }),
   getById: (id: string) => httpClient.get<OfficeJobSeekerDetail>(`/api/office/job-seekers/${id}`),
+  getPhoto: (id: string) => httpClient.getBlob(`/api/office/job-seekers/${id}/photo`),
   approveDocument: ({ profileId, documentId }: { profileId: string; documentId: string }) =>
     httpClient.post<OfficeJobSeekerDocument>(
       `/api/office/job-seekers/${profileId}/documents/${documentId}/approve`,

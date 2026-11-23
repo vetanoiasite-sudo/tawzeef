@@ -17,6 +17,8 @@ public class ThrowingJobSeekerReviewServiceStub : IJobSeekerReviewService
         throw new NotImplementedException();
     public Task<ServiceResult<JobSeekerDocumentFileDto>> GetDocumentFileAsync(Guid officeId, Guid profileId, Guid documentId, CancellationToken ct = default) =>
         throw new NotImplementedException();
+    public Task<ServiceResult<JobSeekerDocumentFileDto>> GetPhotoAsync(Guid officeId, Guid profileId, CancellationToken ct = default) =>
+        throw new NotImplementedException();
     public Task<ServiceResult<JobSeekerDocumentDto>> ApproveDocumentAsync(Guid officeId, Guid reviewerId, Guid profileId, Guid documentId, CancellationToken ct = default) =>
         throw new NotImplementedException();
     public Task<ServiceResult<JobSeekerDocumentDto>> RejectDocumentAsync(Guid officeId, Guid reviewerId, Guid profileId, Guid documentId, string reason, CancellationToken ct = default) =>

@@ -24,6 +24,15 @@ public class JobSeekerProfile : IEntity
     public string? CareerSummary { get; set; }
     public string? JobTitle { get; set; }
 
+    /// <summary>Optional profile photo — never required, no office review workflow attached
+    /// (unlike JobSeekerDocument). Opaque storage key from IFileStorage, same as a document's
+    /// SecureFileReference (BUSINESS_REQUIREMENTS.md §17.3) — never a public URL. Visible only to
+    /// the job seeker themselves and office staff reviewing the profile; never exposed to an
+    /// employer.</summary>
+    public string? PhotoStorageKey { get; set; }
+    public string? PhotoOriginalFileName { get; set; }
+    public string? PhotoContentType { get; set; }
+
     public JobSeekerReviewStatus ReviewStatus { get; set; } = JobSeekerReviewStatus.Draft;
     public Guid? ApprovedBy { get; set; }
     public DateTime? ApprovedAt { get; set; }

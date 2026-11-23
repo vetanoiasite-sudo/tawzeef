@@ -43,6 +43,12 @@ public class JobSeekerProfileDto
     public string? Skills { get; set; }
     public string? CareerSummary { get; set; }
     public string? JobTitle { get; set; }
+
+    /// <summary>Whether a profile photo is set — never a raw URL (the photo is private, not
+    /// public like a company logo); the frontend fetches it through the authenticated
+    /// GET /api/jobseekers/me/photo (or the office's GET /api/office/job-seekers/{id}/photo).</summary>
+    public bool HasPhoto { get; set; }
+
     public string ReviewStatus { get; set; } = string.Empty;
     public string? RejectionReason { get; set; }
     public string? SuspensionReason { get; set; }

@@ -35,6 +35,19 @@ public class OfficeJobSeekersController(IJobSeekerReviewService service, ICurren
         return File(file.Content, string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType, file.FileName);
     }
 
+    /// <summary>The profile's optional photo — same auth pattern as DownloadDocument, just no
+    /// documentId (there's only ever one photo). Never shown to an employer.</summary>
+    [HttpGet("{id:guid}/photo")]
+    [RequiresPermission("jobseekers.viewdocuments")]
+    public async Task<IActionResult> GetPhoto(Guid id, CancellationToken ct)
+    {
+        var result = await service.GetPhotoAsync(RequireOfficeId(), id, ct);
+        if (!result.IsSuccess) return Respond(result);
+
+        var file = result.Data!;
+        return File(file.Content, string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType, file.FileName);
+    }
+
     [HttpPost("{id:guid}/documents/{documentId:guid}/approve")]
     [RequiresPermission("jobseekers.review")]
     public async Task<IActionResult> ApproveDocument(Guid id, Guid documentId, CancellationToken ct)

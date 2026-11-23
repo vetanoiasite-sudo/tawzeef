@@ -5,6 +5,7 @@ import { ApiError } from '@/shared/api/types'
 import { useSessionStore } from '@/shared/auth/sessionStore'
 import { useApplyToJob } from '@/features/job-seeker-applications'
 import { useJobDetails } from '../api/publicJobs.queries'
+import { env } from '@/shared/config/env'
 import { Card } from '@/shared/ui/Card'
 import { Button } from '@/shared/ui/Button'
 import { LoadingState } from '@/shared/ui/LoadingState'
@@ -37,9 +38,20 @@ export default function JobDetailPage() {
       </Link>
 
       <Card className="flex flex-col gap-5">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-xl font-bold text-text">{job.title}</h1>
-          <p className="text-sm text-text-muted">{job.employerDisplayName}</p>
+        <div className="flex items-center gap-3">
+          {job.employerLogoUrl && (
+            <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-200 border border-border-primary bg-surface-muted">
+              <img
+                src={`${env.apiBaseUrl}${job.employerLogoUrl}`}
+                alt={job.employerDisplayName}
+                className="size-full object-contain"
+              />
+            </div>
+          )}
+          <div className="flex flex-col gap-1">
+            <h1 className="text-xl font-bold text-text">{job.title}</h1>
+            <p className="text-sm text-text-muted">{job.employerDisplayName}</p>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-2">

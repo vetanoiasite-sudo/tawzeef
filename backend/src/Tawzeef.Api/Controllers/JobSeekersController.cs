@@ -38,5 +38,32 @@ public class JobSeekersController(IJobSeekerProfileService service, ICurrentUser
     public async Task<IActionResult> SubmitForReview(CancellationToken ct)
         => Respond(await service.SubmitForReviewAsync(RequireUserId(), ct));
 
+    /// <summary>Optional profile photo — no review workflow, unlike UploadDocument. Same
+    /// permission as uploading a document: there's no narrower "own photo" code catalogued.</summary>
+    [HttpPost("me/photo")]
+    [RequiresPermission("jobseekers.uploaddocuments")]
+    public async Task<IActionResult> UploadPhoto([FromForm] UploadJobSeekerPhotoRequest request, CancellationToken ct)
+    {
+        if (request.File is null || request.File.Length == 0)
+            return BadRequest(new { message = "A file is required." });
+
+        await using var stream = request.File.OpenReadStream();
+        return Respond(await service.UploadPhotoAsync(
+            RequireUserId(), stream, request.File.FileName, request.File.ContentType, request.File.Length, ct));
+    }
+
+    /// <summary>Same "ordinary authenticated GET, no signed URL" pattern as the office's document
+    /// download (OfficeJobSeekersController.DownloadDocument) — just self-scoped here.</summary>
+    [HttpGet("me/photo")]
+    [RequiresPermission("jobseekers.viewown")]
+    public async Task<IActionResult> GetPhoto(CancellationToken ct)
+    {
+        var result = await service.GetPhotoAsync(RequireUserId(), ct);
+        if (!result.IsSuccess) return Respond(result);
+
+        var file = result.Data!;
+        return File(file.Content, string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType, file.FileName);
+    }
+
     private Guid RequireUserId() => currentUser.Id ?? throw new UnauthorizedAccessException();
 }

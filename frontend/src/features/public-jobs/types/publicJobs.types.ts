@@ -6,6 +6,7 @@ export type JobListItem = {
   id: string
   title: string
   employerDisplayName: string
+  employerLogoUrl: string | null
   city: string | null
   category: string | null
   employmentType: EmploymentTypeCode | null
@@ -28,6 +29,7 @@ export type JobDetails = {
   salaryMax: number | null
   vacancyCount: number
   employerDisplayName: string
+  employerLogoUrl: string | null
   publishedAt: string | null
   expiresAt: string | null
   contactNote: string

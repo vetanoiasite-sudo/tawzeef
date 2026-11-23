@@ -18,6 +18,7 @@ internal static class JobSeekerProfileMapping
         Skills = p.Skills,
         CareerSummary = p.CareerSummary,
         JobTitle = p.JobTitle,
+        HasPhoto = p.PhotoStorageKey != null,
         ReviewStatus = p.ReviewStatus.ToString(),
         RejectionReason = p.RejectionReason,
         SuspensionReason = p.SuspensionReason,

@@ -33,6 +33,9 @@ export type JobSeekerProfile = {
   skills: string | null
   careerSummary: string | null
   jobTitle: string | null
+  /** No raw URL — the photo is private, fetched through the authenticated
+   * GET /api/jobseekers/me/photo (see photoApi). */
+  hasPhoto: boolean
   reviewStatus: JobSeekerReviewStatusCode
   rejectionReason: string | null
   documents: JobSeekerDocument[]

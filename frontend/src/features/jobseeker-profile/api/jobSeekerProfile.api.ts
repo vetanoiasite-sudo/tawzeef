@@ -23,4 +23,10 @@ export const jobSeekerProfileApi = {
     return httpClient.post<JobSeekerDocument>('/api/jobseekers/me/documents', form)
   },
   submitForReview: () => httpClient.post<JobSeekerProfile>('/api/jobseekers/me/submit'),
+  uploadPhoto: (file: File) => {
+    const form = new FormData()
+    form.append('File', file)
+    return httpClient.post<JobSeekerProfile>('/api/jobseekers/me/photo', form)
+  },
+  getPhoto: () => httpClient.getBlob('/api/jobseekers/me/photo'),
 }

@@ -138,6 +138,51 @@ public class JobSeekerProfileService(IUnitOfWork uow, IFileStorage fileStorage, 
         return ServiceResult<JobSeekerProfileDto>.Success(profile.ToDto(activeDocuments));
     }
 
+    public async Task<ServiceResult<JobSeekerProfileDto>> UploadPhotoAsync(
+        Guid userId, Stream content, string originalFileName, string contentType, long fileSizeBytes, CancellationToken ct = default)
+    {
+        var profile = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.UserId == userId, ct: ct);
+        if (profile is null) return ServiceResult<JobSeekerProfileDto>.NotFound("No job seeker profile for this account.");
+
+        string[] allowedPhotoMimeTypes = ["image/jpeg", "image/png"];
+        if (!allowedPhotoMimeTypes.Contains(contentType, StringComparer.OrdinalIgnoreCase))
+            return ServiceResult<JobSeekerProfileDto>.Invalid("Unsupported file type — only JPG and PNG are allowed for a photo.");
+
+        var maxSizeBytes = configuration.GetValue<long?>("Uploads:MaxFileSizeBytes") ?? DefaultMaxFileSizeBytes;
+        if (fileSizeBytes <= 0 || fileSizeBytes > maxSizeBytes)
+            return ServiceResult<JobSeekerProfileDto>.Invalid($"File is too large — the limit is {maxSizeBytes / (1024 * 1024)} MB.");
+
+        var previousStorageKey = profile.PhotoStorageKey;
+
+        var storageKey = await fileStorage.SaveAsync(content, originalFileName, contentType, ct);
+        profile.PhotoStorageKey = storageKey;
+        profile.PhotoOriginalFileName = originalFileName;
+        profile.PhotoContentType = contentType;
+        uow.Repository<JobSeekerProfile>().Update(profile);
+        await uow.SaveChangesAsync(ct);
+
+        if (previousStorageKey is not null)
+            await fileStorage.DeleteAsync(previousStorageKey, ct);
+
+        var documents = await uow.Repository<JobSeekerDocument>().ListAsync(d => d.JobSeekerId == profile.Id && d.IsActive, ct: ct);
+        return ServiceResult<JobSeekerProfileDto>.Success(profile.ToDto(documents));
+    }
+
+    public async Task<ServiceResult<JobSeekerDocumentFileDto>> GetPhotoAsync(Guid userId, CancellationToken ct = default)
+    {
+        var profile = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.UserId == userId, ct: ct);
+        if (profile is null) return ServiceResult<JobSeekerDocumentFileDto>.NotFound("No job seeker profile for this account.");
+        if (profile.PhotoStorageKey is null) return ServiceResult<JobSeekerDocumentFileDto>.NotFound("No photo set.");
+
+        var stream = await fileStorage.OpenReadAsync(profile.PhotoStorageKey, ct);
+        return ServiceResult<JobSeekerDocumentFileDto>.Success(new JobSeekerDocumentFileDto
+        {
+            Content = stream,
+            FileName = profile.PhotoOriginalFileName ?? "photo",
+            ContentType = profile.PhotoContentType ?? "application/octet-stream",
+        });
+    }
+
     private static void RevertApprovalIfNeeded(JobSeekerProfile profile)
     {
         if (profile.ReviewStatus == JobSeekerReviewStatus.Approved)

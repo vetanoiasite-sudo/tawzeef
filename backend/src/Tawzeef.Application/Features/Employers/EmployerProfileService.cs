@@ -120,6 +120,52 @@ public class EmployerProfileService(IUnitOfWork uow, IFileStorage fileStorage, I
         return ServiceResult<EmployerProfileDto>.Success(employer.ToDto(activeDocuments));
     }
 
+    private static readonly string[] LogoAllowedMimeTypes = ["image/jpeg", "image/png"];
+
+    public async Task<ServiceResult<EmployerProfileDto>> UploadLogoAsync(
+        Guid userId, Stream content, string originalFileName, string contentType, long fileSizeBytes, CancellationToken ct = default)
+    {
+        var employer = await uow.Repository<Employer>().FindAsync(e => e.UserId == userId, ct: ct);
+        if (employer is null) return ServiceResult<EmployerProfileDto>.NotFound("No employer account for this user.");
+
+        if (!LogoAllowedMimeTypes.Contains(contentType, StringComparer.OrdinalIgnoreCase))
+            return ServiceResult<EmployerProfileDto>.Invalid("Unsupported file type — only JPG and PNG are allowed.");
+
+        var maxSizeBytes = configuration.GetValue<long?>("Uploads:MaxFileSizeBytes") ?? DefaultMaxFileSizeBytes;
+        if (fileSizeBytes <= 0 || fileSizeBytes > maxSizeBytes)
+            return ServiceResult<EmployerProfileDto>.Invalid($"File is too large — the limit is {maxSizeBytes / (1024 * 1024)} MB.");
+
+        var previousStorageKey = employer.LogoStorageKey;
+
+        employer.LogoStorageKey = await fileStorage.SaveAsync(content, originalFileName, contentType, ct);
+        employer.LogoOriginalFileName = originalFileName;
+        employer.LogoContentType = contentType;
+        uow.Repository<Employer>().Update(employer);
+        await uow.SaveChangesAsync(ct);
+
+        // Only delete the old file once the new one is safely saved and committed — never leave a
+        // gap where a crash mid-upload loses the only logo on file.
+        if (previousStorageKey is not null)
+            await fileStorage.DeleteAsync(previousStorageKey, ct);
+
+        var documents = await uow.Repository<EmployerDocument>().ListAsync(d => d.EmployerId == employer.Id && d.IsActive, ct: ct);
+        return ServiceResult<EmployerProfileDto>.Success(employer.ToDto(documents));
+    }
+
+    public async Task<EmployerDocumentFileDto?> GetLogoFileAsync(Guid employerId, CancellationToken ct = default)
+    {
+        var employer = await uow.Repository<Employer>().FindAsync(e => e.Id == employerId, ct: ct);
+        if (employer?.LogoStorageKey is null) return null;
+
+        var content = await fileStorage.OpenReadAsync(employer.LogoStorageKey, ct);
+        return new EmployerDocumentFileDto
+        {
+            Content = content,
+            FileName = employer.LogoOriginalFileName ?? "logo",
+            ContentType = employer.LogoContentType ?? "application/octet-stream",
+        };
+    }
+
     private static void RevertApprovalIfNeeded(Employer employer)
     {
         if (employer.VerificationStatus == EmployerVerificationStatus.Approved)

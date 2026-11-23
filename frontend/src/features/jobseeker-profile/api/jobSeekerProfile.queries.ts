@@ -32,3 +32,11 @@ export function useSubmitJobSeekerProfileForReview() {
     onSuccess: (data) => queryClient.setQueryData(jobSeekerProfileKeys.myProfile(), data),
   })
 }
+
+export function useUploadJobSeekerPhoto() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: jobSeekerProfileApi.uploadPhoto,
+    onSuccess: (data) => queryClient.setQueryData(jobSeekerProfileKeys.myProfile(), data),
+  })
+}

@@ -16,6 +16,7 @@ internal static class EmployerProfileMapping
         CompanyPhone = e.CompanyPhone,
         RepresentativeName = e.RepresentativeName,
         RepresentativeRole = e.RepresentativeRole,
+        LogoUrl = e.LogoStorageKey is null ? null : $"/api/employers/{e.Id}/logo",
         VerificationStatus = e.VerificationStatus.ToString(),
         RejectionReason = e.RejectionReason,
         CooperationStatus = e.CooperationStatus.ToString(),

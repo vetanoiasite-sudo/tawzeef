@@ -28,6 +28,22 @@ public class JobSeekerReviewService(IUnitOfWork uow, IFileStorage fileStorage) :
         });
     }
 
+    public async Task<ServiceResult<JobSeekerDocumentFileDto>> GetPhotoAsync(
+        Guid officeId, Guid profileId, CancellationToken ct = default)
+    {
+        var profile = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.Id == profileId && p.OfficeId == officeId, ct: ct);
+        if (profile is null) return ServiceResult<JobSeekerDocumentFileDto>.NotFound("Job seeker profile not found.");
+        if (profile.PhotoStorageKey is null) return ServiceResult<JobSeekerDocumentFileDto>.NotFound("No photo set.");
+
+        var stream = await fileStorage.OpenReadAsync(profile.PhotoStorageKey, ct);
+        return ServiceResult<JobSeekerDocumentFileDto>.Success(new JobSeekerDocumentFileDto
+        {
+            Content = stream,
+            FileName = profile.PhotoOriginalFileName ?? "photo",
+            ContentType = profile.PhotoContentType ?? "application/octet-stream",
+        });
+    }
+
     public async Task<ServiceResult<PagedResult<JobSeekerReviewListItemDto>>> ListQueueAsync(
         Guid officeId, JobSeekerReviewQueryDto query, CancellationToken ct = default)
     {

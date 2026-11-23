@@ -1,6 +1,8 @@
 export const employerJobAdsAr = {
   pageTitle: 'إعلاناتي الوظيفية',
   createAction: 'إعلان وظيفة جديدة',
+  profileIncompleteWarning: 'لازم تكمل ملف الشركة وترسله للمراجعة الأول قبل ما تقدر تنشر إعلان وظيفة.',
+  completeProfileAction: 'إكمال ملف الشركة',
   emptyList: 'لا توجد إعلانات وظيفية بعد',
   columnTitle: 'العنوان',
   columnCity: 'المدينة',

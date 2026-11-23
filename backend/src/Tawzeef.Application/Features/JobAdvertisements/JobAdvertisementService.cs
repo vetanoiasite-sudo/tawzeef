@@ -49,6 +49,12 @@ public class JobAdvertisementService(IUnitOfWork uow) : IJobAdvertisementService
         var employer = await uow.Repository<Employer>().FindAsync(e => e.UserId == userId, ct: ct);
         if (employer is null) return ServiceResult<JobAdvertisementDto>.NotFound("No employer account for this user.");
 
+        // Can't even start a draft ad until the company profile is complete (filled in and
+        // submitted) — SubmitForReviewAsync still separately requires VerificationStatus.Approved
+        // before the ad itself can go to the office's review queue; this is the earlier gate.
+        if (employer.VerificationStatus == EmployerVerificationStatus.Draft)
+            return ServiceResult<JobAdvertisementDto>.Forbidden("Complete and submit your company profile before posting job advertisements.");
+
         var ad = new JobAdvertisement { Id = Guid.NewGuid(), OfficeId = employer.OfficeId, EmployerId = employer.Id }.ApplyFrom(dto);
         await uow.Repository<JobAdvertisement>().AddAsync(ad, ct);
         await uow.SaveChangesAsync(ct);

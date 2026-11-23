@@ -19,4 +19,11 @@ public interface IEmployerProfileService
         CancellationToken ct = default);
 
     Task<ServiceResult<EmployerProfileDto>> SubmitForReviewAsync(Guid userId, CancellationToken ct = default);
+
+    Task<ServiceResult<EmployerProfileDto>> UploadLogoAsync(
+        Guid userId, Stream content, string originalFileName, string contentType, long fileSizeBytes, CancellationToken ct = default);
+
+    /// <summary>Public, no auth — the one file this app serves to an anonymous caller. Null if the
+    /// employer has no logo, or doesn't exist.</summary>
+    Task<EmployerDocumentFileDto?> GetLogoFileAsync(Guid employerId, CancellationToken ct = default);
 }

@@ -34,6 +34,9 @@ public class PublicJobSearchService(IUnitOfWork uow) : IPublicJobSearchService
         var employerIds = page.Items.Select(a => a.EmployerId).Distinct().ToList();
         var employers = employerIds.Count == 0 ? [] : await uow.Repository<Employer>().ListAsync(e => employerIds.Contains(e.Id), ct: ct);
         var namesByEmployer = employers.ToDictionary(e => e.Id, e => e.DisplayName);
+        var logoUrlsByEmployer = employers
+            .Where(e => e.LogoStorageKey is not null)
+            .ToDictionary(e => e.Id, e => $"/api/employers/{e.Id}/logo");
 
         return ServiceResult<PagedResult<JobListItemDto>>.Success(new PagedResult<JobListItemDto>
         {
@@ -42,6 +45,7 @@ public class PublicJobSearchService(IUnitOfWork uow) : IPublicJobSearchService
                 Id = a.Id,
                 Title = a.Title,
                 EmployerDisplayName = namesByEmployer.GetValueOrDefault(a.EmployerId, string.Empty),
+                EmployerLogoUrl = logoUrlsByEmployer.GetValueOrDefault(a.EmployerId),
                 City = a.City,
                 Category = a.Category,
                 EmploymentType = a.EmploymentType?.ToString(),
@@ -99,6 +103,7 @@ public class PublicJobSearchService(IUnitOfWork uow) : IPublicJobSearchService
             SalaryMax = ad.SalaryMax,
             VacancyCount = ad.VacancyCount,
             EmployerDisplayName = employer?.DisplayName ?? string.Empty,
+            EmployerLogoUrl = employer?.LogoStorageKey is null ? null : $"/api/employers/{employer.Id}/logo",
             PublishedAt = ad.PublishedAt,
             ExpiresAt = ad.ExpiresAt,
         });

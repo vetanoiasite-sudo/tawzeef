@@ -33,6 +33,11 @@ export const jobSeekerProfileAr = {
   cvSuggestionHint: 'مقترح من ملف الـ CV اللي رفعته — راجعه وعدّله لو محتاج قبل الحفظ',
   save: 'حفظ',
   saveSuccess: 'تم حفظ البيانات',
+  photoSection: 'الصورة الشخصية (اختياري)',
+  photoHint: 'JPG أو PNG — حتى 2 ميجابايت. مش إلزامي، بس بتخلي ملفك أوضح للمكتب.',
+  uploadPhoto: 'رفع صورة',
+  replacePhoto: 'تغيير الصورة',
+  noPhotoUploaded: 'لسه مفيش صورة مرفوعة',
   documentsSection: 'المستندات المطلوبة',
   documentType: {
     RecommendationLetter: 'جواب التزكية',

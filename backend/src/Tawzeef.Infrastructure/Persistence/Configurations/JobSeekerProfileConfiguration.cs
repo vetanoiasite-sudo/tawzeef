@@ -20,6 +20,9 @@ public class JobSeekerProfileConfiguration : IEntityTypeConfiguration<JobSeekerP
         b.Property(x => x.Skills).HasMaxLength(1000);
         b.Property(x => x.CareerSummary).HasMaxLength(2000);
         b.Property(x => x.JobTitle).HasMaxLength(150);
+        b.Property(x => x.PhotoStorageKey).HasMaxLength(500);
+        b.Property(x => x.PhotoOriginalFileName).HasMaxLength(260);
+        b.Property(x => x.PhotoContentType).HasMaxLength(100);
         b.Property(x => x.RejectionReason).HasMaxLength(500);
         b.Property(x => x.SuspensionReason).HasMaxLength(500);
 

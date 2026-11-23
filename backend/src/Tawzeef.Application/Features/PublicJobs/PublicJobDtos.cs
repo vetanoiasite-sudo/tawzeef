@@ -22,6 +22,7 @@ public class JobListItemDto
     public Guid Id { get; set; }
     public string Title { get; set; } = string.Empty;
     public string EmployerDisplayName { get; set; } = string.Empty;
+    public string? EmployerLogoUrl { get; set; }
     public string? City { get; set; }
     public string? Category { get; set; }
     public string? EmploymentType { get; set; }
@@ -56,6 +57,7 @@ public class JobDetailsDto
     public decimal? SalaryMax { get; set; }
     public int VacancyCount { get; set; }
     public string EmployerDisplayName { get; set; } = string.Empty;
+    public string? EmployerLogoUrl { get; set; }
     public DateTime? PublishedAt { get; set; }
     public DateTime? ExpiresAt { get; set; }
     public string ContactNote { get; set; } = "التواصل يتم من خلال مكتب التوظيف فقط.";

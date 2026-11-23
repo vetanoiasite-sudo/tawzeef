@@ -38,6 +38,7 @@ export type OfficeJobSeekerDetail = {
   yearsOfExperience: number | null
   skills: string | null
   careerSummary: string | null
+  hasPhoto: boolean
   reviewStatus: JobSeekerReviewStatusCode
   rejectionReason: string | null
   suspensionReason: string | null

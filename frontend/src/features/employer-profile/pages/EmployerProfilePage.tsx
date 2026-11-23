@@ -2,11 +2,13 @@ import { useTranslation } from 'react-i18next'
 import { ApiError } from '@/shared/api/types'
 import { EmployerDocumentUploadCard } from '../components/EmployerDocumentUploadCard'
 import { EmployerProfileCompletionForm } from '../components/EmployerProfileCompletionForm'
+import { LogoUploadCard } from '../components/LogoUploadCard'
 import {
   useMyEmployerProfile,
   useSubmitEmployerProfileForReview,
   useUpdateMyEmployerProfile,
   useUploadEmployerDocument,
+  useUploadEmployerLogo,
 } from '../api/employerProfile.queries'
 import type { EmployerProfileFormValues } from '../schemas/employerProfile.schema'
 import {
@@ -28,6 +30,7 @@ export default function EmployerProfilePage() {
   const { data: profile, isLoading } = useMyEmployerProfile()
   const updateProfile = useUpdateMyEmployerProfile()
   const uploadDocument = useUploadEmployerDocument()
+  const uploadLogo = useUploadEmployerLogo()
   const submitForReview = useSubmitEmployerProfileForReview()
 
   if (isLoading || !profile) {
@@ -88,6 +91,13 @@ export default function EmployerProfilePage() {
           </p>
         )}
       </Card>
+
+      <LogoUploadCard
+        logoUrl={profile.logoUrl}
+        isUploading={uploadLogo.isPending}
+        error={errorMessage(uploadLogo.error)}
+        onUpload={(file) => uploadLogo.mutate(file)}
+      />
 
       <section className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold text-text">{t('profileSection')}</h2>

@@ -25,6 +25,14 @@ export function useUploadEmployerDocument() {
   })
 }
 
+export function useUploadEmployerLogo() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: employerProfileApi.uploadLogo,
+    onSuccess: (data) => queryClient.setQueryData(employerProfileKeys.myProfile(), data),
+  })
+}
+
 export function useSubmitEmployerProfileForReview() {
   const queryClient = useQueryClient()
   return useMutation({

@@ -2,12 +2,14 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ApiError } from '@/shared/api/types'
 import { DocumentUploadCard } from '../components/DocumentUploadCard'
+import { PhotoUploadCard } from '../components/PhotoUploadCard'
 import { ProfileCompletionForm } from '../components/ProfileCompletionForm'
 import {
   useMyJobSeekerProfile,
   useSubmitJobSeekerProfileForReview,
   useUpdateMyJobSeekerProfile,
   useUploadJobSeekerDocument,
+  useUploadJobSeekerPhoto,
 } from '../api/jobSeekerProfile.queries'
 import type { JobSeekerProfileFormValues } from '../schemas/jobSeekerProfile.schema'
 import {
@@ -29,6 +31,7 @@ export default function JobSeekerProfilePage() {
   const { data: profile, isLoading } = useMyJobSeekerProfile()
   const updateProfile = useUpdateMyJobSeekerProfile()
   const uploadDocument = useUploadJobSeekerDocument()
+  const uploadPhoto = useUploadJobSeekerPhoto()
   const submitForReview = useSubmitJobSeekerProfileForReview()
   const [cvSuggestions, setCvSuggestions] = useState<
     { jobTitle?: string | null; yearsOfExperience?: number | null } | undefined
@@ -95,6 +98,13 @@ export default function JobSeekerProfilePage() {
           </p>
         )}
       </Card>
+
+      <PhotoUploadCard
+        hasPhoto={profile.hasPhoto}
+        isUploading={uploadPhoto.isPending}
+        error={errorMessage(uploadPhoto.error)}
+        onUpload={(file) => uploadPhoto.mutate(file)}
+      />
 
       <section className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold text-text">{t('profileSection')}</h2>

@@ -34,6 +34,10 @@ public class EmployerProfileDto
     public string? RepresentativeName { get; set; }
     public string? RepresentativeRole { get; set; }
 
+    /// <summary>A relative API path (e.g. /api/employers/{id}/logo), never the raw storage key —
+    /// null when no logo has been uploaded yet. The endpoint it points to is [AllowAnonymous].</summary>
+    public string? LogoUrl { get; set; }
+
     public string VerificationStatus { get; set; } = string.Empty;
     public string? RejectionReason { get; set; }
 

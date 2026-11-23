@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 import { ApiError } from '@/shared/api/types'
 import { useAccess } from '@/shared/auth/useAccess'
 import { DocumentReviewRow } from '../components/DocumentReviewRow'
 import { ReasonForm } from '../components/ReasonForm'
+import { officeJobSeekerReviewApi } from '../api/officeJobSeekerReview.api'
 import {
   useApproveDocument,
   useApproveProfile,
@@ -33,12 +34,31 @@ export default function ReviewDetailPage() {
   const [showReinstate, setShowReinstate] = useState(false)
 
   const { data: profile, isLoading } = useOfficeJobSeekerDetail(profileId)
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null)
   const approveDocument = useApproveDocument(profileId)
   const rejectDocument = useRejectDocument(profileId)
   const approveProfile = useApproveProfile(profileId)
   const rejectProfile = useRejectProfile(profileId)
   const suspendProfile = useSuspendProfile(profileId)
   const reinstateProfile = useReinstateProfile(profileId)
+
+  useEffect(() => {
+    if (!profile?.hasPhoto) {
+      setPhotoUrl(null)
+      return
+    }
+    let objectUrl: string | null = null
+    let cancelled = false
+    void officeJobSeekerReviewApi.getPhoto(profile.id).then(({ blob }) => {
+      if (cancelled) return
+      objectUrl = URL.createObjectURL(blob)
+      setPhotoUrl(objectUrl)
+    })
+    return () => {
+      cancelled = true
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [profile?.hasPhoto, profile?.id])
 
   if (isLoading || !profile) {
     return <LoadingState />
@@ -55,9 +75,18 @@ export default function ReviewDetailPage() {
         {t('backToQueue')}
       </Link>
 
-      <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-bold text-text">{profile.fullName}</h1>
-        <p className="text-sm text-text-muted">{profile.mobileNumber}</p>
+      <div className="flex items-center gap-4">
+        {photoUrl && (
+          <img
+            src={photoUrl}
+            alt=""
+            className="size-16 shrink-0 rounded-full border border-border-primary object-cover"
+          />
+        )}
+        <div className="flex flex-col gap-1">
+          <h1 className="text-xl font-bold text-text">{profile.fullName}</h1>
+          <p className="text-sm text-text-muted">{profile.mobileNumber}</p>
+        </div>
       </div>
 
       {overComplaintThreshold && (

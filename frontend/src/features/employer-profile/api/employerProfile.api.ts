@@ -23,4 +23,9 @@ export const employerProfileApi = {
     return httpClient.post<EmployerDocument>('/api/employers/me/documents', form)
   },
   submitForReview: () => httpClient.post<EmployerProfile>('/api/employers/me/submit'),
+  uploadLogo: (file: File) => {
+    const form = new FormData()
+    form.append('file', file)
+    return httpClient.post<EmployerProfile>('/api/employers/me/logo', form)
+  },
 }
