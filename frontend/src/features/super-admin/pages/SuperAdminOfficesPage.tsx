@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ApiError } from '@/shared/api/types'
 import { httpClient } from '@/shared/api/httpClient'
+import { useInviteOfficeUser } from '@/features/office-users/api/officeUser.queries'
 import { OfficeForm } from '../components/OfficeForm'
 import { OfficeRow } from '../components/OfficeRow'
 import {
@@ -31,6 +32,7 @@ export default function SuperAdminOfficesPage() {
   const updateOffice = useUpdateOffice()
   const activateOffice = useActivateOffice()
   const deactivateOffice = useDeactivateOffice()
+  const inviteOfficeAdmin = useInviteOfficeUser()
 
   async function handleExport() {
     setExporting(true)
@@ -98,12 +100,22 @@ export default function SuperAdminOfficesPage() {
                   : undefined
               }
               isTogglingStatus={activateOffice.isPending || deactivateOffice.isPending}
+              isInviting={inviteOfficeAdmin.isPending}
+              inviteError={
+                inviteOfficeAdmin.variables?.officeId === office.id
+                  ? errorMessage(inviteOfficeAdmin.error)
+                  : undefined
+              }
+              inviteSuccess={
+                inviteOfficeAdmin.isSuccess && inviteOfficeAdmin.variables?.officeId === office.id
+              }
               onSave={(payload) => updateOffice.mutate({ id: office.id, payload })}
               onToggleStatus={() =>
                 office.status === 'Active'
                   ? deactivateOffice.mutate(office.id)
                   : activateOffice.mutate(office.id)
               }
+              onInviteAdmin={(payload) => inviteOfficeAdmin.mutate(payload)}
             />
           ))}
         </div>

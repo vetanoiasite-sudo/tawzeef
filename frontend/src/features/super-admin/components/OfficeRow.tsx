@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import type { InviteOfficeUserPayload } from '@/features/office-users/types/officeUser.types'
 import { OfficeForm } from './OfficeForm'
+import { InviteOfficeAdminForm } from './InviteOfficeAdminForm'
 import type { Office, UpdateOfficePayload } from '../types/superAdmin.types'
 import { Card } from '@/shared/ui/Card'
 import { Button } from '@/shared/ui/Button'
@@ -11,18 +13,27 @@ export function OfficeRow({
   isSaving,
   saveError,
   isTogglingStatus,
+  isInviting,
+  inviteError,
+  inviteSuccess,
   onSave,
   onToggleStatus,
+  onInviteAdmin,
 }: {
   office: Office
   isSaving: boolean
   saveError?: string
   isTogglingStatus: boolean
+  isInviting: boolean
+  inviteError?: string
+  inviteSuccess: boolean
   onSave: (payload: UpdateOfficePayload) => void
   onToggleStatus: () => void
+  onInviteAdmin: (payload: InviteOfficeUserPayload) => void
 }) {
   const { t } = useTranslation('superAdmin')
   const [editing, setEditing] = useState(false)
+  const [inviting, setInviting] = useState(false)
 
   if (editing) {
     return (
@@ -32,6 +43,21 @@ export function OfficeRow({
         error={saveError}
         onSubmit={(payload) => onSave(payload as UpdateOfficePayload)}
         onCancel={() => setEditing(false)}
+      />
+    )
+  }
+
+  if (inviting) {
+    return (
+      <InviteOfficeAdminForm
+        officeId={office.id}
+        isSubmitting={isInviting}
+        error={inviteError}
+        onSubmit={(payload) => {
+          onInviteAdmin(payload)
+          setInviting(false)
+        }}
+        onCancel={() => setInviting(false)}
       />
     )
   }
@@ -46,9 +72,15 @@ export function OfficeRow({
         <p className="text-sm text-text-muted">
           {office.code} · {office.city ?? '—'}
         </p>
+        {inviteSuccess && <p className="text-sm text-success">{t('inviteOfficeAdminSuccess')}</p>}
       </div>
 
       <div className="flex flex-wrap gap-2">
+        {office.status === 'Active' && (
+          <Button variant="secondary" onClick={() => setInviting(true)}>
+            {t('inviteOfficeAdminAction')}
+          </Button>
+        )}
         <Button variant="secondary" onClick={() => setEditing(true)}>
           {t('editAction')}
         </Button>

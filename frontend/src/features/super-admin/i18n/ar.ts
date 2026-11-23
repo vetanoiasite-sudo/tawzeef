@@ -34,4 +34,11 @@ export const superAdminAr = {
   emailLabel: 'البريد الإلكتروني',
   emptyList: 'لا توجد مكاتب مسجلة حتى الآن',
   createSuccess: 'تم إنشاء المكتب بنجاح',
+  inviteOfficeAdminAction: 'دعوة مدير مكتب',
+  inviteOfficeAdminHint: 'هتبعت دعوة لأول مدير للمكتب ده — هو اللي بعدين يقدر يدعو باقي موظفي المكتب بنفسه.',
+  inviteFullNameLabel: 'اسم مدير المكتب',
+  inviteMobileNumberLabel: 'رقم الهاتف المحمول',
+  inviteEmailLabel: 'البريد الإلكتروني',
+  sendInviteAction: 'إرسال الدعوة',
+  inviteOfficeAdminSuccess: 'تم إرسال الدعوة. مدير المكتب يقدر يفعّل حسابه من صفحة "عندك دعوة انضمام لمكتب؟" باستخدام نفس رقم الهاتف.',
 }

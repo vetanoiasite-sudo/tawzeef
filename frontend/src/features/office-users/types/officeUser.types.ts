@@ -19,6 +19,10 @@ export type InviteOfficeUserPayload = {
   email: string
   role: OfficeUserRoleCode
   permissionCodes: string[]
+  /** Only meaningful for a SuperAdmin caller inviting the first OfficeAdmin into a brand-new
+   * office (OfficeUsersController.Invite's dual-mode doc comment) — an OfficeAdmin inviter always
+   * invites into their own office regardless of what's sent here, so omit it in that case. */
+  officeId?: string
 }
 
 /** Curated subset of PermissionCatalogue.All — only modules with a real, built feature behind
