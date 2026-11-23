@@ -15,22 +15,24 @@ public class ComplaintService(IUnitOfWork uow) : IComplaintService
         var jobSeeker = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.UserId == userId, ct: ct);
         var employer = jobSeeker is null ? await uow.Repository<Employer>().FindAsync(e => e.UserId == userId, ct: ct) : null;
         if (jobSeeker is null && employer is null)
-            return ServiceResult<ComplaintDto>.Forbidden("Only a job seeker or an employer account may submit a complaint.");
+            return ServiceResult<ComplaintDto>.Forbidden("يجب أن يكون المرسل حساب باحث عن عمل أو صاحب عمل لتقديم شكوى.");
 
         Guid officeId;
         string subjectName;
         if (dto.SubjectType == ComplaintSubjectType.JobSeeker)
         {
             var subject = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.Id == dto.SubjectId, ct: ct);
-            if (subject is null) return ServiceResult<ComplaintDto>.Invalid("The job seeker this complaint is about was not found.");
+            if (subject is null) return ServiceResult<ComplaintDto>.Invalid("الباحث عن عمل موضوع هذه الشكوى غير موجود.");
             officeId = subject.OfficeId;
             subjectName = subject.FullName;
         }
         else
         {
             var subject = await uow.Repository<Employer>().FindAsync(e => e.Id == dto.SubjectId, ct: ct);
-            if (subject is null) return ServiceResult<ComplaintDto>.Invalid("The employer this complaint is about was not found.");
-            officeId = subject.OfficeId;
+            if (subject is null) return ServiceResult<ComplaintDto>.Invalid("صاحب العمل موضوع هذه الشكوى غير موجود.");
+            // Not yet applied to an office — no office to route the complaint to either.
+            if (subject.OfficeId is null) return ServiceResult<ComplaintDto>.Invalid("صاحب العمل موضوع هذه الشكوى لم يتقدم لأي مكتب توظيف بعد.");
+            officeId = subject.OfficeId.Value;
             subjectName = subject.DisplayName;
         }
 

@@ -20,6 +20,7 @@ export type EmployerDocument = {
 
 export type EmployerProfile = {
   id: string
+  officeId: string | null
   legalName: string
   displayName: string
   businessActivity: string | null

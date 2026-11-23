@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Tawzeef.Application.Common;
 using Tawzeef.Domain.Contracts;
 using Tawzeef.Domain.Entities.Employers;
+using Tawzeef.Domain.Entities.Offices;
 using Tawzeef.Domain.Enums;
 
 namespace Tawzeef.Application.Features.Employers;
@@ -16,7 +17,7 @@ public class EmployerProfileService(IUnitOfWork uow, IFileStorage fileStorage, I
     public async Task<ServiceResult<EmployerProfileDto>> GetMyProfileAsync(Guid userId, CancellationToken ct = default)
     {
         var employer = await uow.Repository<Employer>().FindAsync(e => e.UserId == userId, ct: ct);
-        if (employer is null) return ServiceResult<EmployerProfileDto>.NotFound("No employer account for this user.");
+        if (employer is null) return ServiceResult<EmployerProfileDto>.NotFound("لا يوجد حساب صاحب عمل لهذا المستخدم.");
 
         var documents = await uow.Repository<EmployerDocument>().ListAsync(d => d.EmployerId == employer.Id && d.IsActive, ct: ct);
         return ServiceResult<EmployerProfileDto>.Success(employer.ToDto(documents));
@@ -25,7 +26,7 @@ public class EmployerProfileService(IUnitOfWork uow, IFileStorage fileStorage, I
     public async Task<ServiceResult<EmployerProfileDto>> UpdateMyProfileAsync(Guid userId, UpdateEmployerProfileDto dto, CancellationToken ct = default)
     {
         var employer = await uow.Repository<Employer>().FindAsync(e => e.UserId == userId, ct: ct);
-        if (employer is null) return ServiceResult<EmployerProfileDto>.NotFound("No employer account for this user.");
+        if (employer is null) return ServiceResult<EmployerProfileDto>.NotFound("لا يوجد حساب صاحب عمل لهذا المستخدم.");
 
         employer.BusinessActivity = dto.BusinessActivity?.Trim();
         employer.Address = dto.Address?.Trim();
@@ -46,6 +47,25 @@ public class EmployerProfileService(IUnitOfWork uow, IFileStorage fileStorage, I
         return ServiceResult<EmployerProfileDto>.Success(employer.ToDto(documents));
     }
 
+    public async Task<ServiceResult<EmployerProfileDto>> SelectOfficeAsync(Guid userId, Guid officeId, CancellationToken ct = default)
+    {
+        var employer = await uow.Repository<Employer>().FindAsync(e => e.UserId == userId, ct: ct);
+        if (employer is null) return ServiceResult<EmployerProfileDto>.NotFound("لا يوجد حساب صاحب عمل لهذا المستخدم.");
+
+        if (employer.OfficeId is not null)
+            return ServiceResult<EmployerProfileDto>.Conflict("تم اختيار مكتب التوظيف بالفعل.");
+
+        var office = await uow.Repository<EmploymentOffice>().FindAsync(o => o.Id == officeId && o.Status == OfficeStatus.Active, ct: ct);
+        if (office is null) return ServiceResult<EmployerProfileDto>.Invalid("اختر مكتب توظيف صالح.");
+
+        employer.OfficeId = office.Id;
+        uow.Repository<Employer>().Update(employer);
+        await uow.SaveChangesAsync(ct);
+
+        var documents = await uow.Repository<EmployerDocument>().ListAsync(d => d.EmployerId == employer.Id && d.IsActive, ct: ct);
+        return ServiceResult<EmployerProfileDto>.Success(employer.ToDto(documents));
+    }
+
     public async Task<ServiceResult<EmployerDocumentDto>> UploadDocumentAsync(
         Guid userId,
         EmployerDocumentType documentType,
@@ -56,15 +76,17 @@ public class EmployerProfileService(IUnitOfWork uow, IFileStorage fileStorage, I
         CancellationToken ct = default)
     {
         var employer = await uow.Repository<Employer>().FindAsync(e => e.UserId == userId, ct: ct);
-        if (employer is null) return ServiceResult<EmployerDocumentDto>.NotFound("No employer account for this user.");
+        if (employer is null) return ServiceResult<EmployerDocumentDto>.NotFound("لا يوجد حساب صاحب عمل لهذا المستخدم.");
+        if (employer.OfficeId is null)
+            return ServiceResult<EmployerDocumentDto>.Invalid("اختر مكتب التوظيف الذي ستتقدم إليه أولًا.");
 
         var allowedMimeTypes = configuration.GetSection("Uploads:AllowedMimeTypes").Get<string[]>() ?? DefaultAllowedMimeTypes;
         if (!allowedMimeTypes.Contains(contentType, StringComparer.OrdinalIgnoreCase))
-            return ServiceResult<EmployerDocumentDto>.Invalid("Unsupported file type — only PDF, JPG and PNG are allowed.");
+            return ServiceResult<EmployerDocumentDto>.Invalid("نوع الملف غير مدعوم — يُسمح فقط بـ PDF وJPG وPNG.");
 
         var maxSizeBytes = configuration.GetValue<long?>("Uploads:MaxFileSizeBytes") ?? DefaultMaxFileSizeBytes;
         if (fileSizeBytes <= 0 || fileSizeBytes > maxSizeBytes)
-            return ServiceResult<EmployerDocumentDto>.Invalid($"File is too large — the limit is {maxSizeBytes / (1024 * 1024)} MB.");
+            return ServiceResult<EmployerDocumentDto>.Invalid($"حجم الملف كبير جدًا — الحد الأقصى {maxSizeBytes / (1024 * 1024)} ميجابايت.");
 
         var previousActive = await uow.Repository<EmployerDocument>().ListAsync(
             d => d.EmployerId == employer.Id && d.DocumentType == documentType && d.IsActive, ct: ct);
@@ -78,7 +100,7 @@ public class EmployerProfileService(IUnitOfWork uow, IFileStorage fileStorage, I
         var document = new EmployerDocument
         {
             Id = Guid.NewGuid(),
-            OfficeId = employer.OfficeId,
+            OfficeId = employer.OfficeId.Value,
             EmployerId = employer.Id,
             DocumentType = documentType,
             SecureFileReference = storageKey,
@@ -101,16 +123,19 @@ public class EmployerProfileService(IUnitOfWork uow, IFileStorage fileStorage, I
     public async Task<ServiceResult<EmployerProfileDto>> SubmitForReviewAsync(Guid userId, CancellationToken ct = default)
     {
         var employer = await uow.Repository<Employer>().FindAsync(e => e.UserId == userId, ct: ct);
-        if (employer is null) return ServiceResult<EmployerProfileDto>.NotFound("No employer account for this user.");
+        if (employer is null) return ServiceResult<EmployerProfileDto>.NotFound("لا يوجد حساب صاحب عمل لهذا المستخدم.");
+
+        if (employer.OfficeId is null)
+            return ServiceResult<EmployerProfileDto>.Invalid("اختر مكتب التوظيف الذي ستتقدم إليه أولًا.");
 
         if (employer.VerificationStatus != EmployerVerificationStatus.Draft && employer.VerificationStatus != EmployerVerificationStatus.Rejected)
-            return ServiceResult<EmployerProfileDto>.Conflict("The company profile cannot be submitted from its current status.");
+            return ServiceResult<EmployerProfileDto>.Conflict("لا يمكن تقديم ملف الشركة من حالته الحالية.");
 
         var activeDocuments = await uow.Repository<EmployerDocument>().ListAsync(d => d.EmployerId == employer.Id && d.IsActive, ct: ct);
         var presentTypes = activeDocuments.Select(d => d.DocumentType).ToHashSet();
         var missing = Enum.GetValues<EmployerDocumentType>().Where(t => !presentTypes.Contains(t)).ToList();
         if (missing.Count > 0)
-            return ServiceResult<EmployerProfileDto>.Invalid($"Upload every required document first — missing: {string.Join(", ", missing)}.");
+            return ServiceResult<EmployerProfileDto>.Invalid($"ارفع كل المستندات المطلوبة أولًا — الناقص: {string.Join(", ", missing)}.");
 
         employer.VerificationStatus = EmployerVerificationStatus.Submitted;
         employer.RejectionReason = null; // Rejected -> Submitted clears the reason, same as §1.
@@ -126,14 +151,14 @@ public class EmployerProfileService(IUnitOfWork uow, IFileStorage fileStorage, I
         Guid userId, Stream content, string originalFileName, string contentType, long fileSizeBytes, CancellationToken ct = default)
     {
         var employer = await uow.Repository<Employer>().FindAsync(e => e.UserId == userId, ct: ct);
-        if (employer is null) return ServiceResult<EmployerProfileDto>.NotFound("No employer account for this user.");
+        if (employer is null) return ServiceResult<EmployerProfileDto>.NotFound("لا يوجد حساب صاحب عمل لهذا المستخدم.");
 
         if (!LogoAllowedMimeTypes.Contains(contentType, StringComparer.OrdinalIgnoreCase))
-            return ServiceResult<EmployerProfileDto>.Invalid("Unsupported file type — only JPG and PNG are allowed.");
+            return ServiceResult<EmployerProfileDto>.Invalid("نوع الملف غير مدعوم — يُسمح فقط بـ JPG وPNG.");
 
         var maxSizeBytes = configuration.GetValue<long?>("Uploads:MaxFileSizeBytes") ?? DefaultMaxFileSizeBytes;
         if (fileSizeBytes <= 0 || fileSizeBytes > maxSizeBytes)
-            return ServiceResult<EmployerProfileDto>.Invalid($"File is too large — the limit is {maxSizeBytes / (1024 * 1024)} MB.");
+            return ServiceResult<EmployerProfileDto>.Invalid($"حجم الملف كبير جدًا — الحد الأقصى {maxSizeBytes / (1024 * 1024)} ميجابايت.");
 
         var previousStorageKey = employer.LogoStorageKey;
 

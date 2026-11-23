@@ -7,6 +7,7 @@ internal static class EmployerProfileMapping
     public static EmployerProfileDto ToDto(this Employer e, IEnumerable<EmployerDocument> documents, int validComplaintCount = 0) => new()
     {
         Id = e.Id,
+        OfficeId = e.OfficeId,
         LegalName = e.LegalName,
         DisplayName = e.DisplayName,
         BusinessActivity = e.BusinessActivity,

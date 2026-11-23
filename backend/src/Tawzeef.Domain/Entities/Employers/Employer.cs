@@ -10,7 +10,11 @@ public class Employer : IEntity
 {
     public Guid Id { get; set; }
 
-    public Guid OfficeId { get; set; }
+    /// <summary>Null until the employer applies to an office (EmployerProfileService.
+    /// SelectOfficeAsync) — registration no longer collects it (2026-11-23 product decision): the
+    /// employer creates their account and company profile first, then separately applies to the
+    /// office that will review it.</summary>
+    public Guid? OfficeId { get; set; }
     public Guid UserId { get; set; }
 
     public string LegalName { get; set; } = string.Empty;

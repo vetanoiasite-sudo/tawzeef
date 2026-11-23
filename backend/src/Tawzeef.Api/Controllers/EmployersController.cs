@@ -22,12 +22,19 @@ public class EmployersController(IEmployerProfileService service, ICurrentUser c
     public async Task<IActionResult> UpdateMyProfile([FromBody] UpdateEmployerProfileDto dto, CancellationToken ct)
         => Respond(await service.UpdateMyProfileAsync(RequireUserId(), dto, ct));
 
+    /// <summary>The employer's one-time choice of which office will review their profile —
+    /// registration no longer collects it (RegisterEmployerDto's doc comment).</summary>
+    [HttpPost("me/office")]
+    [RequiresPermission("employers.editown")]
+    public async Task<IActionResult> SelectOffice([FromBody] SelectEmployerOfficeDto dto, CancellationToken ct)
+        => Respond(await service.SelectOfficeAsync(RequireUserId(), dto.OfficeId, ct));
+
     [HttpPost("me/documents")]
     [RequiresPermission("employers.uploaddocuments")]
     public async Task<IActionResult> UploadDocument([FromForm] UploadEmployerDocumentRequest request, CancellationToken ct)
     {
         if (request.File is null || request.File.Length == 0)
-            return BadRequest(new { message = "A file is required." });
+            return BadRequest(new { message = "الملف مطلوب." });
 
         await using var stream = request.File.OpenReadStream();
         return Respond(await service.UploadDocumentAsync(
@@ -46,7 +53,7 @@ public class EmployersController(IEmployerProfileService service, ICurrentUser c
     public async Task<IActionResult> UploadLogo(IFormFile file, CancellationToken ct)
     {
         if (file is null || file.Length == 0)
-            return BadRequest(new { message = "A file is required." });
+            return BadRequest(new { message = "الملف مطلوب." });
 
         await using var stream = file.OpenReadStream();
         return Respond(await service.UploadLogoAsync(RequireUserId(), stream, file.FileName, file.ContentType, file.Length, ct));

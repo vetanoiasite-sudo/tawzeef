@@ -24,6 +24,11 @@ public class EmployerDocumentFileDto
 public class EmployerProfileDto
 {
     public Guid Id { get; set; }
+
+    /// <summary>Null until SelectOfficeAsync is called — the frontend uses this to decide whether
+    /// to show the "apply to an office" step or the normal "complete your profile" one.</summary>
+    public Guid? OfficeId { get; set; }
+
     public string LegalName { get; set; } = string.Empty;
     public string DisplayName { get; set; } = string.Empty;
     public string? BusinessActivity { get; set; }
@@ -50,6 +55,14 @@ public class EmployerProfileDto
     public int ValidComplaintCount { get; set; }
 
     public List<EmployerDocumentDto> Documents { get; set; } = [];
+}
+
+/// <summary>The employer's one-time "apply to this office" action — see
+/// EmployerProfileService.SelectOfficeAsync.</summary>
+public class SelectEmployerOfficeDto
+{
+    [Required]
+    public Guid OfficeId { get; set; }
 }
 
 /// <summary>Only the "complete company profile" fields — LegalName/DisplayName come from

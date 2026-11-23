@@ -1,11 +1,11 @@
 import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
 
-const STEPS = ['phone', 'otp', 'details'] as const
+const STEPS = ['email', 'otp', 'details'] as const
 type Step = (typeof STEPS)[number]
 
 const LABEL_KEY: Record<Step, string> = {
-  phone: 'auth:stepPhone',
+  email: 'auth:stepEmail',
   otp: 'auth:stepOtp',
   details: 'auth:stepDetails',
 }

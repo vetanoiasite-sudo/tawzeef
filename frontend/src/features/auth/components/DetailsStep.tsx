@@ -8,10 +8,13 @@ import { Select } from '@/shared/ui/Select'
 import { Button } from '@/shared/ui/Button'
 
 export function DetailsStep({
+  email,
   isSubmitting,
   submitError,
   onSubmit,
 }: {
+  /** Already verified in the earlier email-OTP step — shown read-only, not re-collected here. */
+  email: string
   isSubmitting: boolean
   submitError?: string
   onSubmit: (values: JobSeekerDetailsFormValues) => void
@@ -28,7 +31,6 @@ export function DetailsStep({
       fullName: '',
       nationalId: '',
       mobileNumber: '',
-      email: '',
       password: '',
       officeId: '',
     },
@@ -36,6 +38,16 @@ export function DetailsStep({
 
   return (
     <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-4">
+      <TextInput
+        id="confirmedEmail"
+        type="email"
+        dir="ltr"
+        label={t('auth:emailLabel')}
+        value={email}
+        disabled
+        readOnly
+      />
+
       <TextInput
         id="fullName"
         type="text"
@@ -67,15 +79,6 @@ export function DetailsStep({
         label={t('auth:phoneLabel')}
         error={errors.mobileNumber ? t(errors.mobileNumber.message ?? '') : undefined}
         {...register('mobileNumber')}
-      />
-
-      <TextInput
-        id="email"
-        type="email"
-        autoComplete="email"
-        label={t('auth:emailLabel')}
-        error={errors.email ? t(errors.email.message ?? '') : undefined}
-        {...register('email')}
       />
 
       <TextInput

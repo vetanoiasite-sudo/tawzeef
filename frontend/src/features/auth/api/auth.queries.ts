@@ -17,6 +17,14 @@ export function useVerifyOtp() {
   return useMutation({ mutationFn: authApi.verifyOtp })
 }
 
+export function useRequestEmailOtp() {
+  return useMutation({ mutationFn: authApi.requestEmailOtp })
+}
+
+export function useVerifyEmailOtp() {
+  return useMutation({ mutationFn: authApi.verifyEmailOtp })
+}
+
 export function useRegisterJobSeeker() {
   return useMutation({ mutationFn: authApi.registerJobSeeker })
 }

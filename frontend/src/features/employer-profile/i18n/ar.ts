@@ -1,5 +1,10 @@
 export const employerProfileAr = {
   pageTitle: 'ملف الشركة',
+  selectOfficeTitle: 'اختر مكتب التوظيف',
+  selectOfficeHint: 'قبل أي حاجة تانية، اختر مكتب التوظيف اللي هتتقدم بملفك ليه.',
+  officeLabel: 'مكتب التوظيف',
+  officePlaceholder: 'اختر مكتب التوظيف',
+  applyToOfficeAction: 'تقديم للمكتب',
   dashboardTitle: 'لوحة التحكم',
   dashboardNav: 'لوحة التحكم',
   dashboardGreeting: 'أهلًا بك، {{name}}',

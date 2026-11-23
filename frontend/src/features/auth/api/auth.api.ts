@@ -7,7 +7,9 @@ import type {
   PublicOffice,
   RegisterEmployerPayload,
   RegisterJobSeekerPayload,
+  RequestEmailOtpPayload,
   RequestOtpPayload,
+  VerifyEmailOtpPayload,
   VerifyOtpPayload,
 } from '../types/auth.types'
 
@@ -16,6 +18,10 @@ export const authApi = {
     httpClient.post<null>('/api/auth/otp/request', payload),
   verifyOtp: (payload: VerifyOtpPayload) =>
     httpClient.post<OtpVerifiedResult>('/api/auth/otp/verify', payload),
+  requestEmailOtp: (payload: RequestEmailOtpPayload) =>
+    httpClient.post<null>('/api/auth/otp/email/request', payload),
+  verifyEmailOtp: (payload: VerifyEmailOtpPayload) =>
+    httpClient.post<OtpVerifiedResult>('/api/auth/otp/email/verify', payload),
   registerJobSeeker: (payload: RegisterJobSeekerPayload) =>
     httpClient.post<AuthResult>('/api/auth/register/job-seeker', payload),
   registerEmployer: (payload: RegisterEmployerPayload) =>

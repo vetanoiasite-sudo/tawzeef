@@ -26,7 +26,7 @@ public class JobSeekersController(IJobSeekerProfileService service, ICurrentUser
     public async Task<IActionResult> UploadDocument([FromForm] UploadJobSeekerDocumentRequest request, CancellationToken ct)
     {
         if (request.File is null || request.File.Length == 0)
-            return BadRequest(new { message = "A file is required." });
+            return BadRequest(new { message = "الملف مطلوب." });
 
         await using var stream = request.File.OpenReadStream();
         return Respond(await service.UploadDocumentAsync(
@@ -45,7 +45,7 @@ public class JobSeekersController(IJobSeekerProfileService service, ICurrentUser
     public async Task<IActionResult> UploadPhoto([FromForm] UploadJobSeekerPhotoRequest request, CancellationToken ct)
     {
         if (request.File is null || request.File.Length == 0)
-            return BadRequest(new { message = "A file is required." });
+            return BadRequest(new { message = "الملف مطلوب." });
 
         await using var stream = request.File.OpenReadStream();
         return Respond(await service.UploadPhotoAsync(

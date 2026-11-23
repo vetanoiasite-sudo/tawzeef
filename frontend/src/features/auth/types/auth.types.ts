@@ -16,6 +16,17 @@ export type OtpVerifiedResult = {
   otpToken: string
 }
 
+export type RequestEmailOtpPayload = {
+  email: string
+  purpose?: string
+}
+
+export type VerifyEmailOtpPayload = {
+  email: string
+  code: string
+  purpose?: string
+}
+
 export type AcceptStaffInvitePayload = {
   mobileNumber: string
   password: string
@@ -26,6 +37,7 @@ export type RegisterJobSeekerPayload = {
   nationalId: string
   mobileNumber: string
   email: string
+  otpToken: string
   password: string
   officeId: string
 }
@@ -34,8 +46,8 @@ export type RegisterEmployerPayload = {
   representativeName: string
   mobileNumber: string
   email: string
+  otpToken: string
   password: string
-  officeId: string
   legalName: string
   displayName: string
 }

@@ -53,9 +53,11 @@ public class JobAdvertisementService(IUnitOfWork uow) : IJobAdvertisementService
         // submitted) — SubmitForReviewAsync still separately requires VerificationStatus.Approved
         // before the ad itself can go to the office's review queue; this is the earlier gate.
         if (employer.VerificationStatus == EmployerVerificationStatus.Draft)
-            return ServiceResult<JobAdvertisementDto>.Forbidden("Complete and submit your company profile before posting job advertisements.");
+            return ServiceResult<JobAdvertisementDto>.Forbidden("أكمل ملف الشركة وقدّمه للمراجعة قبل نشر إعلانات وظائف.");
 
-        var ad = new JobAdvertisement { Id = Guid.NewGuid(), OfficeId = employer.OfficeId, EmployerId = employer.Id }.ApplyFrom(dto);
+        // Guaranteed set: VerificationStatus only leaves Draft once SubmitForReviewAsync has
+        // confirmed an office is chosen (EmployerProfileService.SubmitForReviewAsync).
+        var ad = new JobAdvertisement { Id = Guid.NewGuid(), OfficeId = employer.OfficeId!.Value, EmployerId = employer.Id }.ApplyFrom(dto);
         await uow.Repository<JobAdvertisement>().AddAsync(ad, ct);
         await uow.SaveChangesAsync(ct);
 

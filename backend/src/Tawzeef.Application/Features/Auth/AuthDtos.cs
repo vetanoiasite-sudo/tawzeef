@@ -27,6 +27,27 @@ public class OtpVerifiedDto
     public string OtpToken { get; set; } = string.Empty;
 }
 
+/// <summary>Email OTP, added 2026-11-23 — registration now requires the email to be verified
+/// before the account is created (RegisterJobSeekerDto.OtpToken's doc comment).</summary>
+public class RequestEmailOtpDto
+{
+    [Required, MaxLength(200), EmailAddress]
+    public string Email { get; set; } = string.Empty;
+
+    public OtpPurpose Purpose { get; set; } = OtpPurpose.Registration;
+}
+
+public class VerifyEmailOtpDto
+{
+    [Required, MaxLength(200), EmailAddress]
+    public string Email { get; set; } = string.Empty;
+
+    [Required, MaxLength(10)]
+    public string Code { get; set; } = string.Empty;
+
+    public OtpPurpose Purpose { get; set; } = OtpPurpose.Registration;
+}
+
 public class RegisterJobSeekerDto
 {
     [Required, MaxLength(200)]
@@ -42,10 +63,14 @@ public class RegisterJobSeekerDto
     public string MobileNumber { get; set; } = string.Empty;
 
     /// <summary>Login is by email for every account now (temporary product decision — see
-    /// LoginDto's doc comment). No OTP step (also removed 2026-11-23, also temporary): MobileNumber
-    /// is still collected but no longer phone-verified before the account is created.</summary>
+    /// LoginDto's doc comment). MobileNumber is still collected but never phone-verified.</summary>
     [Required, MaxLength(200), EmailAddress]
     public string Email { get; set; } = string.Empty;
+
+    /// <summary>The opaque token VerifyEmailOtpAsync returned for this same Email — proves the
+    /// email was actually verified before the account gets created (added 2026-11-23).</summary>
+    [Required]
+    public string OtpToken { get; set; } = string.Empty;
 
     [Required, MinLength(8)]
     public string Password { get; set; } = string.Empty;
@@ -66,12 +91,16 @@ public class RegisterEmployerDto
     [Required, MaxLength(200), EmailAddress]
     public string Email { get; set; } = string.Empty;
 
+    /// <summary>Same as RegisterJobSeekerDto.OtpToken — proves this Email was verified.</summary>
+    [Required]
+    public string OtpToken { get; set; } = string.Empty;
+
     [Required, MinLength(8)]
     public string Password { get; set; } = string.Empty;
 
-    [Required]
-    public Guid OfficeId { get; set; }
-
+    /// <summary>No office at registration (2026-11-23 product decision): the employer applies to
+    /// an office afterward, as a separate step, once their company profile exists — see
+    /// EmployerProfileService.SelectOfficeAsync.</summary>
     [Required, MaxLength(250)]
     public string LegalName { get; set; } = string.Empty;
 

@@ -103,11 +103,14 @@ namespace Tawzeef.Infrastructure.Migrations
                     b.Property<DateTime?>("ConsumedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Email")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<DateTime>("ExpiresAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("PhoneNumber")
-                        .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
 
@@ -127,6 +130,8 @@ namespace Tawzeef.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("VerifiedToken");
+
+                    b.HasIndex("Email", "Purpose", "ExpiresAt");
 
                     b.HasIndex("PhoneNumber", "Purpose", "ExpiresAt");
 
@@ -278,7 +283,7 @@ namespace Tawzeef.Infrastructure.Migrations
                     b.Property<DateTime?>("ModifiedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("OfficeId")
+                    b.Property<Guid?>("OfficeId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("RejectionReason")

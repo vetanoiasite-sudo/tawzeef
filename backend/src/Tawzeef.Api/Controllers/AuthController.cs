@@ -17,6 +17,14 @@ public class AuthController(IAuthService service) : ApiControllerBase
     public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpDto dto, CancellationToken ct)
         => Respond(await service.VerifyOtpAsync(dto, ct));
 
+    [HttpPost("otp/email/request")]
+    public async Task<IActionResult> RequestEmailOtp([FromBody] RequestEmailOtpDto dto, CancellationToken ct)
+        => Respond(await service.RequestEmailOtpAsync(dto, ct));
+
+    [HttpPost("otp/email/verify")]
+    public async Task<IActionResult> VerifyEmailOtp([FromBody] VerifyEmailOtpDto dto, CancellationToken ct)
+        => Respond(await service.VerifyEmailOtpAsync(dto, ct));
+
     [HttpPost("register/job-seeker")]
     public async Task<IActionResult> RegisterJobSeeker([FromBody] RegisterJobSeekerDto dto, CancellationToken ct)
         => Respond(await service.RegisterJobSeekerAsync(dto, ct));

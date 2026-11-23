@@ -16,14 +16,18 @@ public class SuggestionService(IUnitOfWork uow, INotificationService notificatio
         var jobSeeker = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.UserId == userId, ct: ct);
         var employer = jobSeeker is null ? await uow.Repository<Employer>().FindAsync(e => e.UserId == userId, ct: ct) : null;
         if (jobSeeker is null && employer is null)
-            return ServiceResult<SuggestionDto>.Forbidden("Only a job seeker or an employer account may submit a suggestion.");
+            return ServiceResult<SuggestionDto>.Forbidden("يجب أن يكون المرسل حساب باحث عن عمل أو صاحب عمل لتقديم اقتراح.");
 
-        var officeId = jobSeeker?.OfficeId ?? employer!.OfficeId;
+        // An employer can submit a suggestion only once they've applied to an office — before
+        // that there's no office to route it to (Employer.OfficeId's doc comment).
+        var officeId = jobSeeker?.OfficeId ?? employer?.OfficeId;
+        if (officeId is null)
+            return ServiceResult<SuggestionDto>.Invalid("اختر مكتب التوظيف الذي ستتقدم إليه أولًا.");
 
         var suggestion = new Suggestion
         {
             Id = Guid.NewGuid(),
-            OfficeId = officeId,
+            OfficeId = officeId.Value,
             SubmittedByUserId = userId,
             SenderType = jobSeeker is not null ? ComplaintSenderType.JobSeeker : ComplaintSenderType.Employer,
             Content = dto.Content.Trim(),
@@ -31,7 +35,7 @@ public class SuggestionService(IUnitOfWork uow, INotificationService notificatio
         await uow.Repository<Suggestion>().AddAsync(suggestion, ct);
 
         await notificationService.CreateForOfficeAdminsAsync(
-            officeId, "Suggestion.Submitted", "تم استلام اقتراح جديد من مستخدم.", nameof(Suggestion), suggestion.Id, ct);
+            officeId.Value, "Suggestion.Submitted", "تم استلام اقتراح جديد من مستخدم.", nameof(Suggestion), suggestion.Id, ct);
 
         await uow.SaveChangesAsync(ct);
 

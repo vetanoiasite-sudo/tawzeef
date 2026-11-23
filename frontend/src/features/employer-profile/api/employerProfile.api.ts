@@ -10,6 +10,8 @@ export const employerProfileApi = {
   getMyProfile: () => httpClient.get<EmployerProfile>('/api/employers/me'),
   updateMyProfile: (payload: UpdateEmployerProfilePayload) =>
     httpClient.put<EmployerProfile>('/api/employers/me', payload),
+  selectOffice: (officeId: string) =>
+    httpClient.post<EmployerProfile>('/api/employers/me/office', { officeId }),
   uploadDocument: ({
     documentType,
     file,

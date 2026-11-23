@@ -13,6 +13,11 @@ export const requestOtpSchema = z.object({
 })
 export type RequestOtpFormValues = z.infer<typeof requestOtpSchema>
 
+export const requestEmailOtpSchema = z.object({
+  email: z.email('validation:emailFormat'),
+})
+export type RequestEmailOtpFormValues = z.infer<typeof requestEmailOtpSchema>
+
 export const verifyOtpSchema = z.object({
   code: z
     .string()
@@ -27,13 +32,11 @@ const nationalIdSchema = z
   .trim()
   .regex(/^\d{14}$/, 'validation:nationalIdFormat')
 
+// Email is collected and verified by the earlier email-OTP step (EmailStep/OtpStep), not here.
 export const jobSeekerDetailsSchema = z.object({
   fullName: z.string().trim().min(2, 'validation:required').max(200, 'validation:tooLong'),
   nationalId: nationalIdSchema,
   mobileNumber: phoneSchema,
-  // Required — login is by email for every account now (temporary product decision, no OTP step
-  // either — AuthDtos.cs LoginDto's doc comment).
-  email: z.email('validation:emailFormat'),
   password: z.string().min(8, 'validation:passwordTooShort'),
   officeId: z.string().min(1, 'validation:required'),
 })
@@ -48,9 +51,7 @@ export const employerDetailsSchema = z.object({
   mobileNumber: phoneSchema,
   legalName: z.string().trim().min(2, 'validation:required').max(250, 'validation:tooLong'),
   displayName: z.string().trim().min(2, 'validation:required').max(250, 'validation:tooLong'),
-  email: z.email('validation:emailFormat'),
   password: z.string().min(8, 'validation:passwordTooShort'),
-  officeId: z.string().min(1, 'validation:required'),
 })
 export type EmployerDetailsFormValues = z.infer<typeof employerDetailsSchema>
 

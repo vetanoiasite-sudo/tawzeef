@@ -17,6 +17,7 @@ public class AuthService(
     IUnitOfWork uow,
     UserManager<ApplicationUser> userManager,
     IOtpSender otpSender,
+    IEmailSender emailSender,
     IJwtTokenGenerator tokenGenerator) : IAuthService
 {
     private const int OtpLifetimeMinutes = 5;
@@ -70,11 +71,82 @@ public class AuthService(
         return ServiceResult<OtpVerifiedDto>.Success(new OtpVerifiedDto { OtpToken = otp.VerifiedToken });
     }
 
+    /// <summary>Same flow as RequestOtpAsync, over email instead of SMS — added 2026-11-23 so
+    /// registration can require a verified email (RegisterJobSeekerDto.OtpToken's doc comment).</summary>
+    public async Task<ServiceResult> RequestEmailOtpAsync(RequestEmailOtpDto dto, CancellationToken ct = default)
+    {
+        var email = dto.Email.Trim();
+        var code = GenerateNumericCode(6);
+
+        await uow.Repository<OtpVerification>().AddAsync(new OtpVerification
+        {
+            Id = Guid.NewGuid(),
+            Email = email,
+            CodeHash = Hash(code),
+            Purpose = dto.Purpose,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(OtpLifetimeMinutes),
+        }, ct);
+        await uow.SaveChangesAsync(ct);
+
+        await emailSender.SendAsync(email, "رمز تأكيد البريد الإلكتروني", $"رمز التأكيد الخاص بك هو: {code}");
+        return ServiceResult.Success();
+    }
+
+    /// <summary>Same flow as VerifyOtpAsync, over email — see RequestEmailOtpAsync's doc comment.</summary>
+    public async Task<ServiceResult<OtpVerifiedDto>> VerifyEmailOtpAsync(VerifyEmailOtpDto dto, CancellationToken ct = default)
+    {
+        var email = dto.Email.Trim();
+        var candidates = await uow.Repository<OtpVerification>().ListAsync(
+            o => o.Email == email && o.Purpose == dto.Purpose && o.ConsumedAt == null && o.ExpiresAt > DateTime.UtcNow,
+            ct: ct);
+        var otp = candidates.OrderByDescending(o => o.ExpiresAt).FirstOrDefault();
+
+        if (otp is null) return ServiceResult<OtpVerifiedDto>.Invalid("لا يوجد رمز نشط لهذا البريد الإلكتروني — اطلب رمزًا جديدًا.");
+        if (otp.AttemptCount >= MaxOtpAttempts) return ServiceResult<OtpVerifiedDto>.Invalid("عدد المحاولات كبير جدًا — اطلب رمزًا جديدًا.");
+
+        if (otp.CodeHash != Hash(dto.Code.Trim()))
+        {
+            otp.AttemptCount++;
+            uow.Repository<OtpVerification>().Update(otp);
+            await uow.SaveChangesAsync(ct);
+            return ServiceResult<OtpVerifiedDto>.Invalid("الرمز غير صحيح.");
+        }
+
+        otp.ConsumedAt = DateTime.UtcNow;
+        otp.VerifiedToken = GenerateOpaqueToken();
+        otp.VerifiedTokenExpiresAt = DateTime.UtcNow.AddMinutes(OtpTokenLifetimeMinutes);
+        uow.Repository<OtpVerification>().Update(otp);
+        await uow.SaveChangesAsync(ct);
+
+        return ServiceResult<OtpVerifiedDto>.Success(new OtpVerifiedDto { OtpToken = otp.VerifiedToken });
+    }
+
+    /// <summary>Consumes the opaque token from VerifyEmailOtpAsync — RegisterJobSeekerAsync/
+    /// RegisterEmployerAsync both call this before creating the account, so an account can't be
+    /// created without first proving the email was actually verified for this same email and
+    /// Purpose.Registration.</summary>
+    private async Task<string?> ConsumeEmailOtpTokenAsync(string email, string otpToken, CancellationToken ct)
+    {
+        var otp = await uow.Repository<OtpVerification>().FindAsync(
+            o => o.Email == email
+                && o.Purpose == OtpPurpose.Registration
+                && o.VerifiedToken == otpToken
+                && o.VerifiedTokenUsedAt == null
+                && o.VerifiedTokenExpiresAt > DateTime.UtcNow,
+            ct: ct);
+        if (otp is null) return "يجب تأكيد البريد الإلكتروني أولًا.";
+
+        otp.VerifiedTokenUsedAt = DateTime.UtcNow;
+        uow.Repository<OtpVerification>().Update(otp);
+        return null;
+    }
+
     public async Task<ServiceResult<AuthResultDto>> RegisterJobSeekerAsync(RegisterJobSeekerDto dto, CancellationToken ct = default)
     {
         var phoneNumber = dto.MobileNumber.Trim();
 
-        // No OTP verification step here — removed 2026-11-23, temporary (LoginDto's doc comment).
+        // No phone OTP step — removed 2026-11-23 (LoginDto's doc comment). Email OTP is required
+        // instead, added the same day — ConsumeEmailOtpTokenAsync's doc comment.
         var office = await uow.Repository<EmploymentOffice>().FindAsync(o => o.Id == dto.OfficeId && o.Status == OfficeStatus.Active, ct: ct);
         if (office is null) return ServiceResult<AuthResultDto>.Invalid("اختر مكتب توظيف صالح.");
 
@@ -84,6 +156,9 @@ public class AuthService(
         var email = dto.Email.Trim();
         if (await userManager.FindByEmailAsync(email) is not null)
             return ServiceResult<AuthResultDto>.Conflict("هذا البريد الإلكتروني مسجل بالفعل.");
+
+        var otpError = await ConsumeEmailOtpTokenAsync(email, dto.OtpToken.Trim(), ct);
+        if (otpError is not null) return ServiceResult<AuthResultDto>.Invalid(otpError);
 
         var nationalId = dto.NationalId.Trim();
         if (await uow.Repository<JobSeekerProfile>().FindAsync(p => p.NationalId == nationalId, ct: ct) is not null)
@@ -135,15 +210,18 @@ public class AuthService(
         var phoneNumber = dto.MobileNumber.Trim();
 
         // No OTP verification step here — removed 2026-11-23, temporary (LoginDto's doc comment).
-        var office = await uow.Repository<EmploymentOffice>().FindAsync(o => o.Id == dto.OfficeId && o.Status == OfficeStatus.Active, ct: ct);
-        if (office is null) return ServiceResult<AuthResultDto>.Invalid("اختر مكتب توظيف صالح.");
-
+        // No office lookup either (2026-11-23): the employer applies to an office afterward, as a
+        // separate step (EmployerProfileService.SelectOfficeAsync) — see RegisterEmployerDto's doc
+        // comment.
         if (await userManager.FindByNameAsync(phoneNumber) is not null)
             return ServiceResult<AuthResultDto>.Conflict("رقم الهاتف هذا مسجل بالفعل.");
 
         var email = dto.Email.Trim();
         if (await userManager.FindByEmailAsync(email) is not null)
             return ServiceResult<AuthResultDto>.Conflict("هذا البريد الإلكتروني مسجل بالفعل.");
+
+        var otpError = await ConsumeEmailOtpTokenAsync(email, dto.OtpToken.Trim(), ct);
+        if (otpError is not null) return ServiceResult<AuthResultDto>.Invalid(otpError);
 
         var user = new ApplicationUser
         {
@@ -162,7 +240,7 @@ public class AuthService(
         var employer = new Employer
         {
             Id = Guid.NewGuid(),
-            OfficeId = office.Id,
+            OfficeId = null,
             UserId = user.Id,
             LegalName = dto.LegalName.Trim(),
             DisplayName = dto.DisplayName.Trim(),

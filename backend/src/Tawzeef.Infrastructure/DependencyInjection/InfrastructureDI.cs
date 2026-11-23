@@ -45,6 +45,7 @@ public static class InfrastructureDI
         services.AddSingleton<ICvParser, CvParser>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<IOtpSender, DevLogOtpSender>();
+        services.AddScoped<IEmailSender, DevLogEmailSender>();
         services.AddHostedService<JobAdvertisementExpiryService>();
 
         return services;

@@ -17,6 +17,14 @@ export function useUpdateMyEmployerProfile() {
   })
 }
 
+export function useSelectEmployerOffice() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: employerProfileApi.selectOffice,
+    onSuccess: (data) => queryClient.setQueryData(employerProfileKeys.myProfile(), data),
+  })
+}
+
 export function useUploadEmployerDocument() {
   const queryClient = useQueryClient()
   return useMutation({

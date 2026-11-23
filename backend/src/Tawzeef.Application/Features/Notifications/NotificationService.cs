@@ -1,13 +1,16 @@
+using Microsoft.AspNetCore.Identity;
 using Tawzeef.Application.Common;
 using Tawzeef.Domain.Common;
 using Tawzeef.Domain.Contracts;
 using Tawzeef.Domain.Entities.Notifications;
 using Tawzeef.Domain.Entities.Offices;
 using Tawzeef.Domain.Enums;
+using Tawzeef.Domain.Identity;
 
 namespace Tawzeef.Application.Features.Notifications;
 
-public class NotificationService(IUnitOfWork uow) : INotificationService
+public class NotificationService(
+    IUnitOfWork uow, UserManager<ApplicationUser> userManager, IEmailSender emailSender) : INotificationService
 {
     public async Task<ServiceResult<PagedResult<NotificationDto>>> ListMineAsync(Guid userId, NotificationQueryDto query, CancellationToken ct = default)
     {
@@ -57,9 +60,10 @@ public class NotificationService(IUnitOfWork uow) : INotificationService
         return ServiceResult.Success();
     }
 
-    public Task CreateAsync(
+    public async Task CreateAsync(
         Guid? officeId, Guid recipientUserId, string eventType, string message, string? relatedType = null, Guid? relatedId = null, CancellationToken ct = default)
-        => uow.Repository<Notification>().AddAsync(new Notification
+    {
+        await uow.Repository<Notification>().AddAsync(new Notification
         {
             Id = Guid.NewGuid(),
             OfficeId = officeId,
@@ -69,6 +73,13 @@ public class NotificationService(IUnitOfWork uow) : INotificationService
             RelatedType = relatedType,
             RelatedId = relatedId,
         }, ct);
+
+        // Added 2026-11-23: every in-app notification also goes out by email, so the user finds
+        // out about a change to their account even if they never open the app.
+        var recipient = await userManager.FindByIdAsync(recipientUserId.ToString());
+        if (!string.IsNullOrWhiteSpace(recipient?.Email))
+            await emailSender.SendAsync(recipient.Email, "إشعار جديد من توظيف", message, ct);
+    }
 
     public async Task CreateForOfficeAdminsAsync(
         Guid officeId, string eventType, string message, string? relatedType = null, Guid? relatedId = null, CancellationToken ct = default)
