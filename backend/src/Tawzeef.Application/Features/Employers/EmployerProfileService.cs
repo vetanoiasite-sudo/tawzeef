@@ -9,9 +9,9 @@ namespace Tawzeef.Application.Features.Employers;
 public class EmployerProfileService(IUnitOfWork uow, IFileStorage fileStorage, IConfiguration configuration) : IEmployerProfileService
 {
     // Same confirmed decision as the job seeker's documents (RBAC_PERMISSIONS.md §0 item 24):
-    // PDF/JPG/PNG, 5 MB, configurable.
+    // PDF/JPG/PNG, 2 MB, configurable.
     private static readonly string[] DefaultAllowedMimeTypes = ["application/pdf", "image/jpeg", "image/png"];
-    private const long DefaultMaxFileSizeBytes = 5 * 1024 * 1024;
+    private const long DefaultMaxFileSizeBytes = 2 * 1024 * 1024;
 
     public async Task<ServiceResult<EmployerProfileDto>> GetMyProfileAsync(Guid userId, CancellationToken ct = default)
     {
