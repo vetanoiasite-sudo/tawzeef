@@ -1,0 +1,1 @@
+function e(e){switch(e){case`SuperAdmin`:return`/super-admin/dashboard`;case`JobSeeker`:return`/dashboard`;case`Employer`:return`/employer/dashboard`;case`OfficeAdmin`:case`OfficeStaff`:return`/office/dashboard`;default:return`/`}}export{e as t};
