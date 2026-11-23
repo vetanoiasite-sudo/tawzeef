@@ -167,7 +167,7 @@ static async Task SeedSuperAdminAsync(string[] cliArgs)
         ?? "Production";
     var hostBuilder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = environmentName });
     hostBuilder.Services.AddInfrastructure(hostBuilder.Configuration);
-    hostBuilder.Services.AddScoped<ICurrentUser, SystemCurrentUser>(); // the audit interceptor needs one — BACKEND_GUIDELINES.md §13
+    hostBuilder.Services.AddScoped<ICurrentUser, Tawzeef.Api.Common.SystemCurrentUser>(); // the audit interceptor needs one — BACKEND_GUIDELINES.md §13
     using var host = hostBuilder.Build();
     using var scope = host.Services.CreateScope();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
@@ -211,7 +211,7 @@ static async Task ResetPasswordAsync(string[] cliArgs)
         ?? "Production";
     var hostBuilder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = environmentName });
     hostBuilder.Services.AddInfrastructure(hostBuilder.Configuration);
-    hostBuilder.Services.AddScoped<ICurrentUser, SystemCurrentUser>();
+    hostBuilder.Services.AddScoped<ICurrentUser, Tawzeef.Api.Common.SystemCurrentUser>();
     using var host = hostBuilder.Build();
     using var scope = host.Services.CreateScope();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
@@ -240,14 +240,4 @@ static async Task ResetPasswordAsync(string[] cliArgs)
     Console.WriteLine(result.Succeeded
         ? $"Password reset for {user.Email ?? user.PhoneNumber} ({user.FullName})."
         : string.Join("; ", result.Errors.Select(e => e.Description)));
-}
-
-/// <summary>The audit-stamping actor for CLI bootstrap work (BACKEND_GUIDELINES.md §13 — "a
-/// background job registers an implementation that returns a well-known system id").</summary>
-file sealed class SystemCurrentUser : ICurrentUser
-{
-    public Guid? Id => null;
-    public string? FullName => "System (CLI)";
-    public bool IsSuperAdmin => true;
-    public Guid? OfficeId => null;
 }
