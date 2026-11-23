@@ -9,6 +9,10 @@ import { LoadingState } from '@/shared/ui/LoadingState'
 import { usePlatformSettings, useUpdatePlatformSetting } from '../api/platformSettings.queries'
 import type { PlatformSetting } from '../types/platformSettings.types'
 
+// These two settings hold plain numbers (days / an amount) — the currency setting stays text.
+// Backend/src/Tawzeef.Domain/Common/PlatformSettingKeys.cs is the source of truth for the keys.
+const NUMERIC_SETTING_KEYS = new Set(['advertisement.duration_days', 'advertisement.default_fee_amount'])
+
 function SettingRow({ setting }: { setting: PlatformSetting }) {
   const { t } = useTranslation('platformSettings')
   const [editing, setEditing] = useState(false)
@@ -45,7 +49,11 @@ function SettingRow({ setting }: { setting: PlatformSetting }) {
       {editing ? (
         <div className="flex flex-wrap items-end gap-3">
           <div className="min-w-[200px] flex-1">
-            <TextInput value={value} onChange={(e) => setValue(e.target.value)} />
+            <TextInput
+              type={NUMERIC_SETTING_KEYS.has(setting.key) ? 'number' : 'text'}
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+            />
           </div>
           <Button size="sm" disabled={update.isPending} onClick={handleSave}>
             {t('saveAction')}
