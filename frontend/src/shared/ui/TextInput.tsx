@@ -1,10 +1,12 @@
 import clsx from 'clsx'
 import {
   forwardRef,
+  useState,
   type InputHTMLAttributes,
   type ReactNode,
   type TextareaHTMLAttributes,
 } from 'react'
+import { EyeIcon, EyeOffIcon } from './icons'
 
 /** Figma Text input (component 150:3768 et al) — 48px tall, 8px radius, 1px
  * border, brand border on focus, negative token on error. */
@@ -22,10 +24,29 @@ type TextInputProps = InputHTMLAttributes<HTMLInputElement> & {
 }
 
 export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(function TextInput(
-  { label, helperText, error, startIcon, endIcon, id, className, ...props },
+  { label, helperText, error, startIcon, endIcon, id, className, type, ...props },
   ref,
 ) {
-  const hasIcon = Boolean(startIcon || endIcon)
+  const [passwordVisible, setPasswordVisible] = useState(false)
+  const isPassword = type === 'password'
+
+  // A password field always gets a show/hide toggle, even if the caller didn't pass an
+  // endIcon — this is the one case where TextInput supplies its own.
+  const resolvedEndIcon = isPassword ? (
+    <button
+      type="button"
+      tabIndex={-1}
+      onClick={() => setPasswordVisible((v) => !v)}
+      aria-label={passwordVisible ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+      className="pointer-events-auto text-content-tertiary transition-colors hover:text-content-primary"
+    >
+      {passwordVisible ? <EyeOffIcon /> : <EyeIcon />}
+    </button>
+  ) : (
+    endIcon
+  )
+  const hasIcon = Boolean(startIcon || resolvedEndIcon)
+
   return (
     <div className="flex flex-col gap-1.5">
       {label && (
@@ -42,19 +63,20 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(function T
         <input
           ref={ref}
           id={id}
+          type={isPassword && passwordVisible ? 'text' : type}
           aria-invalid={error ? true : undefined}
           className={clsx(
             inputFieldClasses,
             startIcon && 'ps-10',
-            endIcon && 'pe-10',
+            resolvedEndIcon && 'pe-10',
             error && 'border-danger focus:border-danger focus:ring-danger/20',
             className,
           )}
           {...props}
         />
-        {endIcon && (
+        {resolvedEndIcon && (
           <span className="absolute inset-y-0 end-3 flex items-center text-content-tertiary">
-            {endIcon}
+            {resolvedEndIcon}
           </span>
         )}
       </div>
