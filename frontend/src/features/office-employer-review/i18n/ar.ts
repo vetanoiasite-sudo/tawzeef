@@ -44,6 +44,7 @@ export const officeEmployerReviewAr = {
   cancel: 'إلغاء',
   reasonPlaceholder: 'اكتب السبب...',
   approveProfile: 'الموافقة على الملف',
+  autoApproveHint: 'سيتم اعتماد الملف تلقائيًا بعد الموافقة على كل المستندات المطلوبة.',
   rejectProfile: 'رفض الملف',
   stopCooperation: 'إيقاف التعاون',
   resumeCooperation: 'استئناف التعاون',

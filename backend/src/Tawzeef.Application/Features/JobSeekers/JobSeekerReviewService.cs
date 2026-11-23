@@ -32,8 +32,8 @@ public class JobSeekerReviewService(IUnitOfWork uow, IFileStorage fileStorage) :
         Guid officeId, Guid profileId, CancellationToken ct = default)
     {
         var profile = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.Id == profileId && p.OfficeId == officeId, ct: ct);
-        if (profile is null) return ServiceResult<JobSeekerDocumentFileDto>.NotFound("Job seeker profile not found.");
-        if (profile.PhotoStorageKey is null) return ServiceResult<JobSeekerDocumentFileDto>.NotFound("No photo set.");
+        if (profile is null) return ServiceResult<JobSeekerDocumentFileDto>.NotFound("ملف الباحث عن عمل غير موجود.");
+        if (profile.PhotoStorageKey is null) return ServiceResult<JobSeekerDocumentFileDto>.NotFound("لا توجد صورة محفوظة.");
 
         var stream = await fileStorage.OpenReadAsync(profile.PhotoStorageKey, ct);
         return ServiceResult<JobSeekerDocumentFileDto>.Success(new JobSeekerDocumentFileDto
@@ -81,7 +81,7 @@ public class JobSeekerReviewService(IUnitOfWork uow, IFileStorage fileStorage) :
     public async Task<ServiceResult<JobSeekerProfileDto>> GetByIdAsync(Guid officeId, Guid id, CancellationToken ct = default)
     {
         var profile = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.Id == id && p.OfficeId == officeId, ct: ct);
-        if (profile is null) return ServiceResult<JobSeekerProfileDto>.NotFound("Job seeker profile not found.");
+        if (profile is null) return ServiceResult<JobSeekerProfileDto>.NotFound("ملف الباحث عن عمل غير موجود.");
 
         // WORKFLOWS_AND_STATE_MACHINES.md §1: "Submitted -> UnderReview ... may be implicit the
         // moment a reviewer opens the record" — this is that moment.
@@ -109,14 +109,38 @@ public class JobSeekerReviewService(IUnitOfWork uow, IFileStorage fileStorage) :
     {
         var (document, error) = await LoadReviewableDocumentAsync(officeId, profileId, documentId, ct);
         if (error is not null) return ServiceResult<JobSeekerDocumentDto>.NotFound(error);
-        if (document!.ReviewStatus != DocumentReviewStatus.Pending)
-            return ServiceResult<JobSeekerDocumentDto>.Conflict("This document has already been reviewed.");
 
-        document.ReviewStatus = DocumentReviewStatus.Approved;
+        // Re-review is allowed from any prior status (Pending, Approved, or Rejected) — an office
+        // reviewer must be able to correct a mistaken decision, not just a Pending one.
+        document!.ReviewStatus = DocumentReviewStatus.Approved;
         document.ReviewedBy = reviewerId;
         document.ReviewedAt = DateTime.UtcNow;
         document.RejectionReason = null;
         uow.Repository<JobSeekerDocument>().Update(document);
+
+        // No separate manual "approve the whole profile" click — the profile auto-advances the
+        // instant the last required document type is individually approved (WORKFLOWS_AND_STATE_
+        // MACHINES.md §1's "every document Approved" gate still applies, just checked here instead
+        // of behind a redundant extra button).
+        var profile = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.Id == profileId && p.OfficeId == officeId, ct: ct);
+        if (profile is not null && profile.ReviewStatus == JobSeekerReviewStatus.UnderReview)
+        {
+            var documents = await uow.Repository<JobSeekerDocument>().ListAsync(d => d.JobSeekerId == profile.Id && d.IsActive, ct: ct);
+            var approvedTypes = documents
+                .Where(d => d.ReviewStatus == DocumentReviewStatus.Approved)
+                .Select(d => d.DocumentType)
+                .ToHashSet();
+            var allApproved = Enum.GetValues<JobSeekerDocumentType>().All(approvedTypes.Contains);
+            if (allApproved)
+            {
+                profile.ReviewStatus = JobSeekerReviewStatus.Approved;
+                profile.ApprovedBy = reviewerId;
+                profile.ApprovedAt = DateTime.UtcNow;
+                profile.RejectionReason = null;
+                uow.Repository<JobSeekerProfile>().Update(profile);
+            }
+        }
+
         await uow.SaveChangesAsync(ct);
 
         return ServiceResult<JobSeekerDocumentDto>.Success(document.ToDto());
@@ -127,10 +151,9 @@ public class JobSeekerReviewService(IUnitOfWork uow, IFileStorage fileStorage) :
     {
         var (document, error) = await LoadReviewableDocumentAsync(officeId, profileId, documentId, ct);
         if (error is not null) return ServiceResult<JobSeekerDocumentDto>.NotFound(error);
-        if (document!.ReviewStatus != DocumentReviewStatus.Pending)
-            return ServiceResult<JobSeekerDocumentDto>.Conflict("This document has already been reviewed.");
 
-        document.ReviewStatus = DocumentReviewStatus.Rejected;
+        // Re-review allowed from any prior status — see ApproveDocumentAsync's comment above.
+        document!.ReviewStatus = DocumentReviewStatus.Rejected;
         document.ReviewedBy = reviewerId;
         document.ReviewedAt = DateTime.UtcNow;
         document.RejectionReason = reason.Trim();
@@ -144,9 +167,9 @@ public class JobSeekerReviewService(IUnitOfWork uow, IFileStorage fileStorage) :
         Guid officeId, Guid reviewerId, Guid profileId, CancellationToken ct = default)
     {
         var profile = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.Id == profileId && p.OfficeId == officeId, ct: ct);
-        if (profile is null) return ServiceResult<JobSeekerProfileDto>.NotFound("Job seeker profile not found.");
+        if (profile is null) return ServiceResult<JobSeekerProfileDto>.NotFound("ملف الباحث عن عمل غير موجود.");
         if (profile.ReviewStatus != JobSeekerReviewStatus.UnderReview)
-            return ServiceResult<JobSeekerProfileDto>.Conflict("The profile is not under review.");
+            return ServiceResult<JobSeekerProfileDto>.Conflict("الملف ليس قيد المراجعة.");
 
         var documents = await uow.Repository<JobSeekerDocument>().ListAsync(d => d.JobSeekerId == profile.Id && d.IsActive, ct: ct);
 
@@ -156,7 +179,7 @@ public class JobSeekerReviewService(IUnitOfWork uow, IFileStorage fileStorage) :
         var notReady = Enum.GetValues<JobSeekerDocumentType>().Where(t => !approvedTypes.Contains(t)).ToList();
         if (notReady.Count > 0)
             return ServiceResult<JobSeekerProfileDto>.Invalid(
-                $"Every required document must be approved first — not yet approved: {string.Join(", ", notReady)}.");
+                $"يجب الموافقة على كل المستندات المطلوبة أولًا — لم تتم الموافقة على: {string.Join(", ", notReady)}.");
 
         profile.ReviewStatus = JobSeekerReviewStatus.Approved;
         profile.ApprovedBy = reviewerId;
@@ -172,9 +195,9 @@ public class JobSeekerReviewService(IUnitOfWork uow, IFileStorage fileStorage) :
         Guid officeId, Guid reviewerId, Guid profileId, string reason, CancellationToken ct = default)
     {
         var profile = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.Id == profileId && p.OfficeId == officeId, ct: ct);
-        if (profile is null) return ServiceResult<JobSeekerProfileDto>.NotFound("Job seeker profile not found.");
+        if (profile is null) return ServiceResult<JobSeekerProfileDto>.NotFound("ملف الباحث عن عمل غير موجود.");
         if (profile.ReviewStatus != JobSeekerReviewStatus.UnderReview)
-            return ServiceResult<JobSeekerProfileDto>.Conflict("The profile is not under review.");
+            return ServiceResult<JobSeekerProfileDto>.Conflict("الملف ليس قيد المراجعة.");
 
         profile.ReviewStatus = JobSeekerReviewStatus.Rejected;
         profile.RejectionReason = reason.Trim();
@@ -189,11 +212,11 @@ public class JobSeekerReviewService(IUnitOfWork uow, IFileStorage fileStorage) :
         Guid officeId, Guid reviewerId, Guid profileId, string reason, CancellationToken ct = default)
     {
         var profile = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.Id == profileId && p.OfficeId == officeId, ct: ct);
-        if (profile is null) return ServiceResult<JobSeekerProfileDto>.NotFound("Job seeker profile not found.");
+        if (profile is null) return ServiceResult<JobSeekerProfileDto>.NotFound("ملف الباحث عن عمل غير موجود.");
 
         // WORKFLOWS_AND_STATE_MACHINES.md §1: Approved -> Suspended only.
         if (profile.ReviewStatus != JobSeekerReviewStatus.Approved)
-            return ServiceResult<JobSeekerProfileDto>.Conflict("Only an approved profile can be suspended.");
+            return ServiceResult<JobSeekerProfileDto>.Conflict("لا يمكن تجميد إلا ملف معتمد.");
 
         profile.ReviewStatus = JobSeekerReviewStatus.Suspended;
         profile.SuspendedAt = DateTime.UtcNow;
@@ -221,11 +244,11 @@ public class JobSeekerReviewService(IUnitOfWork uow, IFileStorage fileStorage) :
         Guid officeId, Guid reviewerId, Guid profileId, string reason, CancellationToken ct = default)
     {
         var profile = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.Id == profileId && p.OfficeId == officeId, ct: ct);
-        if (profile is null) return ServiceResult<JobSeekerProfileDto>.NotFound("Job seeker profile not found.");
+        if (profile is null) return ServiceResult<JobSeekerProfileDto>.NotFound("ملف الباحث عن عمل غير موجود.");
 
         // WORKFLOWS_AND_STATE_MACHINES.md §1: Suspended -> Approved only.
         if (profile.ReviewStatus != JobSeekerReviewStatus.Suspended)
-            return ServiceResult<JobSeekerProfileDto>.Conflict("Only a suspended profile can be reinstated.");
+            return ServiceResult<JobSeekerProfileDto>.Conflict("لا يمكن إعادة تفعيل إلا ملف مُجمَّد.");
 
         profile.ReviewStatus = JobSeekerReviewStatus.Approved;
         profile.SuspendedAt = null;
@@ -253,10 +276,10 @@ public class JobSeekerReviewService(IUnitOfWork uow, IFileStorage fileStorage) :
         Guid officeId, Guid profileId, Guid documentId, CancellationToken ct)
     {
         var profileExists = await uow.Repository<JobSeekerProfile>().AnyAsync(p => p.Id == profileId && p.OfficeId == officeId, ct);
-        if (!profileExists) return (null, "Job seeker profile not found.");
+        if (!profileExists) return (null, "ملف الباحث عن عمل غير موجود.");
 
         var document = await uow.Repository<JobSeekerDocument>().FindAsync(
             d => d.Id == documentId && d.JobSeekerId == profileId && d.IsActive, ct: ct);
-        return document is null ? (null, "Document not found.") : (document, null);
+        return document is null ? (null, "الملف غير موجود.") : (document, null);
     }
 }

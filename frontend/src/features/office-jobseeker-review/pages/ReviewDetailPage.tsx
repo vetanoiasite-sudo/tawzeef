@@ -8,7 +8,6 @@ import { ReasonForm } from '../components/ReasonForm'
 import { officeJobSeekerReviewApi } from '../api/officeJobSeekerReview.api'
 import {
   useApproveDocument,
-  useApproveProfile,
   useOfficeJobSeekerDetail,
   useReinstateProfile,
   useRejectDocument,
@@ -37,7 +36,6 @@ export default function ReviewDetailPage() {
   const [photoUrl, setPhotoUrl] = useState<string | null>(null)
   const approveDocument = useApproveDocument(profileId)
   const rejectDocument = useRejectDocument(profileId)
-  const approveProfile = useApproveProfile(profileId)
   const rejectProfile = useRejectProfile(profileId)
   const suspendProfile = useSuspendProfile(profileId)
   const reinstateProfile = useReinstateProfile(profileId)
@@ -86,6 +84,9 @@ export default function ReviewDetailPage() {
         <div className="flex flex-col gap-1">
           <h1 className="text-xl font-bold text-text">{profile.fullName}</h1>
           <p className="text-sm text-text-muted">{profile.mobileNumber}</p>
+          <p className="text-sm text-text-muted">
+            {t('nationalIdLabel')}: {profile.nationalId}
+          </p>
         </div>
       </div>
 
@@ -171,21 +172,18 @@ export default function ReviewDetailPage() {
 
       {canDecideProfile && (
         <section className="flex flex-col gap-2">
-          {!showRejectProfile && (
-            <div className="flex gap-2">
+          {!showRejectProfile ? (
+            <div className="flex flex-col gap-2">
+              <p className="text-sm text-content-tertiary">{t('autoApproveHint')}</p>
               <Button
-                disabled={approveProfile.isPending}
-                onClick={() => approveProfile.mutate()}
-                className="bg-success hover:bg-success/90"
+                variant="danger"
+                className="self-start"
+                onClick={() => setShowRejectProfile(true)}
               >
-                {t('approveProfile')}
-              </Button>
-              <Button variant="danger" onClick={() => setShowRejectProfile(true)}>
                 {t('rejectProfile')}
               </Button>
             </div>
-          )}
-          {showRejectProfile && (
+          ) : (
             <ReasonForm
               confirmLabel={t('rejectProfile')}
               isSubmitting={rejectProfile.isPending}
@@ -196,9 +194,6 @@ export default function ReviewDetailPage() {
               }}
               onCancel={() => setShowRejectProfile(false)}
             />
-          )}
-          {errorMessage(approveProfile.error) && (
-            <p className="text-sm text-danger">{errorMessage(approveProfile.error)}</p>
           )}
         </section>
       )}

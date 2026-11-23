@@ -22,8 +22,11 @@ export function useApproveDocument(employerId: string) {
   return useMutation({
     mutationFn: (documentId: string) =>
       officeEmployerReviewApi.approveDocument({ employerId, documentId }),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: officeEmployerReviewKeys.detail(employerId) }),
+    // Approving a document can also auto-advance the employer's overall verification status
+    // (EmployerReviewService.ApproveDocumentAsync), so the queue list must be invalidated too, not
+    // just this detail view — otherwise the queue keeps showing the old status until a manual
+    // refetch/navigation.
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: officeEmployerReviewKeys.all }),
   })
 }
 
@@ -32,8 +35,7 @@ export function useRejectDocument(employerId: string) {
   return useMutation({
     mutationFn: ({ documentId, reason }: { documentId: string; reason: string }) =>
       officeEmployerReviewApi.rejectDocument({ employerId, documentId, reason }),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: officeEmployerReviewKeys.detail(employerId) }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: officeEmployerReviewKeys.all }),
   })
 }
 
@@ -47,21 +49,11 @@ export function useUpdateEmployerProfile(employerId: string) {
   })
 }
 
-export function useApproveProfile(employerId: string) {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: () => officeEmployerReviewApi.approveProfile(employerId),
-    onSuccess: (data) =>
-      queryClient.setQueryData(officeEmployerReviewKeys.detail(employerId), data),
-  })
-}
-
 export function useRejectProfile(employerId: string) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (reason: string) => officeEmployerReviewApi.rejectProfile({ employerId, reason }),
-    onSuccess: (data) =>
-      queryClient.setQueryData(officeEmployerReviewKeys.detail(employerId), data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: officeEmployerReviewKeys.all }),
   })
 }
 
@@ -69,8 +61,7 @@ export function useStopCooperation(employerId: string) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (reason: string) => officeEmployerReviewApi.stopCooperation({ employerId, reason }),
-    onSuccess: (data) =>
-      queryClient.setQueryData(officeEmployerReviewKeys.detail(employerId), data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: officeEmployerReviewKeys.all }),
   })
 }
 
@@ -79,7 +70,6 @@ export function useResumeCooperation(employerId: string) {
   return useMutation({
     mutationFn: (reason: string) =>
       officeEmployerReviewApi.resumeCooperation({ employerId, reason }),
-    onSuccess: (data) =>
-      queryClient.setQueryData(officeEmployerReviewKeys.detail(employerId), data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: officeEmployerReviewKeys.all }),
   })
 }

@@ -24,6 +24,7 @@ void i18n.use(initReactI18next).init({
       validation: {
         required: 'هذا الحقل مطلوب',
         phoneFormat: 'رقم الهاتف غير صالح',
+        nationalIdFormat: 'الرقم القومي يجب أن يكون 14 رقمًا',
         otpCodeFormat: 'أدخل الرمز المكوّن من 6 أرقام',
         emailFormat: 'البريد الإلكتروني غير صالح',
         passwordTooShort: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل',

@@ -21,8 +21,15 @@ export const verifyOtpSchema = z.object({
 })
 export type VerifyOtpFormValues = z.infer<typeof verifyOtpSchema>
 
+// Egyptian national ID: exactly 14 digits (AuthDtos.cs RegisterJobSeekerDto.NationalId).
+const nationalIdSchema = z
+  .string()
+  .trim()
+  .regex(/^\d{14}$/, 'validation:nationalIdFormat')
+
 export const jobSeekerDetailsSchema = z.object({
   fullName: z.string().trim().min(2, 'validation:required').max(200, 'validation:tooLong'),
+  nationalId: nationalIdSchema,
   mobileNumber: phoneSchema,
   // Required — login is by email for every account now (temporary product decision, no OTP step
   // either — AuthDtos.cs LoginDto's doc comment).

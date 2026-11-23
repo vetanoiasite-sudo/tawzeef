@@ -15,6 +15,8 @@ export const authAr = {
   resendIn: 'إعادة الإرسال بعد {{seconds}} ثانية',
   changeNumber: 'تغيير رقم الهاتف',
   fullNameLabel: 'الاسم الكامل',
+  nationalIdLabel: 'الرقم القومي',
+  nationalIdPlaceholder: 'الرقم القومي المكوّن من 14 رقم',
   legalNameLabel: 'الاسم القانوني للشركة',
   displayNameLabel: 'الاسم الظاهر للجمهور',
   representativeNameLabel: 'اسم ممثل الشركة',

@@ -8,7 +8,6 @@ import { OfficeEmployerEditForm } from '../components/OfficeEmployerEditForm'
 import { ReasonForm } from '../components/ReasonForm'
 import {
   useApproveDocument,
-  useApproveProfile,
   useOfficeEmployerDetail,
   useRejectDocument,
   useRejectProfile,
@@ -38,7 +37,6 @@ export default function ReviewDetailPage() {
   const { data: employer, isLoading } = useOfficeEmployerDetail(employerId)
   const approveDocument = useApproveDocument(employerId)
   const rejectDocument = useRejectDocument(employerId)
-  const approveProfile = useApproveProfile(employerId)
   const rejectProfile = useRejectProfile(employerId)
   const stopCooperation = useStopCooperation(employerId)
   const resumeCooperation = useResumeCooperation(employerId)
@@ -174,21 +172,18 @@ export default function ReviewDetailPage() {
 
       {canDecideProfile && (
         <section className="flex flex-col gap-2">
-          {!showRejectProfile && (
-            <div className="flex gap-2">
+          {!showRejectProfile ? (
+            <div className="flex flex-col gap-2">
+              <p className="text-sm text-content-tertiary">{t('autoApproveHint')}</p>
               <Button
-                disabled={approveProfile.isPending}
-                onClick={() => approveProfile.mutate()}
-                className="bg-success hover:bg-success/90"
+                variant="danger"
+                className="self-start"
+                onClick={() => setShowRejectProfile(true)}
               >
-                {t('approveProfile')}
-              </Button>
-              <Button variant="danger" onClick={() => setShowRejectProfile(true)}>
                 {t('rejectProfile')}
               </Button>
             </div>
-          )}
-          {showRejectProfile && (
+          ) : (
             <ReasonForm
               confirmLabel={t('rejectProfile')}
               isSubmitting={rejectProfile.isPending}
@@ -199,9 +194,6 @@ export default function ReviewDetailPage() {
               }}
               onCancel={() => setShowRejectProfile(false)}
             />
-          )}
-          {errorMessage(approveProfile.error) && (
-            <p className="text-sm text-danger">{errorMessage(approveProfile.error)}</p>
           )}
         </section>
       )}

@@ -29,6 +29,7 @@ export type OfficeJobSeekerDocument = {
 export type OfficeJobSeekerDetail = {
   id: string
   fullName: string
+  nationalId: string
   mobileNumber: string
   email: string | null
   address: string | null

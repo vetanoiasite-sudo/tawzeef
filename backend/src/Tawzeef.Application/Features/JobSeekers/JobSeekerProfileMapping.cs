@@ -8,6 +8,7 @@ internal static class JobSeekerProfileMapping
     {
         Id = p.Id,
         FullName = p.FullName,
+        NationalId = p.NationalId,
         MobileNumber = p.MobileNumber,
         Email = p.Email,
         Address = p.Address,

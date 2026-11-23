@@ -32,6 +32,12 @@ public class RegisterJobSeekerDto
     [Required, MaxLength(200)]
     public string FullName { get; set; } = string.Empty;
 
+    /// <summary>Egyptian national ID — exactly 14 digits, unique per job seeker (added 2026-11-23
+    /// on explicit product request: a job seeker must not be able to register with the same name
+    /// as another's company/identity with nothing distinguishing the two records).</summary>
+    [Required, RegularExpression(@"^\d{14}$", ErrorMessage = "National ID must be exactly 14 digits.")]
+    public string NationalId { get; set; } = string.Empty;
+
     [Required, MaxLength(30)]
     public string MobileNumber { get; set; } = string.Empty;
 

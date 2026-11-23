@@ -1049,6 +1049,11 @@ namespace Tawzeef.Infrastructure.Migrations
                     b.Property<DateTime?>("ModifiedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("NationalId")
+                        .IsRequired()
+                        .HasMaxLength(14)
+                        .HasColumnType("nvarchar(14)");
+
                     b.Property<Guid>("OfficeId")
                         .HasColumnType("uniqueidentifier");
 
@@ -1089,6 +1094,9 @@ namespace Tawzeef.Infrastructure.Migrations
                         .HasColumnType("tinyint");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("NationalId")
+                        .IsUnique();
 
                     b.HasIndex("UserId")
                         .IsUnique();

@@ -72,16 +72,20 @@ export function DocumentReviewRow({
         {t('downloadAction')}
       </Button>
 
-      {document.reviewStatus === 'Pending' && !showReject && (
+      {!showReject && (
         <div className="flex gap-2">
           <Button
-            disabled={isApproving}
+            disabled={isApproving || document.reviewStatus === 'Approved'}
             onClick={onApprove}
             className="bg-success hover:bg-success/90"
           >
             {t('approve')}
           </Button>
-          <Button variant="danger" onClick={() => setShowReject(true)}>
+          <Button
+            variant="danger"
+            disabled={document.reviewStatus === 'Rejected'}
+            onClick={() => setShowReject(true)}
+          >
             {t('reject')}
           </Button>
         </div>

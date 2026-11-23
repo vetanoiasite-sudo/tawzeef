@@ -12,6 +12,7 @@ public class JobSeekerProfileConfiguration : IEntityTypeConfiguration<JobSeekerP
         b.HasKey(x => x.Id);
 
         b.Property(x => x.FullName).IsRequired().HasMaxLength(200);
+        b.Property(x => x.NationalId).IsRequired().HasMaxLength(14);
         b.Property(x => x.MobileNumber).IsRequired().HasMaxLength(30);
         b.Property(x => x.Email).HasMaxLength(200);
         b.Property(x => x.Address).HasMaxLength(300);
@@ -27,6 +28,7 @@ public class JobSeekerProfileConfiguration : IEntityTypeConfiguration<JobSeekerP
         b.Property(x => x.SuspensionReason).HasMaxLength(500);
 
         b.HasIndex(x => x.UserId).IsUnique();
+        b.HasIndex(x => x.NationalId).IsUnique();
         b.HasIndex(x => new { x.OfficeId, x.ReviewStatus });
     }
 }

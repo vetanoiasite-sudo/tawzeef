@@ -50,15 +50,15 @@ public class AuthService(
             ct: ct);
         var otp = candidates.OrderByDescending(o => o.ExpiresAt).FirstOrDefault();
 
-        if (otp is null) return ServiceResult<OtpVerifiedDto>.Invalid("No active code for this number — request a new one.");
-        if (otp.AttemptCount >= MaxOtpAttempts) return ServiceResult<OtpVerifiedDto>.Invalid("Too many attempts — request a new code.");
+        if (otp is null) return ServiceResult<OtpVerifiedDto>.Invalid("لا يوجد رمز نشط لهذا الرقم — اطلب رمزًا جديدًا.");
+        if (otp.AttemptCount >= MaxOtpAttempts) return ServiceResult<OtpVerifiedDto>.Invalid("عدد المحاولات كبير جدًا — اطلب رمزًا جديدًا.");
 
         if (otp.CodeHash != Hash(dto.Code.Trim()))
         {
             otp.AttemptCount++;
             uow.Repository<OtpVerification>().Update(otp);
             await uow.SaveChangesAsync(ct);
-            return ServiceResult<OtpVerifiedDto>.Invalid("Incorrect code.");
+            return ServiceResult<OtpVerifiedDto>.Invalid("الرمز غير صحيح.");
         }
 
         otp.ConsumedAt = DateTime.UtcNow;
@@ -76,14 +76,18 @@ public class AuthService(
 
         // No OTP verification step here — removed 2026-11-23, temporary (LoginDto's doc comment).
         var office = await uow.Repository<EmploymentOffice>().FindAsync(o => o.Id == dto.OfficeId && o.Status == OfficeStatus.Active, ct: ct);
-        if (office is null) return ServiceResult<AuthResultDto>.Invalid("Select a valid office.");
+        if (office is null) return ServiceResult<AuthResultDto>.Invalid("اختر مكتب توظيف صالح.");
 
         if (await userManager.FindByNameAsync(phoneNumber) is not null)
-            return ServiceResult<AuthResultDto>.Conflict("This mobile number is already registered.");
+            return ServiceResult<AuthResultDto>.Conflict("رقم الهاتف هذا مسجل بالفعل.");
 
         var email = dto.Email.Trim();
         if (await userManager.FindByEmailAsync(email) is not null)
-            return ServiceResult<AuthResultDto>.Conflict("This email is already registered.");
+            return ServiceResult<AuthResultDto>.Conflict("هذا البريد الإلكتروني مسجل بالفعل.");
+
+        var nationalId = dto.NationalId.Trim();
+        if (await uow.Repository<JobSeekerProfile>().FindAsync(p => p.NationalId == nationalId, ct: ct) is not null)
+            return ServiceResult<AuthResultDto>.Conflict("هذا الرقم القومي مسجل بالفعل.");
 
         var user = new ApplicationUser
         {
@@ -105,6 +109,7 @@ public class AuthService(
             OfficeId = office.Id,
             UserId = user.Id,
             FullName = user.FullName,
+            NationalId = nationalId,
             MobileNumber = phoneNumber,
             Email = dto.Email,
             ReviewStatus = JobSeekerReviewStatus.Draft,
@@ -131,14 +136,14 @@ public class AuthService(
 
         // No OTP verification step here — removed 2026-11-23, temporary (LoginDto's doc comment).
         var office = await uow.Repository<EmploymentOffice>().FindAsync(o => o.Id == dto.OfficeId && o.Status == OfficeStatus.Active, ct: ct);
-        if (office is null) return ServiceResult<AuthResultDto>.Invalid("Select a valid office.");
+        if (office is null) return ServiceResult<AuthResultDto>.Invalid("اختر مكتب توظيف صالح.");
 
         if (await userManager.FindByNameAsync(phoneNumber) is not null)
-            return ServiceResult<AuthResultDto>.Conflict("This mobile number is already registered.");
+            return ServiceResult<AuthResultDto>.Conflict("رقم الهاتف هذا مسجل بالفعل.");
 
         var email = dto.Email.Trim();
         if (await userManager.FindByEmailAsync(email) is not null)
-            return ServiceResult<AuthResultDto>.Conflict("This email is already registered.");
+            return ServiceResult<AuthResultDto>.Conflict("هذا البريد الإلكتروني مسجل بالفعل.");
 
         var user = new ApplicationUser
         {
@@ -191,10 +196,10 @@ public class AuthService(
         var pendingInvites = await uow.Repository<OfficeStaffInvite>().ListAsync(
             i => i.MobileNumber == phoneNumber && i.AcceptedAt == null, ct: ct);
         var invite = pendingInvites.OrderByDescending(i => i.CreationDate).FirstOrDefault();
-        if (invite is null) return ServiceResult<AuthResultDto>.NotFound("No pending invite for this number.");
+        if (invite is null) return ServiceResult<AuthResultDto>.NotFound("لا توجد دعوة معلّقة لهذا الرقم.");
 
         if (await userManager.FindByNameAsync(phoneNumber) is not null)
-            return ServiceResult<AuthResultDto>.Conflict("This mobile number is already registered.");
+            return ServiceResult<AuthResultDto>.Conflict("رقم الهاتف هذا مسجل بالفعل.");
 
         var user = new ApplicationUser
         {
@@ -280,10 +285,10 @@ public class AuthService(
             }
         }
         if (user is null || !await userManager.CheckPasswordAsync(user, dto.Password))
-            return ServiceResult<AuthResultDto>.Invalid("Incorrect email/phone number or password.");
+            return ServiceResult<AuthResultDto>.Invalid("البريد الإلكتروني/رقم الهاتف أو كلمة المرور غير صحيحة.");
 
         if (user.AccountStatus != AccountStatus.Active)
-            return ServiceResult<AuthResultDto>.Forbidden("This account is not active.");
+            return ServiceResult<AuthResultDto>.Forbidden("هذا الحساب غير مفعّل.");
 
         var membership = await uow.Repository<Tawzeef.Domain.Entities.Offices.UserOfficeMembership>().FindAsync(
             m => m.UserId == user.Id && m.MembershipStatus == MembershipStatus.Active, ct: ct);

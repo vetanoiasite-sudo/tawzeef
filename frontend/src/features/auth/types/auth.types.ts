@@ -23,6 +23,7 @@ export type AcceptStaffInvitePayload = {
 
 export type RegisterJobSeekerPayload = {
   fullName: string
+  nationalId: string
   mobileNumber: string
   email: string
   password: string

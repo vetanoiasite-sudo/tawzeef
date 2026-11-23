@@ -12,5 +12,6 @@ export const platformSettingsAr = {
   cancelAction: 'إلغاء',
   savedAt: 'آخر تعديل: {{date}}',
   updateError: 'حصل خطأ وإحنا بنحفظ الإعداد، جرب تاني.',
+  saveSuccess: 'تم الحفظ بنجاح',
   emptyState: 'مفيش إعدادات متاحة دلوقتي.',
 }

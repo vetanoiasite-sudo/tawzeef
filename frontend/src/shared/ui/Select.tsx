@@ -21,9 +21,10 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
       <select
         ref={ref}
         id={id}
+        dir="rtl"
         aria-invalid={error ? true : undefined}
         className={clsx(
-          'h-12 w-full rounded-200 border bg-surface px-3 text-[16px] text-content-primary outline-none transition-colors duration-150 focus:ring-2',
+          'h-12 w-full rounded-200 border bg-surface px-3 text-right text-[16px] text-content-primary outline-none transition-colors duration-150 focus:ring-2',
           error
             ? 'border-danger focus:border-danger focus:ring-danger/20'
             : 'border-border-primary hover:border-border-inactive focus:border-border-active focus:ring-brand/20',

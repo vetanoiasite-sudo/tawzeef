@@ -65,7 +65,7 @@ public class EmployerReviewService(IUnitOfWork uow, IFileStorage fileStorage) : 
     public async Task<ServiceResult<EmployerProfileDto>> GetByIdAsync(Guid officeId, Guid id, CancellationToken ct = default)
     {
         var employer = await uow.Repository<Employer>().FindAsync(e => e.Id == id && e.OfficeId == officeId, ct: ct);
-        if (employer is null) return ServiceResult<EmployerProfileDto>.NotFound("Employer not found.");
+        if (employer is null) return ServiceResult<EmployerProfileDto>.NotFound("صاحب العمل غير موجود.");
 
         // Same implicit-transition convention as the job seeker review queue.
         if (employer.VerificationStatus == EmployerVerificationStatus.Submitted)
@@ -84,7 +84,7 @@ public class EmployerReviewService(IUnitOfWork uow, IFileStorage fileStorage) : 
         Guid officeId, Guid employerId, UpdateEmployerProfileDto dto, CancellationToken ct = default)
     {
         var employer = await uow.Repository<Employer>().FindAsync(e => e.Id == employerId && e.OfficeId == officeId, ct: ct);
-        if (employer is null) return ServiceResult<EmployerProfileDto>.NotFound("Employer not found.");
+        if (employer is null) return ServiceResult<EmployerProfileDto>.NotFound("صاحب العمل غير موجود.");
 
         // Same field set as EmployerProfileService.UpdateMyProfileAsync — deliberately no
         // RevertApprovalIfNeeded here (this method's own doc comment explains why).
@@ -116,14 +116,38 @@ public class EmployerReviewService(IUnitOfWork uow, IFileStorage fileStorage) : 
     {
         var (document, error) = await LoadReviewableDocumentAsync(officeId, employerId, documentId, ct);
         if (error is not null) return ServiceResult<EmployerDocumentDto>.NotFound(error);
-        if (document!.ReviewStatus != DocumentReviewStatus.Pending)
-            return ServiceResult<EmployerDocumentDto>.Conflict("This document has already been reviewed.");
 
-        document.ReviewStatus = DocumentReviewStatus.Approved;
+        // Re-review is allowed from any prior status (Pending, Approved, or Rejected) — an office
+        // reviewer must be able to correct a mistaken decision, not just a Pending one.
+        document!.ReviewStatus = DocumentReviewStatus.Approved;
         document.ReviewedBy = reviewerId;
         document.ReviewedAt = DateTime.UtcNow;
         document.RejectionReason = null;
         uow.Repository<EmployerDocument>().Update(document);
+
+        // No separate manual "approve the whole profile" click — the profile auto-advances the
+        // instant the last required document type is individually approved (WORKFLOWS_AND_STATE_
+        // MACHINES.md §3's "every document Approved" gate still applies, just checked here instead
+        // of behind a redundant extra button).
+        var employer = await uow.Repository<Employer>().FindAsync(e => e.Id == employerId && e.OfficeId == officeId, ct: ct);
+        if (employer is not null && employer.VerificationStatus == EmployerVerificationStatus.UnderReview)
+        {
+            var documents = await uow.Repository<EmployerDocument>().ListAsync(d => d.EmployerId == employer.Id && d.IsActive, ct: ct);
+            var approvedTypes = documents
+                .Where(d => d.ReviewStatus == DocumentReviewStatus.Approved)
+                .Select(d => d.DocumentType)
+                .ToHashSet();
+            var allApproved = Enum.GetValues<EmployerDocumentType>().All(approvedTypes.Contains);
+            if (allApproved)
+            {
+                employer.VerificationStatus = EmployerVerificationStatus.Approved;
+                employer.ApprovedBy = reviewerId;
+                employer.ApprovedAt = DateTime.UtcNow;
+                employer.RejectionReason = null;
+                uow.Repository<Employer>().Update(employer);
+            }
+        }
+
         await uow.SaveChangesAsync(ct);
 
         return ServiceResult<EmployerDocumentDto>.Success(document.ToDto());
@@ -134,10 +158,9 @@ public class EmployerReviewService(IUnitOfWork uow, IFileStorage fileStorage) : 
     {
         var (document, error) = await LoadReviewableDocumentAsync(officeId, employerId, documentId, ct);
         if (error is not null) return ServiceResult<EmployerDocumentDto>.NotFound(error);
-        if (document!.ReviewStatus != DocumentReviewStatus.Pending)
-            return ServiceResult<EmployerDocumentDto>.Conflict("This document has already been reviewed.");
 
-        document.ReviewStatus = DocumentReviewStatus.Rejected;
+        // Re-review allowed from any prior status — see ApproveDocumentAsync's comment above.
+        document!.ReviewStatus = DocumentReviewStatus.Rejected;
         document.ReviewedBy = reviewerId;
         document.ReviewedAt = DateTime.UtcNow;
         document.RejectionReason = reason.Trim();
@@ -151,9 +174,9 @@ public class EmployerReviewService(IUnitOfWork uow, IFileStorage fileStorage) : 
         Guid officeId, Guid reviewerId, Guid employerId, CancellationToken ct = default)
     {
         var employer = await uow.Repository<Employer>().FindAsync(e => e.Id == employerId && e.OfficeId == officeId, ct: ct);
-        if (employer is null) return ServiceResult<EmployerProfileDto>.NotFound("Employer not found.");
+        if (employer is null) return ServiceResult<EmployerProfileDto>.NotFound("صاحب العمل غير موجود.");
         if (employer.VerificationStatus != EmployerVerificationStatus.UnderReview)
-            return ServiceResult<EmployerProfileDto>.Conflict("The company profile is not under review.");
+            return ServiceResult<EmployerProfileDto>.Conflict("ملف الشركة ليس قيد المراجعة.");
 
         var documents = await uow.Repository<EmployerDocument>().ListAsync(d => d.EmployerId == employer.Id && d.IsActive, ct: ct);
 
@@ -163,7 +186,7 @@ public class EmployerReviewService(IUnitOfWork uow, IFileStorage fileStorage) : 
         var notReady = Enum.GetValues<EmployerDocumentType>().Where(t => !approvedTypes.Contains(t)).ToList();
         if (notReady.Count > 0)
             return ServiceResult<EmployerProfileDto>.Invalid(
-                $"Every required document must be approved first — not yet approved: {string.Join(", ", notReady)}.");
+                $"يجب الموافقة على كل المستندات المطلوبة أولًا — لم تتم الموافقة على: {string.Join(", ", notReady)}.");
 
         employer.VerificationStatus = EmployerVerificationStatus.Approved;
         employer.ApprovedBy = reviewerId;
@@ -179,9 +202,9 @@ public class EmployerReviewService(IUnitOfWork uow, IFileStorage fileStorage) : 
         Guid officeId, Guid reviewerId, Guid employerId, string reason, CancellationToken ct = default)
     {
         var employer = await uow.Repository<Employer>().FindAsync(e => e.Id == employerId && e.OfficeId == officeId, ct: ct);
-        if (employer is null) return ServiceResult<EmployerProfileDto>.NotFound("Employer not found.");
+        if (employer is null) return ServiceResult<EmployerProfileDto>.NotFound("صاحب العمل غير موجود.");
         if (employer.VerificationStatus != EmployerVerificationStatus.UnderReview)
-            return ServiceResult<EmployerProfileDto>.Conflict("The company profile is not under review.");
+            return ServiceResult<EmployerProfileDto>.Conflict("ملف الشركة ليس قيد المراجعة.");
 
         employer.VerificationStatus = EmployerVerificationStatus.Rejected;
         employer.RejectionReason = reason.Trim();
@@ -196,11 +219,11 @@ public class EmployerReviewService(IUnitOfWork uow, IFileStorage fileStorage) : 
         Guid officeId, Guid reviewerId, Guid employerId, string reason, CancellationToken ct = default)
     {
         var employer = await uow.Repository<Employer>().FindAsync(e => e.Id == employerId && e.OfficeId == officeId, ct: ct);
-        if (employer is null) return ServiceResult<EmployerProfileDto>.NotFound("Employer not found.");
+        if (employer is null) return ServiceResult<EmployerProfileDto>.NotFound("صاحب العمل غير موجود.");
 
         // WORKFLOWS_AND_STATE_MACHINES.md §4: Active -> Stopped only.
         if (employer.CooperationStatus != EmployerCooperationStatus.Active)
-            return ServiceResult<EmployerProfileDto>.Conflict("Cooperation is already stopped.");
+            return ServiceResult<EmployerProfileDto>.Conflict("التعاون متوقف بالفعل.");
 
         employer.CooperationStatus = EmployerCooperationStatus.Stopped;
         employer.CooperationStoppedAt = DateTime.UtcNow;
@@ -228,11 +251,11 @@ public class EmployerReviewService(IUnitOfWork uow, IFileStorage fileStorage) : 
         Guid officeId, Guid reviewerId, Guid employerId, string reason, CancellationToken ct = default)
     {
         var employer = await uow.Repository<Employer>().FindAsync(e => e.Id == employerId && e.OfficeId == officeId, ct: ct);
-        if (employer is null) return ServiceResult<EmployerProfileDto>.NotFound("Employer not found.");
+        if (employer is null) return ServiceResult<EmployerProfileDto>.NotFound("صاحب العمل غير موجود.");
 
         // WORKFLOWS_AND_STATE_MACHINES.md §4: Stopped -> Active only.
         if (employer.CooperationStatus != EmployerCooperationStatus.Stopped)
-            return ServiceResult<EmployerProfileDto>.Conflict("Cooperation is not currently stopped.");
+            return ServiceResult<EmployerProfileDto>.Conflict("التعاون غير متوقف حاليًا.");
 
         employer.CooperationStatus = EmployerCooperationStatus.Active;
         employer.CooperationStoppedAt = null;
@@ -260,10 +283,10 @@ public class EmployerReviewService(IUnitOfWork uow, IFileStorage fileStorage) : 
         Guid officeId, Guid employerId, Guid documentId, CancellationToken ct)
     {
         var employerExists = await uow.Repository<Employer>().AnyAsync(e => e.Id == employerId && e.OfficeId == officeId, ct);
-        if (!employerExists) return (null, "Employer not found.");
+        if (!employerExists) return (null, "صاحب العمل غير موجود.");
 
         var document = await uow.Repository<EmployerDocument>().FindAsync(
             d => d.Id == documentId && d.EmployerId == employerId && d.IsActive, ct: ct);
-        return document is null ? (null, "Document not found.") : (document, null);
+        return document is null ? (null, "الملف غير موجود.") : (document, null);
     }
 }

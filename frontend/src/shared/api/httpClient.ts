@@ -74,12 +74,12 @@ async function request<T>(
       signal: options?.signal,
     })
   } catch {
-    throw new ApiError('network', ['Could not reach the server.'])
+    throw new ApiError('network', ['تعذر الوصول إلى الخادم. تحقق من اتصالك بالإنترنت.'])
   }
 
   if (response.status === 401) {
     onUnauthorized()
-    throw new ApiError('unauthorized', ['Your session has expired.'])
+    throw new ApiError('unauthorized', ['انتهت صلاحية جلستك. سجّل الدخول مرة أخرى.'])
   }
 
   const envelope = (await response.json().catch(() => null)) as ApiEnvelope<T> | null
@@ -87,7 +87,7 @@ async function request<T>(
   if (!response.ok || !envelope?.isSuccess) {
     throw new ApiError(
       errorKindFor(response.status),
-      envelope?.errorMessages ?? ['Something went wrong.'],
+      envelope?.errorMessages ?? ['حدث خطأ غير متوقع. حاول مرة أخرى.'],
     )
   }
 
@@ -115,19 +115,19 @@ async function requestPaged<T>(
   try {
     response = await fetch(buildUrl(path, query), { method: 'GET', headers })
   } catch {
-    throw new ApiError('network', ['Could not reach the server.'])
+    throw new ApiError('network', ['تعذر الوصول إلى الخادم. تحقق من اتصالك بالإنترنت.'])
   }
 
   if (response.status === 401) {
     onUnauthorized()
-    throw new ApiError('unauthorized', ['Your session has expired.'])
+    throw new ApiError('unauthorized', ['انتهت صلاحية جلستك. سجّل الدخول مرة أخرى.'])
   }
 
   const envelope = (await response.json().catch(() => null)) as ApiEnvelope<T> | null
   if (!response.ok || !envelope?.isSuccess) {
     throw new ApiError(
       errorKindFor(response.status),
-      envelope?.errorMessages ?? ['Something went wrong.'],
+      envelope?.errorMessages ?? ['حدث خطأ غير متوقع. حاول مرة أخرى.'],
     )
   }
 
@@ -151,19 +151,19 @@ async function requestBlob(path: string): Promise<{ blob: Blob; fileName: string
   try {
     response = await fetch(buildUrl(path), { method: 'GET', headers })
   } catch {
-    throw new ApiError('network', ['Could not reach the server.'])
+    throw new ApiError('network', ['تعذر الوصول إلى الخادم. تحقق من اتصالك بالإنترنت.'])
   }
 
   if (response.status === 401) {
     onUnauthorized()
-    throw new ApiError('unauthorized', ['Your session has expired.'])
+    throw new ApiError('unauthorized', ['انتهت صلاحية جلستك. سجّل الدخول مرة أخرى.'])
   }
 
   if (!response.ok) {
     const envelope = (await response.json().catch(() => null)) as ApiEnvelope<unknown> | null
     throw new ApiError(
       errorKindFor(response.status),
-      envelope?.errorMessages ?? ['Something went wrong.'],
+      envelope?.errorMessages ?? ['حدث خطأ غير متوقع. حاول مرة أخرى.'],
     )
   }
 

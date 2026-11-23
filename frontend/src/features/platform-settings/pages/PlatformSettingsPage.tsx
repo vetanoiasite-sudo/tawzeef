@@ -4,14 +4,19 @@ import { ApiError } from '@/shared/api/types'
 import { Card } from '@/shared/ui/Card'
 import { Button } from '@/shared/ui/Button'
 import { TextInput } from '@/shared/ui/TextInput'
+import { Select } from '@/shared/ui/Select'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { LoadingState } from '@/shared/ui/LoadingState'
 import { usePlatformSettings, useUpdatePlatformSetting } from '../api/platformSettings.queries'
 import type { PlatformSetting } from '../types/platformSettings.types'
 
-// These two settings hold plain numbers (days / an amount) — the currency setting stays text.
+// These two settings hold plain numbers (days / an amount).
 // Backend/src/Tawzeef.Domain/Common/PlatformSettingKeys.cs is the source of truth for the keys.
 const NUMERIC_SETTING_KEYS = new Set(['advertisement.duration_days', 'advertisement.default_fee_amount'])
+
+// The currency setting must be one of a known set, not whatever an admin types by hand.
+const CURRENCY_SETTING_KEY = 'advertisement.default_fee_currency'
+const SUPPORTED_CURRENCIES = ['EGP'] as const
 
 function SettingRow({ setting }: { setting: PlatformSetting }) {
   const { t } = useTranslation('platformSettings')
@@ -49,11 +54,21 @@ function SettingRow({ setting }: { setting: PlatformSetting }) {
       {editing ? (
         <div className="flex flex-wrap items-end gap-3">
           <div className="min-w-[200px] flex-1">
-            <TextInput
-              type={NUMERIC_SETTING_KEYS.has(setting.key) ? 'number' : 'text'}
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-            />
+            {setting.key === CURRENCY_SETTING_KEY ? (
+              <Select value={value} onChange={(e) => setValue(e.target.value)}>
+                {SUPPORTED_CURRENCIES.map((code) => (
+                  <option key={code} value={code}>
+                    {code}
+                  </option>
+                ))}
+              </Select>
+            ) : (
+              <TextInput
+                type={NUMERIC_SETTING_KEYS.has(setting.key) ? 'number' : 'text'}
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+              />
+            )}
           </div>
           <Button size="sm" disabled={update.isPending} onClick={handleSave}>
             {t('saveAction')}
@@ -75,6 +90,9 @@ function SettingRow({ setting }: { setting: PlatformSetting }) {
         <p className="text-sm text-danger">
           {update.error instanceof ApiError ? update.error.messages[0] : t('updateError')}
         </p>
+      )}
+      {update.isSuccess && !editing && update.variables?.key === setting.key && (
+        <p className="text-sm text-success">{t('saveSuccess')}</p>
       )}
 
       <p className="text-xs text-content-tertiary">

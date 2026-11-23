@@ -27,6 +27,7 @@ export default function RegisterJobSeekerPage() {
     registerJobSeeker.mutate(
       {
         fullName: values.fullName,
+        nationalId: values.nationalId,
         mobileNumber: values.mobileNumber,
         email: values.email,
         password: values.password,
