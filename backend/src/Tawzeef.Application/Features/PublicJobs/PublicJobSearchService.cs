@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Tawzeef.Application.Common;
 using Tawzeef.Domain.Common;
 using Tawzeef.Domain.Contracts;
@@ -44,16 +45,34 @@ public class PublicJobSearchService(IUnitOfWork uow) : IPublicJobSearchService
 
         // No background job exists yet to flip Published -> Expired (WORKFLOWS_AND_STATE_MACHINES.md
         // §5), so "active public search" is a read-time filter on ExpiresAt instead.
+        Expression<Func<JobAdvertisement, bool>> predicate = a =>
+            a.Status == JobAdvertisementStatus.Published
+            && (a.ExpiresAt == null || a.ExpiresAt > now)
+            && (string.IsNullOrWhiteSpace(query.City) || (a.City != null && a.City.Contains(query.City)))
+            && (matchingCategoryIds == null || (a.CategoryId != null && matchingCategoryIds.Contains(a.CategoryId.Value)))
+            && (!query.EmploymentType.HasValue || a.EmploymentType == query.EmploymentType.Value)
+            && (matchingEmployerIds == null || matchingEmployerIds.Contains(a.EmployerId));
+
+        // A keyword search also matches a known synonym — "شيف" finds a job titled "طباخ"
+        // (JobTitleSynonyms' doc comment: a curated list, confirmed 2026-11-23, not a search
+        // engine). Each expanded term becomes its own Title.Contains(term) check, OR'd together
+        // via PredicateCombinator into one flat expression EF Core can still translate to SQL.
+        if (!string.IsNullOrWhiteSpace(query.Keyword))
+        {
+            var terms = JobTitleSynonyms.Expand(query.Keyword);
+            Expression<Func<JobAdvertisement, bool>>? keywordPredicate = null;
+            foreach (var term in terms)
+            {
+                Expression<Func<JobAdvertisement, bool>> termPredicate = a => a.Title.Contains(term);
+                keywordPredicate = keywordPredicate is null ? termPredicate : keywordPredicate.OrElse(termPredicate);
+            }
+            predicate = predicate.AndAlso(keywordPredicate!);
+        }
+
         var page = await uow.Repository<JobAdvertisement>().PageAsync(
             pageIndex,
             pageSize,
-            a => a.Status == JobAdvertisementStatus.Published
-                && (a.ExpiresAt == null || a.ExpiresAt > now)
-                && (string.IsNullOrWhiteSpace(query.Keyword) || a.Title.Contains(query.Keyword))
-                && (string.IsNullOrWhiteSpace(query.City) || (a.City != null && a.City.Contains(query.City)))
-                && (matchingCategoryIds == null || (a.CategoryId != null && matchingCategoryIds.Contains(a.CategoryId.Value)))
-                && (!query.EmploymentType.HasValue || a.EmploymentType == query.EmploymentType.Value)
-                && (matchingEmployerIds == null || matchingEmployerIds.Contains(a.EmployerId)),
+            predicate,
             orderBy: a => a.PublishedAt!,
             descending: true,
             ct: ct);
