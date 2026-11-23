@@ -27,6 +27,15 @@ if (args.Length > 0 && args[0] == "seed-demo")
     return;
 }
 
+// Dev/ops support tool — there's no self-service "forgot password" flow yet (no email/SMS
+// provider wired up), so this is how a locked-out account gets back in for now.
+// Usage: ASPNETCORE_ENVIRONMENT=Development dotnet run -- reset-password <email-or-phone> <newPassword>
+if (args.Length > 0 && args[0] == "reset-password")
+{
+    await ResetPasswordAsync(args);
+    return;
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Set DataDirectory to %USERPROFILE% so that LocalDB AttachDBFilename=|DataDirectory|\Tawzeef.Dev.mdf
@@ -189,6 +198,53 @@ static async Task SeedSuperAdminAsync(string[] cliArgs)
     var result = await userManager.CreateAsync(user, password);
     Console.WriteLine(result.Succeeded
         ? $"SuperAdmin created: {user.Id}"
+        : string.Join("; ", result.Errors.Select(e => e.Description)));
+}
+
+static async Task ResetPasswordAsync(string[] cliArgs)
+{
+    if (cliArgs.Length < 3)
+    {
+        Console.WriteLine("Usage: reset-password <email-or-phone> <newPassword>");
+        return;
+    }
+
+    var identifier = cliArgs[1];
+    var newPassword = cliArgs[2];
+
+    var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
+        ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")
+        ?? "Production";
+    var hostBuilder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = environmentName });
+    hostBuilder.Services.AddInfrastructure(hostBuilder.Configuration);
+    hostBuilder.Services.AddScoped<ICurrentUser, SystemCurrentUser>();
+    using var host = hostBuilder.Build();
+    using var scope = host.Services.CreateScope();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+    // Email first (every account created since 2026-11-23 has one), then phone/username (an
+    // older account or an office-staff account, which never collects an email) — same lookup
+    // order as AuthService.LoginAsync.
+    var user = await userManager.FindByEmailAsync(identifier) ?? await userManager.FindByNameAsync(identifier);
+    if (user is null)
+    {
+        Console.WriteLine("No account found with that email or phone number.");
+        return;
+    }
+
+    // Not GeneratePasswordResetTokenAsync/ResetPasswordAsync — those need a registered
+    // IUserTwoFactorTokenProvider, which AddIdentityCore doesn't wire up by default (unlike the
+    // full AddIdentity). RemovePasswordAsync + AddPasswordAsync needs no token provider.
+    var removeResult = await userManager.RemovePasswordAsync(user);
+    if (!removeResult.Succeeded)
+    {
+        Console.WriteLine(string.Join("; ", removeResult.Errors.Select(e => e.Description)));
+        return;
+    }
+
+    var result = await userManager.AddPasswordAsync(user, newPassword);
+    Console.WriteLine(result.Succeeded
+        ? $"Password reset for {user.Email ?? user.PhoneNumber} ({user.FullName})."
         : string.Join("; ", result.Errors.Select(e => e.Description)));
 }
 
