@@ -10,7 +10,14 @@ public class JobSeekerProfileService(IUnitOfWork uow, IFileStorage fileStorage, 
 {
     // BUSINESS_REQUIREMENTS.md §5.1 Step 4 — PDF/JPG/PNG, confirmed 2026-11-18, size limit lowered
     // to 2 MB 2026-11-23, configurable either way.
-    private static readonly string[] DefaultAllowedMimeTypes = ["application/pdf", "image/jpeg", "image/png"];
+    private static readonly string[] DefaultAllowedMimeTypes =
+    [
+        "application/pdf",
+        "image/jpeg",
+        "image/png",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+        "application/vnd.ms-excel", // .xls
+    ];
     private const long DefaultMaxFileSizeBytes = 2 * 1024 * 1024;
 
     public async Task<ServiceResult<JobSeekerProfileDto>> GetMyProfileAsync(Guid userId, CancellationToken ct = default)

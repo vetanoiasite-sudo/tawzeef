@@ -61,7 +61,7 @@ export const employerProfileAr = {
   upload: 'رفع ملف',
   replace: 'استبدال الملف',
   noFileUploaded: 'لم يتم رفع أي ملف بعد',
-  uploadHint: 'PDF أو JPG أو PNG — حتى 2 ميجابايت',
+  uploadHint: 'PDF أو JPG أو PNG أو Excel — حتى 2 ميجابايت',
   submitForReview: 'إرسال للمراجعة',
   submitSuccess: 'تم إرسال الملف للمراجعة',
   submitMissingDocs: 'ارفع كل المستندات المطلوبة أولًا',
