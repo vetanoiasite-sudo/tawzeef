@@ -4,24 +4,15 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 import { useJobSearch } from '@/features/public-jobs/api/publicJobs.queries'
 import type { JobListItem } from '@/features/public-jobs/types/publicJobs.types'
+import { useJobCategories } from '@/features/job-categories'
+import { useSessionStore } from '@/shared/auth/sessionStore'
 import { Button } from '@/shared/ui/Button'
 import { Reveal } from '@/shared/ui/Reveal'
 import { EGYPT_GOVERNORATES } from '@/shared/constants/governorates'
 
-/** Governorates shown in the "Browse by governorate" quick-access grid. */
+/** Governorates shown in the "Browse by governorate" quick-access grid — capped at 8, with a
+ * "see all" link to the full search page for the rest. */
 const TOP_CITIES = EGYPT_GOVERNORATES.slice(0, 8)
-
-/** Hard-coded categories — mirrors the categories used across the ad flow. */
-const TOP_CATEGORIES = [
-  { key: 'office', label: 'إداري وسكرتارية' },
-  { key: 'sales', label: 'مبيعات' },
-  { key: 'accounting', label: 'محاسبة ومالية' },
-  { key: 'it', label: 'تكنولوجيا المعلومات' },
-  { key: 'retail', label: 'خدمة العملاء' },
-  { key: 'logistics', label: 'لوجستيات ونقل' },
-  { key: 'engineering', label: 'هندسة وتشغيل' },
-  { key: 'health', label: 'صحة وتمريض' },
-] as const
 
 export default function HomePage() {
   return (
@@ -351,25 +342,47 @@ function GridSkeleton() {
 /* Browse by category / city                                                  */
 /* -------------------------------------------------------------------------- */
 
+/** "عرض الكل" — same link styling as LatestJobs' own section-header action, reused here so both
+ * sections get the same affordance (there was no way to see anything past the first 8 tiles
+ * before this). */
+function ViewAllLink() {
+  return (
+    <Link
+      to="/jobs"
+      className="text-[14px] font-bold text-brand underline underline-offset-4 decoration-2 hover:text-brand-hover hover:decoration-brand-hover"
+    >
+      عرض الكل
+    </Link>
+  )
+}
+
 function BrowseByCategory() {
+  // Real, office-managed categories now (job-categories feature) — not a hardcoded list that
+  // could drift from what ads are actually tagged with. A ad's category only exists once an
+  // office assigns one during review, so this section is empty until at least one has been.
+  const { data: categories } = useJobCategories()
+  const topCategories = (categories ?? []).slice(0, 8)
+
+  if (topCategories.length === 0) return null
+
   return (
     <section className="bg-brand-soft">
       <div className="w-full px-4 py-16 sm:px-8 xl:px-16 2xl:px-24">
         <Reveal>
-          <SectionHeader title="تصفّح حسب الفئة" />
+          <SectionHeader title="تصفّح حسب الفئة" action={<ViewAllLink />} />
         </Reveal>
         <Reveal delayMs={100} className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {TOP_CATEGORIES.map((c) => (
+          {topCategories.map((c) => (
             <Link
-              key={c.key}
-              to={`/jobs?category=${encodeURIComponent(c.label)}`}
+              key={c.id}
+              to={`/jobs?category=${encodeURIComponent(c.name)}`}
               className="group flex h-24 flex-col items-center justify-center gap-2 rounded-300 border border-border-primary bg-surface px-4 text-center transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-1 hover:border-brand hover:shadow-200"
             >
               <span className="text-content-tertiary transition-colors group-hover:text-brand">
-                <CategoryIcon categoryKey={c.key} />
+                <TagIcon />
               </span>
               <span className="text-[14px] font-bold text-content-primary group-hover:text-brand">
-                {c.label}
+                {c.name}
               </span>
             </Link>
           ))}
@@ -383,7 +396,7 @@ function BrowseByCity() {
   return (
     <section className="w-full px-4 py-16 sm:px-8 xl:px-16 2xl:px-24">
       <Reveal>
-        <SectionHeader title="تصفّح حسب المحافظة" />
+        <SectionHeader title="تصفّح حسب المحافظة" action={<ViewAllLink />} />
       </Reveal>
       <Reveal delayMs={100} className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
         {TOP_CITIES.map((city) => (
@@ -406,6 +419,11 @@ function BrowseByCity() {
 
 function JoinTawzeefCTA() {
   const { t } = useTranslation('auth')
+  // Only for an anonymous visitor — a signed-in user (job seeker, employer, office, SuperAdmin)
+  // already has an account, so "register as X" cards here were a confusing non-sequitur.
+  const user = useSessionStore((s) => s.user)
+  if (user) return null
+
   return (
     <section className="bg-brand-soft">
       <Reveal className="grid w-full grid-cols-1 gap-4 px-4 py-16 sm:px-8 md:grid-cols-2 xl:px-16 2xl:px-24">
@@ -500,151 +518,20 @@ function PinIcon() {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Category tile icons                                                        */
+/* Category tile icon — one generic tag icon now that categories are a real, */
+/* open-ended list an office can grow (no fixed set to key custom icons on). */
 /* -------------------------------------------------------------------------- */
 
-function CategoryIcon({ categoryKey }: { categoryKey: (typeof TOP_CATEGORIES)[number]['key'] }) {
-  const props = {
-    width: 24,
-    height: 24,
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    'aria-hidden': true,
-  } as const
-  switch (categoryKey) {
-    case 'office':
-      return (
-        <svg {...props}>
-          <rect
-            x="3"
-            y="4"
-            width="18"
-            height="14"
-            rx="1.5"
-            stroke="currentColor"
-            strokeWidth="1.8"
-          />
-          <path
-            d="M3 9h18M8 4v-.01M8 14h4"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-          />
-        </svg>
-      )
-    case 'sales':
-      return (
-        <svg {...props}>
-          <path
-            d="M3 17l5-5 4 4 8-9"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M15 7h5v5"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      )
-    case 'accounting':
-      return (
-        <svg {...props}>
-          <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
-          <path
-            d="M9 9.5c0-1 1-1.8 3-1.8s3 .8 3 1.8-1 1.5-3 1.8-3 .8-3 1.9 1 1.8 3 1.8 3-.8 3-1.8"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-          />
-        </svg>
-      )
-    case 'it':
-      return (
-        <svg {...props}>
-          <rect
-            x="3"
-            y="5"
-            width="18"
-            height="12"
-            rx="1.5"
-            stroke="currentColor"
-            strokeWidth="1.8"
-          />
-          <path d="M8 21h8M12 17v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-        </svg>
-      )
-    case 'retail':
-      return (
-        <svg {...props}>
-          <path
-            d="M4 8l1.5-4h13L20 8"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M4 8h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8Z"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M9 12a3 3 0 0 0 6 0"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-          />
-        </svg>
-      )
-    case 'logistics':
-      return (
-        <svg {...props}>
-          <rect x="2" y="8" width="12" height="9" rx="1" stroke="currentColor" strokeWidth="1.8" />
-          <path
-            d="M14 11h4l3 3v3h-7v-6Z"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinejoin="round"
-          />
-          <circle cx="6.5" cy="18.5" r="1.6" stroke="currentColor" strokeWidth="1.6" />
-          <circle cx="17" cy="18.5" r="1.6" stroke="currentColor" strokeWidth="1.6" />
-        </svg>
-      )
-    case 'engineering':
-      return (
-        <svg {...props}>
-          <path
-            d="M14.7 6.3a3 3 0 0 1-3.9 3.9l-6 6a2 2 0 1 0 2.8 2.8l6-6a3 3 0 0 1 3.9-3.9l-2.1 2.1-1.4-1.4 2.1-2.1Z"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinejoin="round"
-          />
-        </svg>
-      )
-    case 'health':
-      return (
-        <svg {...props}>
-          <path
-            d="M12 21s-7-4.4-9.3-9A5 5 0 0 1 12 6a5 5 0 0 1 9.3 6c-2.3 4.6-9.3 9-9.3 9Z"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M9.5 12h2M12 9.5v5"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-          />
-        </svg>
-      )
-    default:
-      return null
-  }
+function TagIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M20 12.5 12.5 20a1.5 1.5 0 0 1-2.12 0l-6.38-6.38a1.5 1.5 0 0 1 0-2.12L11.5 4H18a2 2 0 0 1 2 2v6.5Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <circle cx="15" cy="9" r="1.3" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  )
 }
