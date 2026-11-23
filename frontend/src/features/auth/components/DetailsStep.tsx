@@ -24,7 +24,7 @@ export function DetailsStep({
     formState: { errors },
   } = useForm<JobSeekerDetailsFormValues>({
     resolver: zodResolver(jobSeekerDetailsSchema),
-    defaultValues: { fullName: '', email: '', password: '', officeId: '' },
+    defaultValues: { fullName: '', mobileNumber: '', email: '', password: '', officeId: '' },
   })
 
   return (
@@ -36,6 +36,17 @@ export function DetailsStep({
         label={t('auth:fullNameLabel')}
         error={errors.fullName ? t(errors.fullName.message ?? '') : undefined}
         {...register('fullName')}
+      />
+
+      <TextInput
+        id="mobileNumber"
+        type="tel"
+        dir="ltr"
+        autoComplete="tel"
+        placeholder={t('auth:phonePlaceholder')}
+        label={t('auth:phoneLabel')}
+        error={errors.mobileNumber ? t(errors.mobileNumber.message ?? '') : undefined}
+        {...register('mobileNumber')}
       />
 
       <TextInput

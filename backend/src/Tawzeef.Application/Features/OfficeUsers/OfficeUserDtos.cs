@@ -13,6 +13,11 @@ public class InviteOfficeStaffDto
     [Required, MaxLength(30)]
     public string MobileNumber { get; set; } = string.Empty;
 
+    /// <summary>Set by the inviter, not the invitee — login is by email for every account now
+    /// (office staff included), and there's no OTP step left to verify an invitee-entered one.</summary>
+    [Required, MaxLength(200), EmailAddress]
+    public string Email { get; set; } = string.Empty;
+
     [Required]
     public OfficeRole Role { get; set; }
 

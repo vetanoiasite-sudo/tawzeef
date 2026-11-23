@@ -35,13 +35,9 @@ public class RegisterJobSeekerDto
     [Required, MaxLength(30)]
     public string MobileNumber { get; set; } = string.Empty;
 
-    [Required]
-    public string OtpToken { get; set; } = string.Empty;
-
-    /// <summary>Required (unlike MobileNumber's OTP step, which stays as-is) — login is by email
-    /// for JobSeeker/Employer accounts now (temporary product decision), so every new account
-    /// needs one. Office staff/SuperAdmin accounts are untouched — still phone-only, no email ever
-    /// collected for them (AuthService.LoginAsync falls back to phone lookup for those).</summary>
+    /// <summary>Login is by email for every account now (temporary product decision — see
+    /// LoginDto's doc comment). No OTP step (also removed 2026-11-23, also temporary): MobileNumber
+    /// is still collected but no longer phone-verified before the account is created.</summary>
     [Required, MaxLength(200), EmailAddress]
     public string Email { get; set; } = string.Empty;
 
@@ -59,9 +55,6 @@ public class RegisterEmployerDto
 
     [Required, MaxLength(30)]
     public string MobileNumber { get; set; } = string.Empty;
-
-    [Required]
-    public string OtpToken { get; set; } = string.Empty;
 
     /// <summary>Required — same reasoning as RegisterJobSeekerDto.Email.</summary>
     [Required, MaxLength(200), EmailAddress]
@@ -81,23 +74,23 @@ public class RegisterEmployerDto
 }
 
 /// <summary>The invitee sets their own password here — the inviting OfficeAdmin/SuperAdmin never
-/// sets or sees it (OfficeStaffInvite doc comment).</summary>
+/// sets or sees it (OfficeStaffInvite doc comment). No OTP step (removed 2026-11-23, temporary —
+/// see OfficeStaffInvite's doc comment): MobileNumber alone identifies which pending invite this
+/// is accepting, matching the invite the inviter created.</summary>
 public class AcceptOfficeInviteDto
 {
     [Required, MaxLength(30)]
     public string MobileNumber { get; set; } = string.Empty;
 
-    [Required]
-    public string OtpToken { get; set; } = string.Empty;
-
     [Required, MinLength(8)]
     public string Password { get; set; } = string.Empty;
 }
 
-/// <summary>Identifier is an email for JobSeeker/Employer accounts (temporary product decision —
-/// those registration flows now require an email) and a phone number for OfficeAdmin/OfficeStaff/
-/// SuperAdmin accounts, which are still phone-only (no email ever collected for them). AuthService
-/// tries an email lookup first, then falls back to the phone/username lookup — see LoginAsync.</summary>
+/// <summary>Identifier is always an email now (temporary product decision, 2026-11-23) — every
+/// account type (JobSeeker, Employer, OfficeAdmin, OfficeStaff, SuperAdmin) requires one at
+/// creation. AuthService.LoginAsync still falls back to a phone/username lookup afterward, purely
+/// so an account created before this change (no email on file) keeps working — never rely on that
+/// fallback for a new account.</summary>
 public class LoginDto
 {
     [Required]

@@ -146,15 +146,16 @@ app.Run();
 
 static async Task SeedSuperAdminAsync(string[] cliArgs)
 {
-    if (cliArgs.Length < 4)
+    if (cliArgs.Length < 5)
     {
-        Console.WriteLine("Usage: seed-superadmin <phoneNumber> <password> <fullName...>");
+        Console.WriteLine("Usage: seed-superadmin <phoneNumber> <email> <password> <fullName...>");
         return;
     }
 
     var phoneNumber = cliArgs[1];
-    var password = cliArgs[2];
-    var fullName = string.Join(' ', cliArgs.Skip(3));
+    var email = cliArgs[2];
+    var password = cliArgs[3];
+    var fullName = string.Join(' ', cliArgs.Skip(4));
 
     // Host.CreateApplicationBuilder reads DOTNET_ENVIRONMENT, not ASPNETCORE_ENVIRONMENT — accept
     // either, so "ASPNETCORE_ENVIRONMENT=Development" (what the rest of this app's docs say) works.
@@ -180,6 +181,7 @@ static async Task SeedSuperAdminAsync(string[] cliArgs)
         UserName = phoneNumber,
         PhoneNumber = phoneNumber,
         PhoneNumberConfirmed = true,
+        Email = email,
         FullName = fullName,
         IsSuperAdmin = true,
     };

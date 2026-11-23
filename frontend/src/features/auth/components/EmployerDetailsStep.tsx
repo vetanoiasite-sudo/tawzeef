@@ -26,6 +26,7 @@ export function EmployerDetailsStep({
     resolver: zodResolver(employerDetailsSchema),
     defaultValues: {
       representativeName: '',
+      mobileNumber: '',
       legalName: '',
       displayName: '',
       email: '',
@@ -59,6 +60,17 @@ export function EmployerDetailsStep({
         label={t('auth:representativeNameLabel')}
         error={errors.representativeName ? t(errors.representativeName.message ?? '') : undefined}
         {...register('representativeName')}
+      />
+
+      <TextInput
+        id="mobileNumber"
+        type="tel"
+        dir="ltr"
+        autoComplete="tel"
+        placeholder={t('auth:phonePlaceholder')}
+        label={t('auth:phoneLabel')}
+        error={errors.mobileNumber ? t(errors.mobileNumber.message ?? '') : undefined}
+        {...register('mobileNumber')}
       />
 
       <TextInput

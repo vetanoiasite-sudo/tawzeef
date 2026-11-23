@@ -24,11 +24,24 @@ export function AcceptInvitePasswordStep({
     formState: { errors },
   } = useForm<AcceptInvitePasswordFormValues>({
     resolver: zodResolver(acceptInvitePasswordSchema),
-    defaultValues: { password: '' },
+    defaultValues: { mobileNumber: '', password: '' },
   })
 
   return (
     <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-4">
+      <p className="text-sm text-content-secondary">{t('auth:acceptInviteMobileHint')}</p>
+
+      <TextInput
+        id="mobileNumber"
+        type="tel"
+        dir="ltr"
+        autoComplete="tel"
+        placeholder={t('auth:phonePlaceholder')}
+        label={t('auth:phoneLabel')}
+        error={errors.mobileNumber ? t(errors.mobileNumber.message ?? '') : undefined}
+        {...register('mobileNumber')}
+      />
+
       <TextInput
         id="password"
         type="password"

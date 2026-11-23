@@ -12,6 +12,7 @@ public class OfficeStaffInviteConfiguration : IEntityTypeConfiguration<OfficeSta
         b.HasKey(x => x.Id);
 
         b.Property(x => x.MobileNumber).IsRequired().HasMaxLength(30);
+        b.Property(x => x.Email).IsRequired().HasMaxLength(200);
         b.Property(x => x.FullName).IsRequired().HasMaxLength(200);
         b.Property(x => x.PermissionCodesCsv).HasMaxLength(2000);
 

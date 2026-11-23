@@ -21,6 +21,7 @@ export function InviteOfficeUserForm({
   const { t } = useTranslation('officeUsers')
   const [fullName, setFullName] = useState('')
   const [mobileNumber, setMobileNumber] = useState('')
+  const [email, setEmail] = useState('')
   const [role, setRole] = useState<OfficeUserRoleCode>('OfficeStaff')
   const [permissionCodes, setPermissionCodes] = useState<string[]>([])
 
@@ -29,6 +30,7 @@ export function InviteOfficeUserForm({
     onSubmit({
       fullName: fullName.trim(),
       mobileNumber: mobileNumber.trim(),
+      email: email.trim(),
       role,
       permissionCodes: role === 'OfficeStaff' ? permissionCodes : [],
     })
@@ -50,6 +52,14 @@ export function InviteOfficeUserForm({
           label={t('mobileNumberLabel')}
           value={mobileNumber}
           onChange={(e) => setMobileNumber(e.target.value)}
+        />
+
+        <TextInput
+          id="email"
+          type="email"
+          label={t('emailLabel')}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
         />
 
         <Select
@@ -75,7 +85,7 @@ export function InviteOfficeUserForm({
           <Button
             type="submit"
             variant="primary"
-            disabled={isSubmitting || !fullName.trim() || !mobileNumber.trim()}
+            disabled={isSubmitting || !fullName.trim() || !mobileNumber.trim() || !email.trim()}
           >
             {t('send')}
           </Button>

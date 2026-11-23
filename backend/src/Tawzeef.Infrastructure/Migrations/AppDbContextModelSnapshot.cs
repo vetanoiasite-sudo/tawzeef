@@ -1190,6 +1190,11 @@ namespace Tawzeef.Infrastructure.Migrations
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasMaxLength(200)

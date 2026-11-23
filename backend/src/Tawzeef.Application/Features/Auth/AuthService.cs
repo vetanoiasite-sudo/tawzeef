@@ -74,15 +74,7 @@ public class AuthService(
     {
         var phoneNumber = dto.MobileNumber.Trim();
 
-        var otpMatches = await uow.Repository<OtpVerification>().ListAsync(
-            o => o.PhoneNumber == phoneNumber && o.Purpose == OtpPurpose.Registration
-                 && o.VerifiedToken == dto.OtpToken && o.VerifiedTokenUsedAt == null
-                 && o.VerifiedTokenExpiresAt > DateTime.UtcNow,
-            ct: ct);
-        var verifiedOtp = otpMatches.FirstOrDefault();
-        if (verifiedOtp is null)
-            return ServiceResult<AuthResultDto>.Invalid("Phone verification has expired — verify the number again.");
-
+        // No OTP verification step here — removed 2026-11-23, temporary (LoginDto's doc comment).
         var office = await uow.Repository<EmploymentOffice>().FindAsync(o => o.Id == dto.OfficeId && o.Status == OfficeStatus.Active, ct: ct);
         if (office is null) return ServiceResult<AuthResultDto>.Invalid("Select a valid office.");
 
@@ -98,7 +90,7 @@ public class AuthService(
             Id = Guid.NewGuid(),
             UserName = phoneNumber,
             PhoneNumber = phoneNumber,
-            PhoneNumberConfirmed = true, // just proved via OTP
+            PhoneNumberConfirmed = false, // no OTP step anymore — unverified until that comes back
             Email = email,
             FullName = dto.FullName.Trim(),
         };
@@ -119,9 +111,6 @@ public class AuthService(
         };
         await uow.Repository<JobSeekerProfile>().AddAsync(profile, ct);
 
-        verifiedOtp.VerifiedTokenUsedAt = DateTime.UtcNow;
-        uow.Repository<OtpVerification>().Update(verifiedOtp);
-
         await uow.SaveChangesAsync(ct);
 
         var (accessToken, expiresAt) = tokenGenerator.GenerateToken(user.Id, user.FullName, isSuperAdmin: false, officeId: null);
@@ -140,15 +129,7 @@ public class AuthService(
     {
         var phoneNumber = dto.MobileNumber.Trim();
 
-        var otpMatches = await uow.Repository<OtpVerification>().ListAsync(
-            o => o.PhoneNumber == phoneNumber && o.Purpose == OtpPurpose.Registration
-                 && o.VerifiedToken == dto.OtpToken && o.VerifiedTokenUsedAt == null
-                 && o.VerifiedTokenExpiresAt > DateTime.UtcNow,
-            ct: ct);
-        var verifiedOtp = otpMatches.FirstOrDefault();
-        if (verifiedOtp is null)
-            return ServiceResult<AuthResultDto>.Invalid("Phone verification has expired — verify the number again.");
-
+        // No OTP verification step here — removed 2026-11-23, temporary (LoginDto's doc comment).
         var office = await uow.Repository<EmploymentOffice>().FindAsync(o => o.Id == dto.OfficeId && o.Status == OfficeStatus.Active, ct: ct);
         if (office is null) return ServiceResult<AuthResultDto>.Invalid("Select a valid office.");
 
@@ -164,7 +145,7 @@ public class AuthService(
             Id = Guid.NewGuid(),
             UserName = phoneNumber,
             PhoneNumber = phoneNumber,
-            PhoneNumberConfirmed = true, // just proved via OTP
+            PhoneNumberConfirmed = false, // no OTP step anymore — unverified until that comes back
             Email = email,
             FullName = dto.RepresentativeName.Trim(),
         };
@@ -187,9 +168,6 @@ public class AuthService(
         };
         await uow.Repository<Employer>().AddAsync(employer, ct);
 
-        verifiedOtp.VerifiedTokenUsedAt = DateTime.UtcNow;
-        uow.Repository<OtpVerification>().Update(verifiedOtp);
-
         await uow.SaveChangesAsync(ct);
 
         var (accessToken, expiresAt) = tokenGenerator.GenerateToken(user.Id, user.FullName, isSuperAdmin: false, officeId: null);
@@ -208,15 +186,8 @@ public class AuthService(
     {
         var phoneNumber = dto.MobileNumber.Trim();
 
-        var otpMatches = await uow.Repository<OtpVerification>().ListAsync(
-            o => o.PhoneNumber == phoneNumber && o.Purpose == OtpPurpose.StaffInvite
-                 && o.VerifiedToken == dto.OtpToken && o.VerifiedTokenUsedAt == null
-                 && o.VerifiedTokenExpiresAt > DateTime.UtcNow,
-            ct: ct);
-        var verifiedOtp = otpMatches.FirstOrDefault();
-        if (verifiedOtp is null)
-            return ServiceResult<AuthResultDto>.Invalid("Phone verification has expired — verify the number again.");
-
+        // No OTP verification step here — removed 2026-11-23, temporary (LoginDto's doc comment).
+        // MobileNumber alone identifies which pending invite this is (OfficeStaffInvite doc comment).
         var pendingInvites = await uow.Repository<OfficeStaffInvite>().ListAsync(
             i => i.MobileNumber == phoneNumber && i.AcceptedAt == null, ct: ct);
         var invite = pendingInvites.OrderByDescending(i => i.CreationDate).FirstOrDefault();
@@ -230,7 +201,8 @@ public class AuthService(
             Id = Guid.NewGuid(),
             UserName = phoneNumber,
             PhoneNumber = phoneNumber,
-            PhoneNumberConfirmed = true, // just proved via OTP
+            PhoneNumberConfirmed = false, // no OTP step anymore — unverified until that comes back
+            Email = invite.Email, // set by the inviter — see InviteOfficeStaffDto's doc comment
             FullName = invite.FullName,
         };
 
@@ -267,9 +239,6 @@ public class AuthService(
 
         invite.AcceptedAt = DateTime.UtcNow;
         uow.Repository<OfficeStaffInvite>().Update(invite);
-
-        verifiedOtp.VerifiedTokenUsedAt = DateTime.UtcNow;
-        uow.Repository<OtpVerification>().Update(verifiedOtp);
 
         await uow.SaveChangesAsync(ct);
 

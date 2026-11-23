@@ -3,6 +3,7 @@ export const officeUsersAr = {
   inviteNew: 'دعوة مستخدم جديد',
   fullNameLabel: 'الاسم الكامل',
   mobileNumberLabel: 'رقم الهاتف المحمول',
+  emailLabel: 'البريد الإلكتروني',
   roleLabel: 'الدور',
   role: {
     OfficeAdmin: 'مدير المكتب',

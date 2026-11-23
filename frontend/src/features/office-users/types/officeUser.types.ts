@@ -16,6 +16,7 @@ export type OfficeUser = {
 export type InviteOfficeUserPayload = {
   fullName: string
   mobileNumber: string
+  email: string
   role: OfficeUserRoleCode
   permissionCodes: string[]
 }

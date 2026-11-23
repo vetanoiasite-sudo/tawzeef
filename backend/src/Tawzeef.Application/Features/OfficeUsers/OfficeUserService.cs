@@ -33,6 +33,10 @@ public class OfficeUserService(IUnitOfWork uow, UserManager<ApplicationUser> use
         if (await userManager.FindByNameAsync(phoneNumber) is not null)
             return ServiceResult.Conflict("This mobile number is already registered.");
 
+        var email = dto.Email.Trim();
+        if (await userManager.FindByEmailAsync(email) is not null)
+            return ServiceResult.Conflict("This email is already registered.");
+
         var hasPendingInvite = await uow.Repository<OfficeStaffInvite>().AnyAsync(
             i => i.MobileNumber == phoneNumber && i.AcceptedAt == null, ct);
         if (hasPendingInvite) return ServiceResult.Conflict("This mobile number already has a pending invite.");
@@ -51,6 +55,7 @@ public class OfficeUserService(IUnitOfWork uow, UserManager<ApplicationUser> use
             Id = Guid.NewGuid(),
             OfficeId = officeId,
             MobileNumber = phoneNumber,
+            Email = email,
             FullName = dto.FullName.Trim(),
             Role = dto.Role,
             PermissionCodesCsv = string.Join(',', dto.PermissionCodes.Distinct()),

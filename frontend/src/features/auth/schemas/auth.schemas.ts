@@ -23,7 +23,9 @@ export type VerifyOtpFormValues = z.infer<typeof verifyOtpSchema>
 
 export const jobSeekerDetailsSchema = z.object({
   fullName: z.string().trim().min(2, 'validation:required').max(200, 'validation:tooLong'),
-  // Required — login is by email for JobSeeker/Employer accounts now (temporary product decision).
+  mobileNumber: phoneSchema,
+  // Required — login is by email for every account now (temporary product decision, no OTP step
+  // either — AuthDtos.cs LoginDto's doc comment).
   email: z.email('validation:emailFormat'),
   password: z.string().min(8, 'validation:passwordTooShort'),
   officeId: z.string().min(1, 'validation:required'),
@@ -36,6 +38,7 @@ export const employerDetailsSchema = z.object({
     .trim()
     .min(2, 'validation:required')
     .max(200, 'validation:tooLong'),
+  mobileNumber: phoneSchema,
   legalName: z.string().trim().min(2, 'validation:required').max(250, 'validation:tooLong'),
   displayName: z.string().trim().min(2, 'validation:required').max(250, 'validation:tooLong'),
   email: z.email('validation:emailFormat'),
@@ -45,6 +48,7 @@ export const employerDetailsSchema = z.object({
 export type EmployerDetailsFormValues = z.infer<typeof employerDetailsSchema>
 
 export const acceptInvitePasswordSchema = z.object({
+  mobileNumber: phoneSchema,
   password: z.string().min(8, 'validation:passwordTooShort'),
 })
 export type AcceptInvitePasswordFormValues = z.infer<typeof acceptInvitePasswordSchema>
