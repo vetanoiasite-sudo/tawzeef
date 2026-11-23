@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Tawzeef.Application.Common;
 using Tawzeef.Domain.Contracts;
 using Tawzeef.Domain.Entities.Offices;
@@ -5,8 +6,13 @@ using Tawzeef.Domain.Enums;
 
 namespace Tawzeef.Application.Features.Offices;
 
-public class OfficeService(IUnitOfWork uow) : IOfficeService
+public class OfficeService(IUnitOfWork uow, IFileStorage fileStorage, IConfiguration configuration) : IOfficeService
 {
+    // Same confirmed decision as every other upload in this app (RBAC_PERMISSIONS.md §0 item 24),
+    // restricted further to images only for a logo.
+    private static readonly string[] LogoAllowedMimeTypes = ["image/jpeg", "image/png"];
+    private const long DefaultMaxFileSizeBytes = 2 * 1024 * 1024;
+
     public async Task<ServiceResult<IReadOnlyList<OfficeDto>>> ListAsync(CancellationToken ct = default)
     {
         var offices = await uow.Repository<EmploymentOffice>().ListAsync(ct: ct);
@@ -79,5 +85,48 @@ public class OfficeService(IUnitOfWork uow) : IOfficeService
             ActiveOfficesCount = active,
             InactiveOfficesCount = total - active,
         });
+    }
+
+    public async Task<ServiceResult<OfficeDto>> UploadLogoAsync(
+        Guid officeId, Stream content, string originalFileName, string contentType, long fileSizeBytes, CancellationToken ct = default)
+    {
+        var office = await uow.Repository<EmploymentOffice>().GetByIdAsync(officeId, ct);
+        if (office is null) return ServiceResult<OfficeDto>.NotFound("Office not found.");
+
+        if (!LogoAllowedMimeTypes.Contains(contentType, StringComparer.OrdinalIgnoreCase))
+            return ServiceResult<OfficeDto>.Invalid("Unsupported file type — only JPG and PNG are allowed.");
+
+        var maxSizeBytes = configuration.GetValue<long?>("Uploads:MaxFileSizeBytes") ?? DefaultMaxFileSizeBytes;
+        if (fileSizeBytes <= 0 || fileSizeBytes > maxSizeBytes)
+            return ServiceResult<OfficeDto>.Invalid($"File is too large — the limit is {maxSizeBytes / (1024 * 1024)} MB.");
+
+        var previousStorageKey = office.LogoStorageKey;
+
+        office.LogoStorageKey = await fileStorage.SaveAsync(content, originalFileName, contentType, ct);
+        office.LogoOriginalFileName = originalFileName;
+        office.LogoContentType = contentType;
+        uow.Repository<EmploymentOffice>().Update(office);
+        await uow.SaveChangesAsync(ct);
+
+        // Only delete the old file once the new one is safely saved and committed — never leave a
+        // gap where a crash mid-upload loses the only logo on file.
+        if (previousStorageKey is not null)
+            await fileStorage.DeleteAsync(previousStorageKey, ct);
+
+        return ServiceResult<OfficeDto>.Success(office.ToDto());
+    }
+
+    public async Task<OfficeLogoFileDto?> GetLogoFileAsync(Guid officeId, CancellationToken ct = default)
+    {
+        var office = await uow.Repository<EmploymentOffice>().FindAsync(o => o.Id == officeId, ct: ct);
+        if (office?.LogoStorageKey is null) return null;
+
+        var content = await fileStorage.OpenReadAsync(office.LogoStorageKey, ct);
+        return new OfficeLogoFileDto
+        {
+            Content = content,
+            FileName = office.LogoOriginalFileName ?? "logo",
+            ContentType = office.LogoContentType ?? "application/octet-stream",
+        };
     }
 }

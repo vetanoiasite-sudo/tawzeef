@@ -14,4 +14,9 @@ export const superAdminApi = {
   activateOffice: (id: string) => httpClient.post<Office>(`/api/offices/${id}/activate`),
   deactivateOffice: (id: string) => httpClient.post<Office>(`/api/offices/${id}/deactivate`),
   getStats: () => httpClient.get<OfficePlatformStats>('/api/offices/stats'),
+  uploadLogo: ({ id, file }: { id: string; file: File }) => {
+    const form = new FormData()
+    form.append('file', file)
+    return httpClient.post<Office>(`/api/offices/${id}/logo`, form)
+  },
 }

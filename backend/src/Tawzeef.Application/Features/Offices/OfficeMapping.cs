@@ -27,6 +27,7 @@ internal static class OfficeMapping
         Phone = e.Phone,
         Email = e.Email,
         Status = e.Status.ToString(),
+        LogoUrl = e.LogoStorageKey is null ? null : $"/api/offices/{e.Id}/logo",
     };
 
     public static PublicOfficeDto ToPublicDto(this EmploymentOffice e) => new()
@@ -34,5 +35,6 @@ internal static class OfficeMapping
         Id = e.Id,
         Name = e.Name,
         City = e.City,
+        LogoUrl = e.LogoStorageKey is null ? null : $"/api/offices/{e.Id}/logo",
     };
 }

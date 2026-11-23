@@ -46,6 +46,14 @@ export function useActivateOffice() {
   })
 }
 
+export function useUploadOfficeLogo() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: superAdminApi.uploadLogo,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: superAdminKeys.officeList() }),
+  })
+}
+
 export function useDeactivateOffice() {
   const queryClient = useQueryClient()
   return useMutation({

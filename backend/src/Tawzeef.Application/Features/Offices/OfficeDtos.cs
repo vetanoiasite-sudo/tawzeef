@@ -37,14 +37,29 @@ public class OfficeDto
     public string? Phone { get; set; }
     public string? Email { get; set; }
     public string Status { get; set; } = string.Empty;
+
+    /// <summary>A relative API path (e.g. /api/offices/{id}/logo), never the raw storage key —
+    /// null when no logo has been uploaded yet. The endpoint it points to is [AllowAnonymous]
+    /// (same reasoning as EmployerProfileDto.LogoUrl).</summary>
+    public string? LogoUrl { get; set; }
 }
 
-/// <summary>What the public registration dropdown gets — nothing beyond name/city (API_DOCUMENTATION.md §3.2).</summary>
+/// <summary>What the public registration dropdown gets — nothing beyond name/city/logo (API_DOCUMENTATION.md §3.2).</summary>
 public class PublicOfficeDto
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? City { get; set; }
+    public string? LogoUrl { get; set; }
+}
+
+/// <summary>Mirrors Employers/EmployerProfileDtos.cs's EmployerDocumentFileDto — same "stream
+/// straight through IFileStorage" pattern, reused here for an office's logo file.</summary>
+public class OfficeLogoFileDto
+{
+    public Stream Content { get; set; } = Stream.Null;
+    public string FileName { get; set; } = string.Empty;
+    public string ContentType { get; set; } = string.Empty;
 }
 
 /// <summary>Code is immutable once an office exists — it's the tenant key other records link to.</summary>

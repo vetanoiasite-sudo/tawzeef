@@ -1,13 +1,26 @@
 import clsx from 'clsx'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { NotificationBell } from '@/features/notifications'
+import { usePublicOffices } from '@/features/auth/api/auth.queries'
+import { useMyJobSeekerProfile } from '@/features/jobseeker-profile/api/jobSeekerProfile.queries'
+import { jobSeekerProfileApi } from '@/features/jobseeker-profile/api/jobSeekerProfile.api'
+import { useMyEmployerProfile } from '@/features/employer-profile/api/employerProfile.queries'
 import { useAccess } from '@/shared/auth/useAccess'
-import { useSessionStore } from '@/shared/auth/sessionStore'
+import { useSessionStore, type SessionUser } from '@/shared/auth/sessionStore'
 import { useScrolled } from '@/shared/hooks/useScrolled'
+import { env } from '@/shared/config/env'
 import { Button } from '@/shared/ui/Button'
 import { TawzeefLogo } from '@/shared/ui/TawzeefLogo'
+
+const ROLE_LABELS: Record<string, string> = {
+  JobSeeker: 'باحث عن عمل',
+  Employer: 'صاحب عمل',
+  OfficeAdmin: 'مدير مكتب',
+  OfficeStaff: 'موظف مكتب',
+  SuperAdmin: 'سوبر أدمن',
+}
 
 // Auth screens are full-canvas (own headline, hero, chrome) — the app header
 // would compete with them, so we skip it on these routes.
@@ -315,16 +328,23 @@ function AppLayoutChrome() {
           </button>
         </div>
 
+        {/* Profile header — the account's own photo (job seeker photo / company logo / office
+         *  photo), name and role, always first, with the link list below it. */}
+        {isAuthenticated && user && (
+          <div className="flex shrink-0 items-center gap-3 border-b border-border-primary bg-gradient-to-b from-brand-soft/70 to-transparent px-4 py-5">
+            <DrawerAvatar user={user} />
+            <div className="flex min-w-0 flex-col">
+              <p className="truncate text-[16px] font-bold text-content-primary">{user.fullName}</p>
+              <p className="text-[13px] font-medium text-brand">{ROLE_LABELS[user.role] ?? user.role}</p>
+            </div>
+          </div>
+        )}
+
         <div className="flex-1 overflow-y-auto px-4 py-3">
           <nav className="flex flex-col gap-0.5">{renderNavLinks(drawerLinkClasses)}</nav>
         </div>
 
         <div className="flex shrink-0 flex-col gap-3 border-t border-border-primary px-4 py-3">
-          {isAuthenticated && (
-            <span className="px-3 text-[14px] text-content-primary">
-              {t('common:welcomeUser', { name: user?.fullName })}
-            </span>
-          )}
           {isAuthenticated ? (
             <Button variant="secondary" size="sm" fullWidth onClick={clearSession}>
               {t('common:logout')}
@@ -346,6 +366,128 @@ function AppLayoutChrome() {
         </div>
       </main>
     </div>
+  )
+}
+
+function AvatarFrame({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-surface text-brand shadow-[0_2px_8px_rgba(0,0,0,0.1)]">
+      {children}
+    </div>
+  )
+}
+
+/** Dispatches to the right photo source per role — a job seeker's own uploaded photo (private,
+ * fetched as an authenticated blob), an employer's company logo or an office's photo (both public
+ * URLs, served straight from `<img src>`), or a generic icon for SuperAdmin (no photo concept). */
+function DrawerAvatar({ user }: { user: SessionUser }) {
+  switch (user.role) {
+    case 'JobSeeker':
+      return <JobSeekerAvatar />
+    case 'Employer':
+      return <EmployerAvatar />
+    case 'OfficeAdmin':
+    case 'OfficeStaff':
+      return <OfficeAvatar officeId={user.officeId} />
+    default:
+      return (
+        <AvatarFrame>
+          <ShieldIcon />
+        </AvatarFrame>
+      )
+  }
+}
+
+function JobSeekerAvatar() {
+  const { data: profile } = useMyJobSeekerProfile()
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!profile?.hasPhoto) {
+      setPhotoUrl(null)
+      return
+    }
+    let objectUrl: string | null = null
+    let cancelled = false
+    void jobSeekerProfileApi.getPhoto().then(({ blob }) => {
+      if (cancelled) return
+      objectUrl = URL.createObjectURL(blob)
+      setPhotoUrl(objectUrl)
+    })
+    return () => {
+      cancelled = true
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [profile?.hasPhoto])
+
+  return (
+    <AvatarFrame>
+      {photoUrl ? <img src={photoUrl} alt="" className="size-full object-cover" /> : <PersonIcon />}
+    </AvatarFrame>
+  )
+}
+
+function EmployerAvatar() {
+  const { data: profile } = useMyEmployerProfile()
+  return (
+    <AvatarFrame>
+      {profile?.logoUrl ? (
+        <img src={`${env.apiBaseUrl}${profile.logoUrl}`} alt="" className="size-full object-cover" />
+      ) : (
+        <BuildingIcon />
+      )}
+    </AvatarFrame>
+  )
+}
+
+function OfficeAvatar({ officeId }: { officeId: string | null }) {
+  const { data: offices } = usePublicOffices()
+  const office = offices?.find((o) => o.id === officeId)
+  return (
+    <AvatarFrame>
+      {office?.logoUrl ? (
+        <img src={`${env.apiBaseUrl}${office.logoUrl}`} alt="" className="size-full object-cover" />
+      ) : (
+        <BuildingIcon />
+      )}
+    </AvatarFrame>
+  )
+}
+
+function PersonIcon() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function BuildingIcon() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="4" y="3" width="16" height="18" rx="1" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M8 8h2M14 8h2M8 12h2M14 12h2M8 16h2M14 16h2"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function ShieldIcon() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M12 3l7 3v6c0 4.5-3 7.8-7 9-4-1.2-7-4.5-7-9V6l7-3Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   )
 }
 

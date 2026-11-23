@@ -41,4 +41,7 @@ export const superAdminAr = {
   inviteEmailLabel: 'البريد الإلكتروني',
   sendInviteAction: 'إرسال الدعوة',
   inviteOfficeAdminSuccess: 'تم إرسال الدعوة. مدير المكتب يقدر يفعّل حسابه من صفحة "عندك دعوة انضمام لمكتب؟" باستخدام نفس رقم الهاتف.',
+  officeLogoLabel: 'صورة المكتب',
+  uploadLogoAction: 'رفع صورة المكتب',
+  replaceLogoAction: 'تغيير صورة المكتب',
 }

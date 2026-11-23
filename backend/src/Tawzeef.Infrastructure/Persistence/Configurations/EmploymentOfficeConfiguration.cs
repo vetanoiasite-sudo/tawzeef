@@ -18,6 +18,9 @@ public class EmploymentOfficeConfiguration : IEntityTypeConfiguration<Employment
         b.Property(x => x.City).HasMaxLength(100);
         b.Property(x => x.Phone).HasMaxLength(30);
         b.Property(x => x.Email).HasMaxLength(200);
+        b.Property(x => x.LogoStorageKey).HasMaxLength(500);
+        b.Property(x => x.LogoOriginalFileName).HasMaxLength(260);
+        b.Property(x => x.LogoContentType).HasMaxLength(100);
 
         b.HasIndex(x => x.Code).IsUnique();
     }

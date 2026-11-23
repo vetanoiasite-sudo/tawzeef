@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import type { InviteOfficeUserPayload } from '@/features/office-users/types/officeUser.types'
 import { OfficeForm } from './OfficeForm'
 import { InviteOfficeAdminForm } from './InviteOfficeAdminForm'
+import { OfficeLogoUploadCard } from './OfficeLogoUploadCard'
 import type { Office, UpdateOfficePayload } from '../types/superAdmin.types'
 import { Card } from '@/shared/ui/Card'
 import { Button } from '@/shared/ui/Button'
@@ -16,9 +17,11 @@ export function OfficeRow({
   isInviting,
   inviteError,
   inviteSuccess,
+  isUploadingLogo,
   onSave,
   onToggleStatus,
   onInviteAdmin,
+  onUploadLogo,
 }: {
   office: Office
   isSaving: boolean
@@ -27,9 +30,11 @@ export function OfficeRow({
   isInviting: boolean
   inviteError?: string
   inviteSuccess: boolean
+  isUploadingLogo: boolean
   onSave: (payload: UpdateOfficePayload) => void
   onToggleStatus: () => void
   onInviteAdmin: (payload: InviteOfficeUserPayload) => void
+  onUploadLogo: (file: File) => void
 }) {
   const { t } = useTranslation('superAdmin')
   const [editing, setEditing] = useState(false)
@@ -64,15 +69,22 @@ export function OfficeRow({
 
   return (
     <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex flex-col gap-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="font-medium text-text">{office.name}</p>
-          <StatusTag domain="office" value={office.status} label={t(`status.${office.status}`)} />
+      <div className="flex items-center gap-3">
+        <OfficeLogoUploadCard
+          logoUrl={office.logoUrl}
+          isUploading={isUploadingLogo}
+          onUpload={onUploadLogo}
+        />
+        <div className="flex flex-col gap-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="font-medium text-text">{office.name}</p>
+            <StatusTag domain="office" value={office.status} label={t(`status.${office.status}`)} />
+          </div>
+          <p className="text-sm text-text-muted">
+            {office.code} · {office.city ?? '—'}
+          </p>
+          {inviteSuccess && <p className="text-sm text-success">{t('inviteOfficeAdminSuccess')}</p>}
         </div>
-        <p className="text-sm text-text-muted">
-          {office.code} · {office.city ?? '—'}
-        </p>
-        {inviteSuccess && <p className="text-sm text-success">{t('inviteOfficeAdminSuccess')}</p>}
       </div>
 
       <div className="flex flex-wrap gap-2">

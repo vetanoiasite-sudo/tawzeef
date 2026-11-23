@@ -11,4 +11,9 @@ public interface IOfficeService
     Task<ServiceResult<OfficeDto>> ActivateAsync(Guid id, CancellationToken ct = default);
     Task<ServiceResult<OfficeDto>> DeactivateAsync(Guid id, CancellationToken ct = default);
     Task<ServiceResult<OfficePlatformStatsDto>> GetStatsAsync(CancellationToken ct = default);
+
+    Task<ServiceResult<OfficeDto>> UploadLogoAsync(
+        Guid officeId, Stream content, string originalFileName, string contentType, long fileSizeBytes, CancellationToken ct = default);
+
+    Task<OfficeLogoFileDto?> GetLogoFileAsync(Guid officeId, CancellationToken ct = default);
 }

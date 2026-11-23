@@ -11,6 +11,7 @@ import {
   useDeactivateOffice,
   useOffices,
   useUpdateOffice,
+  useUploadOfficeLogo,
 } from '../api/superAdmin.queries'
 import type { CreateOfficePayload } from '../types/superAdmin.types'
 import { PageHeader } from '@/shared/ui/PageHeader'
@@ -33,6 +34,7 @@ export default function SuperAdminOfficesPage() {
   const activateOffice = useActivateOffice()
   const deactivateOffice = useDeactivateOffice()
   const inviteOfficeAdmin = useInviteOfficeUser()
+  const uploadLogo = useUploadOfficeLogo()
 
   async function handleExport() {
     setExporting(true)
@@ -116,6 +118,8 @@ export default function SuperAdminOfficesPage() {
                   : activateOffice.mutate(office.id)
               }
               onInviteAdmin={(payload) => inviteOfficeAdmin.mutate(payload)}
+              isUploadingLogo={uploadLogo.isPending && uploadLogo.variables?.id === office.id}
+              onUploadLogo={(file) => uploadLogo.mutate({ id: office.id, file })}
             />
           ))}
         </div>

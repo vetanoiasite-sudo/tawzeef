@@ -12,6 +12,9 @@ export type Office = {
   phone: string | null
   email: string | null
   status: OfficeStatusCode
+  /** A relative API path (e.g. /api/offices/{id}/logo) — null when no logo was uploaded yet.
+   * The endpoint it points to is public (AllowAnonymous), same as an employer's logo. */
+  logoUrl: string | null
 }
 
 export type CreateOfficePayload = {

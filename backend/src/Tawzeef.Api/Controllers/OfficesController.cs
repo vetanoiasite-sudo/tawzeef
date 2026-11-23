@@ -76,4 +76,30 @@ public class OfficesController(IOfficeService service) : ApiControllerBase
             ? $"\"{value.Replace("\"", "\"\"")}\""
             : value;
     }
+
+    /// <summary>No review workflow — a logo upload just replaces the previous one. Reuses
+    /// offices.edit, same as every other SuperAdmin office edit.</summary>
+    [HttpPost("{id:guid}/logo")]
+    [RequiresPermission("offices.edit")]
+    public async Task<IActionResult> UploadLogo(Guid id, IFormFile file, CancellationToken ct)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { message = "A file is required." });
+
+        await using var stream = file.OpenReadStream();
+        return Respond(await service.UploadLogoAsync(id, stream, file.FileName, file.ContentType, file.Length, ct));
+    }
+
+    /// <summary>The one file this app serves to an anonymous caller for an office — a logo is
+    /// meant for public display, not sensitive like everything else (EmploymentOffice.LogoStorageKey's
+    /// doc comment).</summary>
+    [HttpGet("{id:guid}/logo")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetLogo(Guid id, CancellationToken ct)
+    {
+        var logo = await service.GetLogoFileAsync(id, ct);
+        if (logo is null) return NotFound();
+
+        return File(logo.Content, logo.ContentType);
+    }
 }

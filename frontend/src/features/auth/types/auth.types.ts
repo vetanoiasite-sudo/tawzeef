@@ -62,4 +62,6 @@ export type PublicOffice = {
   id: string
   name: string
   city: string | null
+  /** A relative API path (e.g. /api/offices/{id}/logo) — null when no logo was uploaded yet. */
+  logoUrl: string | null
 }
