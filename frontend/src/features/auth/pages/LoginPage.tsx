@@ -35,7 +35,9 @@ export default function LoginPage() {
         // land on the role's own dashboard rather than the public homepage, so logging in
         // visibly changes the page instead of looking identical to being logged out.
         const redirect = searchParams.get('redirect')
-        void navigate(redirect?.startsWith('/') ? redirect : roleLandingPath(result.role), { replace: true })
+        void navigate(redirect?.startsWith('/') ? redirect : roleLandingPath(result.role), {
+          replace: true,
+        })
       },
     })
   }

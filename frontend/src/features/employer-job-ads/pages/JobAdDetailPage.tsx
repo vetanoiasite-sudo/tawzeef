@@ -44,7 +44,10 @@ export default function JobAdDetailPage() {
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8 sm:px-6">
-      <Link to="/employer/job-advertisements" className="text-sm font-medium text-primary hover:underline">
+      <Link
+        to="/employer/job-advertisements"
+        className="text-sm font-medium text-primary hover:underline"
+      >
         {t('backToList')}
       </Link>
 
@@ -158,7 +161,9 @@ export default function JobAdDetailPage() {
             </Link>
           </div>
 
-          {(errorMessage(submit.error) || errorMessage(close.error) || errorMessage(renew.error)) && (
+          {(errorMessage(submit.error) ||
+            errorMessage(close.error) ||
+            errorMessage(renew.error)) && (
             <p className="text-sm text-danger">
               {errorMessage(submit.error) ?? errorMessage(close.error) ?? errorMessage(renew.error)}
             </p>

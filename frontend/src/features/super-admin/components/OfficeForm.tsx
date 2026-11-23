@@ -48,8 +48,18 @@ export function OfficeForm({
     <form onSubmit={handleSubmit}>
       <Card className="flex flex-col gap-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <TextInput id="officeName" label={t('nameLabel')} value={name} onChange={(e) => setName(e.target.value)} />
-          <TextInput id="officeArName" label={t('arNameLabel')} value={arName} onChange={(e) => setArName(e.target.value)} />
+          <TextInput
+            id="officeName"
+            label={t('nameLabel')}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <TextInput
+            id="officeArName"
+            label={t('arNameLabel')}
+            value={arName}
+            onChange={(e) => setArName(e.target.value)}
+          />
         </div>
 
         <TextInput
@@ -61,10 +71,20 @@ export function OfficeForm({
           onChange={(e) => setCode(e.target.value)}
         />
 
-        <TextInput id="officeAddress" label={t('addressLabel')} value={address} onChange={(e) => setAddress(e.target.value)} />
+        <TextInput
+          id="officeAddress"
+          label={t('addressLabel')}
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+        />
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Select id="officeCity" label={t('cityLabel')} value={city} onChange={(e) => setCity(e.target.value)}>
+          <Select
+            id="officeCity"
+            label={t('cityLabel')}
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+          >
             <option value="">—</option>
             {EGYPT_GOVERNORATES.map((governorate) => (
               <option key={governorate} value={governorate}>
@@ -72,15 +92,31 @@ export function OfficeForm({
               </option>
             ))}
           </Select>
-          <TextInput id="officePhone" type="tel" label={t('phoneLabel')} value={phone} onChange={(e) => setPhone(e.target.value)} />
+          <TextInput
+            id="officePhone"
+            type="tel"
+            label={t('phoneLabel')}
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
         </div>
 
-        <TextInput id="officeEmail" type="email" label={t('emailLabel')} value={email} onChange={(e) => setEmail(e.target.value)} />
+        <TextInput
+          id="officeEmail"
+          type="email"
+          label={t('emailLabel')}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
         {error && <p className="text-sm text-danger">{error}</p>}
 
         <div className="flex gap-2">
-          <Button type="submit" variant="primary" disabled={isSubmitting || !name.trim() || (!office && !code.trim())}>
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={isSubmitting || !name.trim() || (!office && !code.trim())}
+          >
             {office ? t('saveChanges') : t('createOffice')}
           </Button>
           <Button type="button" variant="secondary" onClick={onCancel}>

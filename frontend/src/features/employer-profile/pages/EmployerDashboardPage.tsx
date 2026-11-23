@@ -27,7 +27,9 @@ export default function EmployerDashboardPage() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Card className="flex flex-col gap-3">
-          <p className="text-sm font-bold text-content-secondary">{t('employerProfile:profileStatusCard')}</p>
+          <p className="text-sm font-bold text-content-secondary">
+            {t('employerProfile:profileStatusCard')}
+          </p>
           {profileLoading || !profile ? (
             <LoadingState />
           ) : (
@@ -49,8 +51,12 @@ export default function EmployerDashboardPage() {
         </Card>
 
         <Card className="flex flex-col gap-3">
-          <p className="text-sm font-bold text-content-secondary">{t('employerProfile:activeAdsCountLabel')}</p>
-          <p className="text-3xl font-extrabold text-brand">{publishedAds?.pagination.totalCount ?? 0}</p>
+          <p className="text-sm font-bold text-content-secondary">
+            {t('employerProfile:activeAdsCountLabel')}
+          </p>
+          <p className="text-3xl font-extrabold text-brand">
+            {publishedAds?.pagination.totalCount ?? 0}
+          </p>
           <Link to="/employer/job-advertisements/new" className="self-start">
             <Button variant="secondary" size="sm">
               {t('employerProfile:createJobAdAction')}
@@ -61,7 +67,9 @@ export default function EmployerDashboardPage() {
 
       <section className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-content-primary">{t('employerProfile:myJobAdsSection')}</h2>
+          <h2 className="text-lg font-bold text-content-primary">
+            {t('employerProfile:myJobAdsSection')}
+          </h2>
           <Link to="/employer/job-advertisements">
             <Button variant="tertiary" size="sm">
               {t('employerProfile:viewAllJobAdsAction')}

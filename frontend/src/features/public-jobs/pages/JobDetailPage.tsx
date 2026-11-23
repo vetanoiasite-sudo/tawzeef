@@ -43,9 +43,15 @@ export default function JobDetailPage() {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {job.city && <span className="rounded-full bg-surface-muted px-2.5 py-1 text-xs font-medium text-text-muted">{job.city}</span>}
+          {job.city && (
+            <span className="rounded-full bg-surface-muted px-2.5 py-1 text-xs font-medium text-text-muted">
+              {job.city}
+            </span>
+          )}
           {job.category && (
-            <span className="rounded-full bg-surface-muted px-2.5 py-1 text-xs font-medium text-text-muted">{job.category}</span>
+            <span className="rounded-full bg-surface-muted px-2.5 py-1 text-xs font-medium text-text-muted">
+              {job.category}
+            </span>
           )}
           {job.employmentType && (
             <span className="rounded-full bg-surface-muted px-2.5 py-1 text-xs font-medium text-text-muted">
@@ -93,7 +99,11 @@ export default function JobDetailPage() {
           </div>
         </section>
 
-        {job.contactNote && <p className="border-t border-surface-muted pt-5 text-sm text-text-muted">{job.contactNote}</p>}
+        {job.contactNote && (
+          <p className="border-t border-surface-muted pt-5 text-sm text-text-muted">
+            {job.contactNote}
+          </p>
+        )}
 
         {!user && <p className="text-sm text-text-muted">{t('loginToApply')}</p>}
 

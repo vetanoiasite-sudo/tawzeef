@@ -96,7 +96,9 @@ export function EmployerDetailsStep({
             </option>
           ))}
         </Select>
-        {errors.officeId && <p className="text-sm text-danger">{t(errors.officeId.message ?? '')}</p>}
+        {errors.officeId && (
+          <p className="text-sm text-danger">{t(errors.officeId.message ?? '')}</p>
+        )}
       </div>
 
       {submitError && <p className="text-sm text-danger">{submitError}</p>}

@@ -980,6 +980,10 @@ namespace Tawzeef.Infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<string>("JobTitle")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
                     b.Property<string>("MobileNumber")
                         .IsRequired()
                         .HasMaxLength(30)

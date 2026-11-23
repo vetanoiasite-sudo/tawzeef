@@ -24,16 +24,20 @@ export function useInterview(applicationId: string) {
 export function useScheduleInterview(applicationId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (values: CreateInterviewValues) => interviewsAndReportsApi.scheduleInterview(applicationId, values),
-    onSuccess: (data) => queryClient.setQueryData(interviewsAndReportsKeys.interview(applicationId), data),
+    mutationFn: (values: CreateInterviewValues) =>
+      interviewsAndReportsApi.scheduleInterview(applicationId, values),
+    onSuccess: (data) =>
+      queryClient.setQueryData(interviewsAndReportsKeys.interview(applicationId), data),
   })
 }
 
 export function useUpdateInterview(applicationId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (values: UpdateInterviewValues) => interviewsAndReportsApi.updateInterview(applicationId, values),
-    onSuccess: (data) => queryClient.setQueryData(interviewsAndReportsKeys.interview(applicationId), data),
+    mutationFn: (values: UpdateInterviewValues) =>
+      interviewsAndReportsApi.updateInterview(applicationId, values),
+    onSuccess: (data) =>
+      queryClient.setQueryData(interviewsAndReportsKeys.interview(applicationId), data),
   })
 }
 
@@ -48,8 +52,10 @@ export function useInterviewReport(applicationId: string) {
 export function useCreateInterviewReport(applicationId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (values: CreateInterviewReportValues) => interviewsAndReportsApi.createInterviewReport(applicationId, values),
-    onSuccess: (data) => queryClient.setQueryData(interviewsAndReportsKeys.interviewReport(applicationId), data),
+    mutationFn: (values: CreateInterviewReportValues) =>
+      interviewsAndReportsApi.createInterviewReport(applicationId, values),
+    onSuccess: (data) =>
+      queryClient.setQueryData(interviewsAndReportsKeys.interviewReport(applicationId), data),
   })
 }
 
@@ -64,8 +70,10 @@ export function useEvaluation(applicationId: string) {
 export function useCreateEvaluation(applicationId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (values: CreateEvaluationValues) => interviewsAndReportsApi.createEvaluation(applicationId, values),
-    onSuccess: (data) => queryClient.setQueryData(interviewsAndReportsKeys.evaluation(applicationId), data),
+    mutationFn: (values: CreateEvaluationValues) =>
+      interviewsAndReportsApi.createEvaluation(applicationId, values),
+    onSuccess: (data) =>
+      queryClient.setQueryData(interviewsAndReportsKeys.evaluation(applicationId), data),
   })
 }
 
@@ -80,15 +88,18 @@ export function useHiringFollowUp(applicationId: string) {
 export function useCreateHiringFollowUp(applicationId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (hiredAt?: string) => interviewsAndReportsApi.createHiringFollowUp(applicationId, hiredAt),
-    onSuccess: (data) => queryClient.setQueryData(interviewsAndReportsKeys.hiringFollowUp(applicationId), data),
+    mutationFn: (hiredAt?: string) =>
+      interviewsAndReportsApi.createHiringFollowUp(applicationId, hiredAt),
+    onSuccess: (data) =>
+      queryClient.setQueryData(interviewsAndReportsKeys.hiringFollowUp(applicationId), data),
   })
 }
 
 export function useCompleteHiringFollowUp(applicationId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (values: CompleteHiringFollowUpValues) => interviewsAndReportsApi.completeHiringFollowUp(applicationId, values),
+    mutationFn: (values: CompleteHiringFollowUpValues) =>
+      interviewsAndReportsApi.completeHiringFollowUp(applicationId, values),
     onSuccess: (data) => {
       queryClient.setQueryData(interviewsAndReportsKeys.hiringFollowUp(applicationId), data)
       void queryClient.invalidateQueries({ queryKey: interviewsAndReportsKeys.all })

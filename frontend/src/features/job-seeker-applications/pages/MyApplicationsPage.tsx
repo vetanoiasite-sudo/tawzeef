@@ -29,9 +29,15 @@ export default function MyApplicationsPage() {
       {!isLoading && data && data.items.length > 0 && (
         <div className="flex flex-col gap-3">
           {data.items.map((row) => (
-            <Card key={row.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <Card
+              key={row.id}
+              className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+            >
               <div className="flex flex-col gap-1">
-                <Link to={`/jobs/${row.jobAdvertisementId}`} className="font-semibold text-primary hover:underline">
+                <Link
+                  to={`/jobs/${row.jobAdvertisementId}`}
+                  className="font-semibold text-primary hover:underline"
+                >
                   {row.jobTitle}
                 </Link>
                 <p className="text-sm text-text-muted">{row.employerDisplayName}</p>
@@ -41,7 +47,11 @@ export default function MyApplicationsPage() {
               </div>
               <div className="flex items-center gap-3">
                 {row.withdrawnAt ? (
-                  <StatusTag domain="applicationJobSeekerFacing" value="NotContacted" label={t('withdrawn')} />
+                  <StatusTag
+                    domain="applicationJobSeekerFacing"
+                    value="NotContacted"
+                    label={t('withdrawn')}
+                  />
                 ) : (
                   <StatusTag
                     domain="applicationJobSeekerFacing"
@@ -66,7 +76,13 @@ export default function MyApplicationsPage() {
         </div>
       )}
 
-      {data && <Pagination pageIndex={pageIndex} totalPages={data.pagination.totalPages} onChange={setPageIndex} />}
+      {data && (
+        <Pagination
+          pageIndex={pageIndex}
+          totalPages={data.pagination.totalPages}
+          onChange={setPageIndex}
+        />
+      )}
     </div>
   )
 }

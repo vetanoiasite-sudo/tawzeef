@@ -7,6 +7,7 @@ using Tawzeef.Domain.Identity;
 using Tawzeef.Infrastructure.Authentication;
 using Tawzeef.Infrastructure.Authorization;
 using Tawzeef.Infrastructure.BackgroundJobs;
+using Tawzeef.Infrastructure.CvParsing;
 using Tawzeef.Infrastructure.Notifications;
 using Tawzeef.Infrastructure.Persistence;
 using Tawzeef.Infrastructure.Storage;
@@ -41,6 +42,7 @@ public static class InfrastructureDI
         services.AddScoped<IDbInitializer, DbInitializer>();
         services.AddScoped<IPermissionChecker, PermissionChecker>();
         services.AddSingleton<IFileStorage, LocalFileStorage>();
+        services.AddSingleton<ICvParser, CvParser>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<IOtpSender, DevLogOtpSender>();
         services.AddHostedService<JobAdvertisementExpiryService>();

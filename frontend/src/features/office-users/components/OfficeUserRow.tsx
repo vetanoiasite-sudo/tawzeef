@@ -34,7 +34,11 @@ export function OfficeUserRow({
         </div>
         <div className="flex flex-col items-end gap-1 text-sm">
           <p className="text-text">{t(`role.${user.role}`)}</p>
-          <StatusTag domain="officeMembership" value={user.membershipStatus} label={t(`status.${user.membershipStatus}`)} />
+          <StatusTag
+            domain="officeMembership"
+            value={user.membershipStatus}
+            label={t(`status.${user.membershipStatus}`)}
+          />
         </div>
       </div>
 

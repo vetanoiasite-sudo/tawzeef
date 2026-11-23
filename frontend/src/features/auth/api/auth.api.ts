@@ -12,7 +12,8 @@ import type {
 } from '../types/auth.types'
 
 export const authApi = {
-  requestOtp: (payload: RequestOtpPayload) => httpClient.post<null>('/api/auth/otp/request', payload),
+  requestOtp: (payload: RequestOtpPayload) =>
+    httpClient.post<null>('/api/auth/otp/request', payload),
   verifyOtp: (payload: VerifyOtpPayload) =>
     httpClient.post<OtpVerifiedResult>('/api/auth/otp/verify', payload),
   registerJobSeeker: (payload: RegisterJobSeekerPayload) =>

@@ -165,11 +165,13 @@ function AppLayoutChrome() {
                 read — RBAC_PERMISSIONS.md §3), so this office-only queue link needs the role
                 check too, not just the permission: an Employer legitimately has the code but
                 not an OfficeId, and /api/office/hiring-follow-ups/due requires one. */}
-            {user?.role !== 'Employer' && user?.role !== 'JobSeeker' && hasPermission('hiringfollowupreports.view') && (
-              <Link to="/office/hiring-follow-ups" className={linkClassName}>
-                {t('interviewsAndReports:dueFollowUpsTitle')}
-              </Link>
-            )}
+            {user?.role !== 'Employer' &&
+              user?.role !== 'JobSeeker' &&
+              hasPermission('hiringfollowupreports.view') && (
+                <Link to="/office/hiring-follow-ups" className={linkClassName}>
+                  {t('interviewsAndReports:dueFollowUpsTitle')}
+                </Link>
+              )}
             {hasPermission('jobseekers.view') && (
               <Link to="/office/job-seekers" className={linkClassName}>
                 {t('officeJobSeekerReview:queueTitle')}
@@ -236,7 +238,10 @@ function AppLayoutChrome() {
         variant="secondary"
         size="sm"
         onClick={clearSession}
-        className={clsx(overHero && '!border-white/40 !bg-transparent !text-white hover:!border-white hover:!bg-white/10 hover:!text-white')}
+        className={clsx(
+          overHero &&
+            '!border-white/40 !bg-transparent !text-white hover:!border-white hover:!bg-white/10 hover:!text-white',
+        )}
       >
         {t('common:logout')}
       </Button>
@@ -275,7 +280,9 @@ function AppLayoutChrome() {
             </Link>
           </div>
 
-          <nav className="hidden shrink-0 items-center gap-1 lg:flex">{renderNavLinks(navLinkClasses)}</nav>
+          <nav className="hidden shrink-0 items-center gap-1 lg:flex">
+            {renderNavLinks(navLinkClasses)}
+          </nav>
 
           <div className="flex flex-1 items-center justify-end gap-2">
             <div
@@ -301,19 +308,19 @@ function AppLayoutChrome() {
               aria-expanded={menuOpen}
               className={clsx(
                 'flex size-10 shrink-0 items-center justify-center rounded-200 transition-colors duration-150 lg:hidden',
-                overHero ? 'text-white hover:bg-white/10' : 'text-content-primary hover:bg-brand-soft',
+                overHero
+                  ? 'text-white hover:bg-white/10'
+                  : 'text-content-primary hover:bg-brand-soft',
               )}
             >
               {menuOpen ? <CloseIcon /> : <MenuIcon />}
             </button>
           </div>
         </div>
-
       </header>
 
-      {/* Mobile nav drawer — slides in from the start edge (the right, in RTL) instead of
-       *  dropping down from the header, so it reads as its own panel over the page rather than
-       *  an extension of the header bar. Backdrop click, Escape, or a route change all close it. */}
+      {/* Mobile nav drawer — slides in from the end edge (the left, in RTL) matching the
+       *  menu icon position. Backdrop click, Escape, or a route change all close it. */}
       <div
         aria-hidden={!menuOpen}
         className={clsx(
@@ -327,9 +334,11 @@ function AppLayoutChrome() {
         aria-modal="true"
         aria-label="القائمة"
         className={clsx(
-          'fixed inset-y-0 start-0 z-50 flex w-[85%] max-w-[340px] flex-col bg-surface shadow-[0_0_32px_rgba(0,0,0,0.18)]',
+          'fixed inset-y-0 end-0 z-50 flex w-[85%] max-w-[340px] flex-col bg-surface shadow-[0_0_32px_rgba(0,0,0,0.18)]',
           'transition-transform duration-300 ease-out lg:hidden',
-          menuOpen ? 'translate-x-0' : 'translate-x-full',
+          menuOpen
+            ? 'translate-x-0'
+            : '-translate-x-full rtl:-translate-x-full ltr:translate-x-full',
         )}
       >
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-border-primary px-4">
@@ -383,7 +392,12 @@ function AppLayoutChrome() {
 function MenuIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path
+        d="M4 7h16M4 12h16M4 17h16"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
     </svg>
   )
 }

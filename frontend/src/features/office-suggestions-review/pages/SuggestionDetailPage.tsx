@@ -2,7 +2,10 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 import { ApiError } from '@/shared/api/types'
-import { useOfficeSuggestionDetail, useRespondToSuggestion } from '../api/officeSuggestionsReview.queries'
+import {
+  useOfficeSuggestionDetail,
+  useRespondToSuggestion,
+} from '../api/officeSuggestionsReview.queries'
 import { Card } from '@/shared/ui/Card'
 import { Button } from '@/shared/ui/Button'
 import { TextArea } from '@/shared/ui/TextInput'
@@ -36,7 +39,12 @@ export default function SuggestionDetailPage() {
 
       <Card className="flex flex-col gap-5">
         <div className="flex items-center gap-2 text-sm text-text-muted">
-          {t('columnStatus')}: <StatusTag domain="suggestion" value={suggestion.status} label={t(`status.${suggestion.status}`)} />
+          {t('columnStatus')}:{' '}
+          <StatusTag
+            domain="suggestion"
+            value={suggestion.status}
+            label={t(`status.${suggestion.status}`)}
+          />
         </div>
 
         <p className="text-text">{suggestion.content}</p>
@@ -57,7 +65,9 @@ export default function SuggestionDetailPage() {
               value={officeNotes}
               onChange={(e) => setOfficeNotes(e.target.value)}
             />
-            {errorMessage(respond.error) && <p className="text-sm text-danger">{errorMessage(respond.error)}</p>}
+            {errorMessage(respond.error) && (
+              <p className="text-sm text-danger">{errorMessage(respond.error)}</p>
+            )}
             <Button
               variant="primary"
               disabled={respond.isPending || !officeNotes.trim()}

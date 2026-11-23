@@ -1,5 +1,10 @@
 import { httpClient } from '@/shared/api/httpClient'
-import type { CreateOfficePayload, Office, OfficePlatformStats, UpdateOfficePayload } from '../types/superAdmin.types'
+import type {
+  CreateOfficePayload,
+  Office,
+  OfficePlatformStats,
+  UpdateOfficePayload,
+} from '../types/superAdmin.types'
 
 export const superAdminApi = {
   listOffices: () => httpClient.get<Office[]>('/api/offices'),

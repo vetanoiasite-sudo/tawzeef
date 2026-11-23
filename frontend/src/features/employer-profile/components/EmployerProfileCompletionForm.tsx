@@ -1,10 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { employerProfileFormSchema, type EmployerProfileFormValues } from '../schemas/employerProfile.schema'
+import {
+  employerProfileFormSchema,
+  type EmployerProfileFormValues,
+} from '../schemas/employerProfile.schema'
 import type { EmployerProfile } from '../types/employerProfile.types'
 import { TextInput } from '@/shared/ui/TextInput'
+import { Select } from '@/shared/ui/Select'
 import { Button } from '@/shared/ui/Button'
+import { EGYPT_GOVERNORATES } from '@/shared/constants/governorates'
 
 export function EmployerProfileCompletionForm({
   profile,
@@ -67,13 +72,19 @@ export function EmployerProfileCompletionForm({
           />
         </div>
 
-        <TextInput
+        <Select
           id="city"
-          type="text"
           label={t('employerProfile:cityLabel')}
           error={errors.city ? t(errors.city.message ?? '') : undefined}
           {...register('city')}
-        />
+        >
+          <option value="">—</option>
+          {EGYPT_GOVERNORATES.map((g) => (
+            <option key={g} value={g}>
+              {g}
+            </option>
+          ))}
+        </Select>
 
         <TextInput
           id="companyPhone"

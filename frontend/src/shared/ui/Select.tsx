@@ -1,10 +1,14 @@
 import clsx from 'clsx'
 import { forwardRef, type SelectHTMLAttributes } from 'react'
 
-type SelectProps = SelectHTMLAttributes<HTMLSelectElement> & { label?: string }
+type SelectProps = SelectHTMLAttributes<HTMLSelectElement> & {
+  label?: string
+  helperText?: string
+  error?: string
+}
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select(
-  { label, id, className, children, ...props },
+  { label, helperText, error, id, className, children, ...props },
   ref,
 ) {
   return (
@@ -17,14 +21,23 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
       <select
         ref={ref}
         id={id}
+        aria-invalid={error ? true : undefined}
         className={clsx(
-          'h-12 w-full rounded-200 border border-border-primary bg-surface px-3 text-[16px] text-content-primary outline-none transition-colors duration-150 hover:border-border-inactive focus:border-border-active focus:ring-2 focus:ring-brand/20',
+          'h-12 w-full rounded-200 border bg-surface px-3 text-[16px] text-content-primary outline-none transition-colors duration-150 focus:ring-2',
+          error
+            ? 'border-danger focus:border-danger focus:ring-danger/20'
+            : 'border-border-primary hover:border-border-inactive focus:border-border-active focus:ring-brand/20',
           className,
         )}
         {...props}
       >
         {children}
       </select>
+      {error ? (
+        <p className="text-[12px] font-medium text-danger">{error}</p>
+      ) : helperText ? (
+        <p className="text-[12px] text-content-tertiary">{helperText}</p>
+      ) : null}
     </div>
   )
 })

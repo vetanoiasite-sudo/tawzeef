@@ -55,7 +55,11 @@ export default function MyComplaintsPage() {
             <Card key={complaint.id} className="flex flex-col gap-2">
               <div className="flex items-center justify-between gap-2">
                 <span className="font-medium text-text">{complaint.subjectName}</span>
-                <StatusTag domain="complaint" value={complaint.status} label={t(`status.${complaint.status}`)} />
+                <StatusTag
+                  domain="complaint"
+                  value={complaint.status}
+                  label={t(`status.${complaint.status}`)}
+                />
               </div>
               <p className="text-sm text-text">{complaint.complaintText}</p>
               {complaint.resolutionNotes && (
@@ -63,7 +67,9 @@ export default function MyComplaintsPage() {
                   {t('resolutionNotesLabel')}: {complaint.resolutionNotes}
                 </p>
               )}
-              <p className="text-xs text-text-muted">{new Date(complaint.createdAt).toLocaleDateString('ar')}</p>
+              <p className="text-xs text-text-muted">
+                {new Date(complaint.createdAt).toLocaleDateString('ar')}
+              </p>
             </Card>
           ))}
         </div>

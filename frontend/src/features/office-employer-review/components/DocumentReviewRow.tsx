@@ -63,13 +63,22 @@ export function DocumentReviewRow({
         </p>
       )}
 
-      <Button variant="secondary" disabled={downloading} onClick={() => void handleDownload()} className="self-start">
+      <Button
+        variant="secondary"
+        disabled={downloading}
+        onClick={() => void handleDownload()}
+        className="self-start"
+      >
         {t('downloadAction')}
       </Button>
 
       {document.reviewStatus === 'Pending' && !showReject && (
         <div className="flex gap-2">
-          <Button disabled={isApproving} onClick={onApprove} className="bg-success hover:bg-success/90">
+          <Button
+            disabled={isApproving}
+            onClick={onApprove}
+            className="bg-success hover:bg-success/90"
+          >
             {t('approve')}
           </Button>
           <Button variant="danger" onClick={() => setShowReject(true)}>

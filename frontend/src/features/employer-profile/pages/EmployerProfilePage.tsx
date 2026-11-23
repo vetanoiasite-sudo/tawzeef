@@ -9,7 +9,10 @@ import {
   useUploadEmployerDocument,
 } from '../api/employerProfile.queries'
 import type { EmployerProfileFormValues } from '../schemas/employerProfile.schema'
-import { REQUIRED_DOCUMENT_TYPES, type EmployerDocumentTypeCode } from '../types/employerProfile.types'
+import {
+  REQUIRED_DOCUMENT_TYPES,
+  type EmployerDocumentTypeCode,
+} from '../types/employerProfile.types'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Card } from '@/shared/ui/Card'
 import { Button } from '@/shared/ui/Button'
@@ -49,7 +52,9 @@ export default function EmployerProfilePage() {
 
   const presentTypes = new Set(profile.documents.map((d) => d.documentType))
   const allDocumentsPresent = REQUIRED_DOCUMENT_TYPES.every((type) => presentTypes.has(type))
-  const canSubmit = (profile.verificationStatus === 'Draft' || profile.verificationStatus === 'Rejected') && allDocumentsPresent
+  const canSubmit =
+    (profile.verificationStatus === 'Draft' || profile.verificationStatus === 'Rejected') &&
+    allDocumentsPresent
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8 sm:px-6">
@@ -58,7 +63,11 @@ export default function EmployerProfilePage() {
       <Card className="flex flex-col gap-2">
         <div className="flex items-center gap-2 text-sm text-text-muted">
           {t('statusLabel')}:
-          <StatusTag domain="employerVerification" value={profile.verificationStatus} label={t(`status.${profile.verificationStatus}`)} />
+          <StatusTag
+            domain="employerVerification"
+            value={profile.verificationStatus}
+            label={t(`status.${profile.verificationStatus}`)}
+          />
         </div>
         <div className="flex items-center gap-2 text-sm text-text-muted">
           {t('cooperationStatusLabel')}:
@@ -89,7 +98,9 @@ export default function EmployerProfilePage() {
             submitError={errorMessage(updateProfile.error)}
             onSubmit={handleSaveProfile}
           />
-          {updateProfile.isSuccess && <p className="mt-3 text-sm text-success">{t('saveSuccess')}</p>}
+          {updateProfile.isSuccess && (
+            <p className="mt-3 text-sm text-success">{t('saveSuccess')}</p>
+          )}
         </Card>
       </section>
 
@@ -101,7 +112,11 @@ export default function EmployerProfilePage() {
             documentType={type}
             document={profile.documents.find((d) => d.documentType === type)}
             isUploading={uploadDocument.isPending}
-            error={uploadDocument.variables?.documentType === type ? errorMessage(uploadDocument.error) : undefined}
+            error={
+              uploadDocument.variables?.documentType === type
+                ? errorMessage(uploadDocument.error)
+                : undefined
+            }
             onUpload={(file) => handleUpload(type, file)}
           />
         ))}
@@ -109,14 +124,21 @@ export default function EmployerProfilePage() {
 
       {(profile.verificationStatus === 'Draft' || profile.verificationStatus === 'Rejected') && (
         <div className="flex flex-col items-start gap-2">
-          <Button disabled={!canSubmit || submitForReview.isPending} onClick={() => submitForReview.mutate()}>
+          <Button
+            disabled={!canSubmit || submitForReview.isPending}
+            onClick={() => submitForReview.mutate()}
+          >
             {t('submitForReview')}
           </Button>
-          {!allDocumentsPresent && <p className="text-sm text-text-muted">{t('submitMissingDocs')}</p>}
+          {!allDocumentsPresent && (
+            <p className="text-sm text-text-muted">{t('submitMissingDocs')}</p>
+          )}
           {errorMessage(submitForReview.error) && (
             <p className="text-sm text-danger">{errorMessage(submitForReview.error)}</p>
           )}
-          {submitForReview.isSuccess && <p className="text-sm text-success">{t('submitSuccess')}</p>}
+          {submitForReview.isSuccess && (
+            <p className="text-sm text-success">{t('submitSuccess')}</p>
+          )}
         </div>
       )}
     </div>

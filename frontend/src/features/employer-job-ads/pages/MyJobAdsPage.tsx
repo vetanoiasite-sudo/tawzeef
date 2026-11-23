@@ -43,7 +43,11 @@ export default function MyJobAdsPage() {
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <StatusTag domain="advertisement" value={row.status} label={t(`status.${row.status}`)} />
+                <StatusTag
+                  domain="advertisement"
+                  value={row.status}
+                  label={t(`status.${row.status}`)}
+                />
                 <Link to={`/employer/job-advertisements/${row.id}`}>
                   <Button variant="ghost">{t('viewAction')}</Button>
                 </Link>
@@ -53,7 +57,13 @@ export default function MyJobAdsPage() {
         </div>
       )}
 
-      {data && <Pagination pageIndex={pageIndex} totalPages={data.pagination.totalPages} onChange={setPageIndex} />}
+      {data && (
+        <Pagination
+          pageIndex={pageIndex}
+          totalPages={data.pagination.totalPages}
+          onChange={setPageIndex}
+        />
+      )}
     </div>
   )
 }

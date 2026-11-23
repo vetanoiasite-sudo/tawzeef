@@ -19,7 +19,12 @@ export function NotificationBell() {
           strokeWidth="1.6"
           strokeLinejoin="round"
         />
-        <path d="M9.5 19a2.5 2.5 0 0 0 5 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        <path
+          d="M9.5 19a2.5 2.5 0 0 0 5 0"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+        />
       </svg>
       {!!unreadCount && unreadCount > 0 && (
         <span className="absolute end-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-medium text-surface">

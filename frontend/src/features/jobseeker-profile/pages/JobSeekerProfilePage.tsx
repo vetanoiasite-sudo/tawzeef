@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ApiError } from '@/shared/api/types'
 import { DocumentUploadCard } from '../components/DocumentUploadCard'
@@ -9,7 +10,10 @@ import {
   useUploadJobSeekerDocument,
 } from '../api/jobSeekerProfile.queries'
 import type { JobSeekerProfileFormValues } from '../schemas/jobSeekerProfile.schema'
-import { REQUIRED_DOCUMENT_TYPES, type JobSeekerDocumentTypeCode } from '../types/jobSeekerProfile.types'
+import {
+  REQUIRED_DOCUMENT_TYPES,
+  type JobSeekerDocumentTypeCode,
+} from '../types/jobSeekerProfile.types'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Card } from '@/shared/ui/Card'
 import { Button } from '@/shared/ui/Button'
@@ -26,6 +30,9 @@ export default function JobSeekerProfilePage() {
   const updateProfile = useUpdateMyJobSeekerProfile()
   const uploadDocument = useUploadJobSeekerDocument()
   const submitForReview = useSubmitJobSeekerProfileForReview()
+  const [cvSuggestions, setCvSuggestions] = useState<
+    { jobTitle?: string | null; yearsOfExperience?: number | null } | undefined
+  >()
 
   if (isLoading || !profile) {
     return <LoadingState />
@@ -41,16 +48,33 @@ export default function JobSeekerProfilePage() {
       yearsOfExperience: values.yearsOfExperience ? Number(values.yearsOfExperience) : undefined,
       skills: values.skills || undefined,
       careerSummary: values.careerSummary || undefined,
+      jobTitle: values.jobTitle || undefined,
     })
   }
 
   function handleUpload(documentType: JobSeekerDocumentTypeCode, file: File) {
-    uploadDocument.mutate({ documentType, file })
+    uploadDocument.mutate(
+      { documentType, file },
+      {
+        onSuccess: (document) => {
+          if (
+            documentType === 'Cv' &&
+            (document.suggestedJobTitle || document.suggestedYearsOfExperience != null)
+          ) {
+            setCvSuggestions({
+              jobTitle: document.suggestedJobTitle,
+              yearsOfExperience: document.suggestedYearsOfExperience,
+            })
+          }
+        },
+      },
+    )
   }
 
   const presentTypes = new Set(profile.documents.map((d) => d.documentType))
   const allDocumentsPresent = REQUIRED_DOCUMENT_TYPES.every((type) => presentTypes.has(type))
-  const canSubmit = (profile.reviewStatus === 'Draft' || profile.reviewStatus === 'Rejected') && allDocumentsPresent
+  const canSubmit =
+    (profile.reviewStatus === 'Draft' || profile.reviewStatus === 'Rejected') && allDocumentsPresent
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8 sm:px-6">
@@ -59,7 +83,11 @@ export default function JobSeekerProfilePage() {
       <Card className="flex flex-col gap-1.5">
         <div className="flex items-center gap-2 text-sm text-text-muted">
           {t('statusLabel')}:
-          <StatusTag domain="jobSeekerReview" value={profile.reviewStatus} label={t(`status.${profile.reviewStatus}`)} />
+          <StatusTag
+            domain="jobSeekerReview"
+            value={profile.reviewStatus}
+            label={t(`status.${profile.reviewStatus}`)}
+          />
         </div>
         {profile.rejectionReason && (
           <p className="text-sm text-danger">
@@ -75,9 +103,12 @@ export default function JobSeekerProfilePage() {
             profile={profile}
             isSubmitting={updateProfile.isPending}
             submitError={errorMessage(updateProfile.error)}
+            cvSuggestions={cvSuggestions}
             onSubmit={handleSaveProfile}
           />
-          {updateProfile.isSuccess && <p className="mt-3 text-sm text-success">{t('saveSuccess')}</p>}
+          {updateProfile.isSuccess && (
+            <p className="mt-3 text-sm text-success">{t('saveSuccess')}</p>
+          )}
         </Card>
       </section>
 
@@ -89,7 +120,11 @@ export default function JobSeekerProfilePage() {
             documentType={type}
             document={profile.documents.find((d) => d.documentType === type)}
             isUploading={uploadDocument.isPending}
-            error={uploadDocument.variables?.documentType === type ? errorMessage(uploadDocument.error) : undefined}
+            error={
+              uploadDocument.variables?.documentType === type
+                ? errorMessage(uploadDocument.error)
+                : undefined
+            }
             onUpload={(file) => handleUpload(type, file)}
           />
         ))}
@@ -97,14 +132,21 @@ export default function JobSeekerProfilePage() {
 
       {(profile.reviewStatus === 'Draft' || profile.reviewStatus === 'Rejected') && (
         <div className="flex flex-col items-start gap-2">
-          <Button disabled={!canSubmit || submitForReview.isPending} onClick={() => submitForReview.mutate()}>
+          <Button
+            disabled={!canSubmit || submitForReview.isPending}
+            onClick={() => submitForReview.mutate()}
+          >
             {t('submitForReview')}
           </Button>
-          {!allDocumentsPresent && <p className="text-sm text-text-muted">{t('submitMissingDocs')}</p>}
+          {!allDocumentsPresent && (
+            <p className="text-sm text-text-muted">{t('submitMissingDocs')}</p>
+          )}
           {errorMessage(submitForReview.error) && (
             <p className="text-sm text-danger">{errorMessage(submitForReview.error)}</p>
           )}
-          {submitForReview.isSuccess && <p className="text-sm text-success">{t('submitSuccess')}</p>}
+          {submitForReview.isSuccess && (
+            <p className="text-sm text-success">{t('submitSuccess')}</p>
+          )}
         </div>
       )}
     </div>

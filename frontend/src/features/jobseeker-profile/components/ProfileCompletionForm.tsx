@@ -1,26 +1,39 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { jobSeekerProfileFormSchema, type JobSeekerProfileFormValues } from '../schemas/jobSeekerProfile.schema'
+import {
+  jobSeekerProfileFormSchema,
+  type JobSeekerProfileFormValues,
+} from '../schemas/jobSeekerProfile.schema'
 import type { JobSeekerProfile } from '../types/jobSeekerProfile.types'
 import { TextInput, TextArea } from '@/shared/ui/TextInput'
+import { Select } from '@/shared/ui/Select'
 import { Button } from '@/shared/ui/Button'
+import { EGYPT_GOVERNORATES } from '@/shared/constants/governorates'
 
 export function ProfileCompletionForm({
   profile,
   isSubmitting,
   submitError,
+  cvSuggestions,
   onSubmit,
 }: {
   profile: JobSeekerProfile
   isSubmitting: boolean
   submitError?: string
+  /** Right after a Cv upload returns suggestions — pre-fills jobTitle/yearsOfExperience only when
+   * those fields are currently empty, and shows a hint the job seeker can review/edit before
+   * saving. Never written to the server by this component itself. */
+  cvSuggestions?: { jobTitle?: string | null; yearsOfExperience?: number | null }
   onSubmit: (values: JobSeekerProfileFormValues) => void
 }) {
   const { t } = useTranslation(['jobSeekerProfile', 'validation'])
   const {
     register,
     handleSubmit,
+    setValue,
+    getValues,
     formState: { errors },
   } = useForm<JobSeekerProfileFormValues>({
     resolver: zodResolver(jobSeekerProfileFormSchema),
@@ -33,8 +46,29 @@ export function ProfileCompletionForm({
       yearsOfExperience: profile.yearsOfExperience?.toString() ?? '',
       skills: profile.skills ?? '',
       careerSummary: profile.careerSummary ?? '',
+      jobTitle: profile.jobTitle ?? '',
     },
   })
+
+  const [suggestedFields, setSuggestedFields] = useState<Set<'jobTitle' | 'yearsOfExperience'>>(new Set())
+
+  useEffect(() => {
+    if (!cvSuggestions) return
+    const nextSuggested = new Set<'jobTitle' | 'yearsOfExperience'>()
+
+    if (cvSuggestions.jobTitle && getValues('jobTitle') === '') {
+      setValue('jobTitle', cvSuggestions.jobTitle)
+      nextSuggested.add('jobTitle')
+    }
+    if (cvSuggestions.yearsOfExperience != null && getValues('yearsOfExperience') === '') {
+      setValue('yearsOfExperience', String(cvSuggestions.yearsOfExperience))
+      nextSuggested.add('yearsOfExperience')
+    }
+
+    if (nextSuggested.size > 0) setSuggestedFields(nextSuggested)
+    // Only react to a new cvSuggestions object identity (a fresh upload) — not to getValues/setValue.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cvSuggestions])
 
   return (
     <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-4">
@@ -47,13 +81,19 @@ export function ProfileCompletionForm({
           {...register('email')}
         />
 
-        <TextInput
+        <Select
           id="city"
-          type="text"
           label={t('jobSeekerProfile:cityLabel')}
           error={errors.city ? t(errors.city.message ?? '') : undefined}
           {...register('city')}
-        />
+        >
+          <option value="">—</option>
+          {EGYPT_GOVERNORATES.map((g) => (
+            <option key={g} value={g}>
+              {g}
+            </option>
+          ))}
+        </Select>
 
         <div className="sm:col-span-2">
           <TextInput
@@ -65,17 +105,56 @@ export function ProfileCompletionForm({
           />
         </div>
 
-        <TextInput id="dateOfBirth" type="date" label={t('jobSeekerProfile:dateOfBirthLabel')} {...register('dateOfBirth')} />
-
         <TextInput
-          id="yearsOfExperience"
-          type="number"
-          min={0}
-          max={80}
-          label={t('jobSeekerProfile:yearsOfExperienceLabel')}
-          error={errors.yearsOfExperience ? t(errors.yearsOfExperience.message ?? '') : undefined}
-          {...register('yearsOfExperience')}
+          id="dateOfBirth"
+          type="date"
+          label={t('jobSeekerProfile:dateOfBirthLabel')}
+          {...register('dateOfBirth')}
         />
+
+        <div>
+          <TextInput
+            id="yearsOfExperience"
+            type="number"
+            min={0}
+            max={80}
+            label={t('jobSeekerProfile:yearsOfExperienceLabel')}
+            error={errors.yearsOfExperience ? t(errors.yearsOfExperience.message ?? '') : undefined}
+            {...register('yearsOfExperience', {
+              onChange: () =>
+                setSuggestedFields((prev) => {
+                  if (!prev.has('yearsOfExperience')) return prev
+                  const next = new Set(prev)
+                  next.delete('yearsOfExperience')
+                  return next
+                }),
+            })}
+          />
+          {suggestedFields.has('yearsOfExperience') && (
+            <p className="mt-1 text-xs text-brand">{t('jobSeekerProfile:cvSuggestionHint')}</p>
+          )}
+        </div>
+
+        <div className="sm:col-span-2">
+          <TextInput
+            id="jobTitle"
+            type="text"
+            label={t('jobSeekerProfile:jobTitleLabel')}
+            error={errors.jobTitle ? t(errors.jobTitle.message ?? '') : undefined}
+            {...register('jobTitle', {
+              onChange: () =>
+                setSuggestedFields((prev) => {
+                  if (!prev.has('jobTitle')) return prev
+                  const next = new Set(prev)
+                  next.delete('jobTitle')
+                  return next
+                }),
+            })}
+          />
+          {suggestedFields.has('jobTitle') && (
+            <p className="mt-1 text-xs text-brand">{t('jobSeekerProfile:cvSuggestionHint')}</p>
+          )}
+        </div>
 
         <div className="sm:col-span-2">
           <TextInput

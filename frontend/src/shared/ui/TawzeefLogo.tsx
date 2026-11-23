@@ -68,10 +68,7 @@ export function TawzeefLogo({
         d="M14 10L17.5 2L21 10H19L18.5 8H16.5L16 10L14 10ZM17 6.5H18L17.5 5L17 6.5Z"
         fill="currentColor"
       />
-      <path
-        d="M26 10L25 4L24 10H22L21 2H23V6L25 2L27 6V2L29 2L28 10L26 10Z"
-        fill="currentColor"
-      />
+      <path d="M26 10L25 4L24 10H22L21 2H23V6L25 2L27 6V2L29 2L28 10L26 10Z" fill="currentColor" />
       <path d="M29 10L33 3L30 4V2H35L32 9L35 8V10L29 10Z" fill="currentColor" />
       <path
         d="M48.0091 10L48 2L53 2L52 3H50V5H53L52 6L50.0706 6L50 10L48.0091 10Z"

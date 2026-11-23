@@ -14,9 +14,20 @@ function errorMessage(error: unknown): string | undefined {
   return error instanceof ApiError ? error.messages[0] : undefined
 }
 
-const OUTCOMES: ApplicantEvaluationOutcomeCode[] = ['Suitable', 'NotSuitable', 'DidNotAttend', 'RefusedJob']
+const OUTCOMES: ApplicantEvaluationOutcomeCode[] = [
+  'Suitable',
+  'NotSuitable',
+  'DidNotAttend',
+  'RefusedJob',
+]
 
-export function EvaluationPanel({ applicationId, editable }: { applicationId: string; editable: boolean }) {
+export function EvaluationPanel({
+  applicationId,
+  editable,
+}: {
+  applicationId: string
+  editable: boolean
+}) {
   const { t } = useTranslation('interviewsAndReports')
   const { data: evaluation, error, isLoading } = useEvaluation(applicationId)
   const create = useCreateEvaluation(applicationId)
@@ -33,24 +44,43 @@ export function EvaluationPanel({ applicationId, editable }: { applicationId: st
       <Card className="flex flex-col gap-3">
         {evaluation ? (
           <div className="flex flex-wrap items-center gap-2 text-sm">
-            <StatusTag domain="applicantEvaluation" value={evaluation.outcome} label={t(`outcome.${evaluation.outcome}`)} />
+            <StatusTag
+              domain="applicantEvaluation"
+              value={evaluation.outcome}
+              label={t(`outcome.${evaluation.outcome}`)}
+            />
             {evaluation.notes && <span className="text-text-muted">— {evaluation.notes}</span>}
           </div>
         ) : (
           <p className="text-sm text-text-muted">{t('noEvaluationYet')}</p>
         )}
-        <Select value={outcome} onChange={(e) => setOutcome(e.target.value as ApplicantEvaluationOutcomeCode)}>
+        <Select
+          value={outcome}
+          onChange={(e) => setOutcome(e.target.value as ApplicantEvaluationOutcomeCode)}
+        >
           {OUTCOMES.map((o) => (
             <option key={o} value={o}>
               {t(`outcome.${o}`)}
             </option>
           ))}
         </Select>
-        <TextArea placeholder={t('notesLabel')} value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
-        <Button variant="primary" disabled={create.isPending} onClick={() => create.mutate({ outcome, notes })} className="self-start">
+        <TextArea
+          placeholder={t('notesLabel')}
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          rows={2}
+        />
+        <Button
+          variant="primary"
+          disabled={create.isPending}
+          onClick={() => create.mutate({ outcome, notes })}
+          className="self-start"
+        >
           {t('writeEvaluation')}
         </Button>
-        {errorMessage(create.error) && <p className="text-sm text-danger">{errorMessage(create.error)}</p>}
+        {errorMessage(create.error) && (
+          <p className="text-sm text-danger">{errorMessage(create.error)}</p>
+        )}
       </Card>
     )
   }
@@ -64,7 +94,11 @@ export function EvaluationPanel({ applicationId, editable }: { applicationId: st
 
   return (
     <Card className="flex flex-wrap items-center gap-2 text-sm">
-      <StatusTag domain="applicantEvaluation" value={evaluation.outcome} label={t(`outcome.${evaluation.outcome}`)} />
+      <StatusTag
+        domain="applicantEvaluation"
+        value={evaluation.outcome}
+        label={t(`outcome.${evaluation.outcome}`)}
+      />
       {evaluation.notes && <span className="text-text-muted">— {evaluation.notes}</span>}
     </Card>
   )

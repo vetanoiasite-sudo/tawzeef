@@ -34,7 +34,8 @@ export default function ComplaintDetailPage() {
     return <LoadingState />
   }
 
-  const canTriageOrResolve = complaint.status === 'UnderReview' || complaint.status === 'WaitingForInformation'
+  const canTriageOrResolve =
+    complaint.status === 'UnderReview' || complaint.status === 'WaitingForInformation'
   const canTriage = canTriageOrResolve && hasPermission('complaints.triage')
   const canResolve = canTriageOrResolve && hasPermission('complaints.resolve')
   const canDecide = hasPermission('complaints.decide')
@@ -55,10 +56,18 @@ export default function ComplaintDetailPage() {
 
         <div className="flex flex-wrap items-center gap-4 border-t border-surface-muted pt-4 text-sm">
           <span className="text-text-muted">
-            {t('columnStatus')}: <StatusTag domain="complaint" value={complaint.status} label={t(`status.${complaint.status}`)} />
+            {t('columnStatus')}:{' '}
+            <StatusTag
+              domain="complaint"
+              value={complaint.status}
+              label={t(`status.${complaint.status}`)}
+            />
           </span>
           <span className="text-text-muted">
-            {t('columnValidity')}: <span className="font-medium text-text">{t(`validity.${complaint.validityDecision}`)}</span>
+            {t('columnValidity')}:{' '}
+            <span className="font-medium text-text">
+              {t(`validity.${complaint.validityDecision}`)}
+            </span>
           </span>
         </div>
 
@@ -76,7 +85,11 @@ export default function ComplaintDetailPage() {
 
         {canTriage && (
           <div className="border-t border-surface-muted pt-4">
-            <TriageControl isSubmitting={triage.isPending} error={errorMessage(triage.error)} onDecide={(v) => triage.mutate(v)} />
+            <TriageControl
+              isSubmitting={triage.isPending}
+              error={errorMessage(triage.error)}
+              onDecide={(v) => triage.mutate(v)}
+            />
           </div>
         )}
 
@@ -105,7 +118,9 @@ export default function ComplaintDetailPage() {
             {decide.isSuccess && decide.data && (
               <p className="mt-2 text-sm text-success">
                 {t('decideSuccess', {
-                  status: t(`decideResultStatus.${decide.data.reviewStatus}`, { defaultValue: decide.data.reviewStatus }),
+                  status: t(`decideResultStatus.${decide.data.reviewStatus}`, {
+                    defaultValue: decide.data.reviewStatus,
+                  }),
                 })}
               </p>
             )}

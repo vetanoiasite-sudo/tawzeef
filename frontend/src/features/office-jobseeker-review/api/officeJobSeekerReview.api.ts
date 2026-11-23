@@ -15,8 +15,18 @@ export const officeJobSeekerReviewApi = {
     }),
   getById: (id: string) => httpClient.get<OfficeJobSeekerDetail>(`/api/office/job-seekers/${id}`),
   approveDocument: ({ profileId, documentId }: { profileId: string; documentId: string }) =>
-    httpClient.post<OfficeJobSeekerDocument>(`/api/office/job-seekers/${profileId}/documents/${documentId}/approve`),
-  rejectDocument: ({ profileId, documentId, reason }: { profileId: string; documentId: string; reason: string }) =>
+    httpClient.post<OfficeJobSeekerDocument>(
+      `/api/office/job-seekers/${profileId}/documents/${documentId}/approve`,
+    ),
+  rejectDocument: ({
+    profileId,
+    documentId,
+    reason,
+  }: {
+    profileId: string
+    documentId: string
+    reason: string
+  }) =>
     httpClient.post<OfficeJobSeekerDocument>(
       `/api/office/job-seekers/${profileId}/documents/${documentId}/reject`,
       { reason },
@@ -24,9 +34,15 @@ export const officeJobSeekerReviewApi = {
   approveProfile: (profileId: string) =>
     httpClient.post<OfficeJobSeekerDetail>(`/api/office/job-seekers/${profileId}/approve`),
   rejectProfile: ({ profileId, reason }: { profileId: string; reason: string }) =>
-    httpClient.post<OfficeJobSeekerDetail>(`/api/office/job-seekers/${profileId}/reject`, { reason }),
+    httpClient.post<OfficeJobSeekerDetail>(`/api/office/job-seekers/${profileId}/reject`, {
+      reason,
+    }),
   suspend: ({ profileId, reason }: { profileId: string; reason: string }) =>
-    httpClient.post<OfficeJobSeekerDetail>(`/api/office/job-seekers/${profileId}/suspend`, { reason }),
+    httpClient.post<OfficeJobSeekerDetail>(`/api/office/job-seekers/${profileId}/suspend`, {
+      reason,
+    }),
   reinstate: ({ profileId, reason }: { profileId: string; reason: string }) =>
-    httpClient.post<OfficeJobSeekerDetail>(`/api/office/job-seekers/${profileId}/reinstate`, { reason }),
+    httpClient.post<OfficeJobSeekerDetail>(`/api/office/job-seekers/${profileId}/reinstate`, {
+      reason,
+    }),
 }

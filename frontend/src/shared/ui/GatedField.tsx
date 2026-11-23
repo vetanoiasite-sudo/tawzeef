@@ -6,7 +6,12 @@ export function GatedField({ reason }: { reason: string }) {
     <span className="inline-flex items-center gap-1.5 text-xs text-text-muted">
       <svg viewBox="0 0 16 16" fill="none" className="size-3.5 shrink-0" aria-hidden="true">
         <rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
-        <path d="M5.5 7V4.8a2.5 2.5 0 0 1 5 0V7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+        <path
+          d="M5.5 7V4.8a2.5 2.5 0 0 1 5 0V7"
+          stroke="currentColor"
+          strokeWidth="1.3"
+          strokeLinecap="round"
+        />
       </svg>
       {reason}
     </span>

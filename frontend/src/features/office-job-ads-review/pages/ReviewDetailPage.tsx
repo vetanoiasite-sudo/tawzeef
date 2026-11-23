@@ -43,13 +43,17 @@ export default function ReviewDetailPage() {
   }
 
   const canDecide = ad.status === 'UnderReview' && hasPermission('jobadvertisements.approve')
-  const canConfirmPayment = ad.status === 'ApprovedAwaitingPayment' && hasPermission('advertisementpayments.record')
+  const canConfirmPayment =
+    ad.status === 'ApprovedAwaitingPayment' && hasPermission('advertisementpayments.record')
   const canPause = ad.status === 'Published' && hasPermission('jobadvertisements.pause')
   const canResume = ad.status === 'Paused' && hasPermission('jobadvertisements.pause')
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8 sm:px-6">
-      <Link to="/office/job-advertisements" className="text-sm font-medium text-primary hover:underline">
+      <Link
+        to="/office/job-advertisements"
+        className="text-sm font-medium text-primary hover:underline"
+      >
         {t('backToQueue')}
       </Link>
 
@@ -78,7 +82,9 @@ export default function ReviewDetailPage() {
           </div>
           <div>
             <p className="text-text-muted">{t('columnSubmittedAt')}</p>
-            <p className="text-text">{ad.submittedAt ? new Date(ad.submittedAt).toLocaleDateString('ar') : '—'}</p>
+            <p className="text-text">
+              {ad.submittedAt ? new Date(ad.submittedAt).toLocaleDateString('ar') : '—'}
+            </p>
           </div>
         </section>
 
@@ -121,7 +127,9 @@ export default function ReviewDetailPage() {
                 onCancel={() => setShowReject(false)}
               />
             )}
-            {errorMessage(approve.error) && <p className="text-sm text-danger">{errorMessage(approve.error)}</p>}
+            {errorMessage(approve.error) && (
+              <p className="text-sm text-danger">{errorMessage(approve.error)}</p>
+            )}
           </section>
         )}
 

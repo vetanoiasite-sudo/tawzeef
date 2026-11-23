@@ -14,7 +14,8 @@ import type {
 } from '../types/interviewsAndReports.types'
 
 export const interviewsAndReportsApi = {
-  getInterview: (applicationId: string) => httpClient.get<Interview>(`/api/applications/${applicationId}/interview`),
+  getInterview: (applicationId: string) =>
+    httpClient.get<Interview>(`/api/applications/${applicationId}/interview`),
   scheduleInterview: (applicationId: string, values: CreateInterviewValues) =>
     httpClient.post<Interview>(`/api/applications/${applicationId}/interview`, {
       scheduledAt: values.scheduledAt || null,
@@ -27,7 +28,8 @@ export const interviewsAndReportsApi = {
       status: values.status || null,
     }),
 
-  getInterviewReport: (applicationId: string) => httpClient.get<InterviewReport>(`/api/applications/${applicationId}/interview-report`),
+  getInterviewReport: (applicationId: string) =>
+    httpClient.get<InterviewReport>(`/api/applications/${applicationId}/interview-report`),
   createInterviewReport: (applicationId: string, values: CreateInterviewReportValues) =>
     httpClient.post<InterviewReport>(`/api/applications/${applicationId}/interview-report`, {
       attendance: values.attendance,
@@ -39,16 +41,20 @@ export const interviewsAndReportsApi = {
       notes: values.notes || null,
     }),
 
-  getEvaluation: (applicationId: string) => httpClient.get<ApplicantEvaluation>(`/api/applications/${applicationId}/evaluation`),
+  getEvaluation: (applicationId: string) =>
+    httpClient.get<ApplicantEvaluation>(`/api/applications/${applicationId}/evaluation`),
   createEvaluation: (applicationId: string, values: CreateEvaluationValues) =>
     httpClient.post<ApplicantEvaluation>(`/api/applications/${applicationId}/evaluation`, {
       outcome: values.outcome,
       notes: values.notes || null,
     }),
 
-  getHiringFollowUp: (applicationId: string) => httpClient.get<HiringFollowUp>(`/api/applications/${applicationId}/hiring-follow-up`),
+  getHiringFollowUp: (applicationId: string) =>
+    httpClient.get<HiringFollowUp>(`/api/applications/${applicationId}/hiring-follow-up`),
   createHiringFollowUp: (applicationId: string, hiredAt?: string) =>
-    httpClient.post<HiringFollowUp>(`/api/applications/${applicationId}/hiring-follow-up`, { hiredAt: hiredAt || null }),
+    httpClient.post<HiringFollowUp>(`/api/applications/${applicationId}/hiring-follow-up`, {
+      hiredAt: hiredAt || null,
+    }),
   completeHiringFollowUp: (applicationId: string, values: CompleteHiringFollowUpValues) =>
     httpClient.put<HiringFollowUp>(`/api/applications/${applicationId}/hiring-follow-up`, {
       stillEmployed: values.stillEmployed,

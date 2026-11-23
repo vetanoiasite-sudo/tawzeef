@@ -16,13 +16,22 @@ const COMPLAINT_THRESHOLD = 3
 
 type StatusFilterValue = EmployerVerificationStatusCode | 'all'
 
-const STATUS_FILTERS: StatusFilterValue[] = ['all', 'Submitted', 'UnderReview', 'Approved', 'Rejected', 'Suspended']
+const STATUS_FILTERS: StatusFilterValue[] = [
+  'all',
+  'Submitted',
+  'UnderReview',
+  'Approved',
+  'Rejected',
+  'Suspended',
+]
 
 const PAGE_SIZE = 20
 
 export default function ReviewQueuePage() {
   const { t } = useTranslation('officeEmployerReview')
-  const [verificationStatus, setVerificationStatus] = useState<EmployerVerificationStatusCode | undefined>(undefined)
+  const [verificationStatus, setVerificationStatus] = useState<
+    EmployerVerificationStatusCode | undefined
+  >(undefined)
   const [pageIndex, setPageIndex] = useState(0)
 
   const { data, isLoading } = useReviewQueue({ verificationStatus, pageIndex, pageSize: PAGE_SIZE })
@@ -59,7 +68,11 @@ export default function ReviewQueuePage() {
                   {row.city && <span className="text-sm text-text-muted">{row.city}</span>}
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
-                  <StatusTag domain="employerVerification" value={row.verificationStatus} label={t(`status.${row.verificationStatus}`)} />
+                  <StatusTag
+                    domain="employerVerification"
+                    value={row.verificationStatus}
+                    label={t(`status.${row.verificationStatus}`)}
+                  />
                   <StatusTag
                     domain="employerCooperation"
                     value={row.cooperationStatus}
@@ -68,12 +81,16 @@ export default function ReviewQueuePage() {
                   <span
                     className={clsx(
                       'text-sm font-medium',
-                      row.validComplaintCount >= COMPLAINT_THRESHOLD ? 'text-danger' : 'text-text-muted',
+                      row.validComplaintCount >= COMPLAINT_THRESHOLD
+                        ? 'text-danger'
+                        : 'text-text-muted',
                     )}
                   >
                     {t('columnComplaints')}: {row.validComplaintCount}
                   </span>
-                  <span className="text-sm text-text-muted">{new Date(row.lastUpdatedAt).toLocaleDateString('ar')}</span>
+                  <span className="text-sm text-text-muted">
+                    {new Date(row.lastUpdatedAt).toLocaleDateString('ar')}
+                  </span>
                 </div>
               </Card>
             </Link>
@@ -81,7 +98,13 @@ export default function ReviewQueuePage() {
         </div>
       )}
 
-      {data && <Pagination pageIndex={pageIndex} totalPages={data.pagination.totalPages} onChange={setPageIndex} />}
+      {data && (
+        <Pagination
+          pageIndex={pageIndex}
+          totalPages={data.pagination.totalPages}
+          onChange={setPageIndex}
+        />
+      )}
     </div>
   )
 }

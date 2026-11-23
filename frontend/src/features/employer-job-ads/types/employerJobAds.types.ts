@@ -70,10 +70,7 @@ export type JobAdQueryFilter = {
 }
 
 export type EmployerFacingStatusCode =
-  | 'NotYetContacted'
-  | 'ContactedInterviewScheduled'
-  | 'ContactedRefused'
-  | 'NoResponseAfterContact'
+  'NotYetContacted' | 'ContactedInterviewScheduled' | 'ContactedRefused' | 'NoResponseAfterContact'
 
 export type ApplicantListItem = {
   applicationId: string

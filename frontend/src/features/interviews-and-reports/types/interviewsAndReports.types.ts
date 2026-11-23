@@ -3,7 +3,8 @@
 export type InterviewStatusCode = 'Scheduled' | 'Completed' | 'Cancelled' | 'NoShow'
 export type AttendanceResultCode = 'Attended' | 'DidNotAttend'
 export type FollowUpReportStatusCode = 'PendingDue' | 'Completed' | 'Overdue'
-export type ApplicantEvaluationOutcomeCode = 'Suitable' | 'NotSuitable' | 'DidNotAttend' | 'RefusedJob'
+export type ApplicantEvaluationOutcomeCode =
+  'Suitable' | 'NotSuitable' | 'DidNotAttend' | 'RefusedJob'
 
 export type Interview = {
   id: string

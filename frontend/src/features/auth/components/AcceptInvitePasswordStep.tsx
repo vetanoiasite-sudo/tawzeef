@@ -1,7 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { acceptInvitePasswordSchema, type AcceptInvitePasswordFormValues } from '../schemas/auth.schemas'
+import {
+  acceptInvitePasswordSchema,
+  type AcceptInvitePasswordFormValues,
+} from '../schemas/auth.schemas'
 import { TextInput } from '@/shared/ui/TextInput'
 import { Button } from '@/shared/ui/Button'
 

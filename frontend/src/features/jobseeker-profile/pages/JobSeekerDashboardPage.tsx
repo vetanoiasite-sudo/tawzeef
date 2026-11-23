@@ -29,7 +29,9 @@ export default function JobSeekerDashboardPage() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Card className="flex flex-col gap-3">
-          <p className="text-sm font-bold text-content-secondary">{t('jobSeekerProfile:profileStatusCard')}</p>
+          <p className="text-sm font-bold text-content-secondary">
+            {t('jobSeekerProfile:profileStatusCard')}
+          </p>
           {profileLoading || !profile ? (
             <LoadingState />
           ) : (
@@ -51,8 +53,12 @@ export default function JobSeekerDashboardPage() {
         </Card>
 
         <Card className="flex flex-col gap-3">
-          <p className="text-sm font-bold text-content-secondary">{t('jobSeekerProfile:applicationsCountLabel')}</p>
-          <p className="text-3xl font-extrabold text-brand">{applications?.pagination.totalCount ?? 0}</p>
+          <p className="text-sm font-bold text-content-secondary">
+            {t('jobSeekerProfile:applicationsCountLabel')}
+          </p>
+          <p className="text-3xl font-extrabold text-brand">
+            {applications?.pagination.totalCount ?? 0}
+          </p>
           <Link to="/my-applications" className="self-start">
             <Button variant="secondary" size="sm">
               {t('jobSeekerProfile:viewApplicationsAction')}
@@ -63,7 +69,9 @@ export default function JobSeekerDashboardPage() {
 
       <section className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-content-primary">{t('jobSeekerProfile:latestJobsSection')}</h2>
+          <h2 className="text-lg font-bold text-content-primary">
+            {t('jobSeekerProfile:latestJobsSection')}
+          </h2>
           <Link to="/jobs">
             <Button variant="tertiary" size="sm">
               {t('jobSeekerProfile:browseAllJobsAction')}
@@ -73,7 +81,9 @@ export default function JobSeekerDashboardPage() {
 
         {jobsLoading && <LoadingState />}
 
-        {!jobsLoading && jobs && jobs.items.length === 0 && <EmptyState message={t('jobSeekerProfile:noJobsYet')} />}
+        {!jobsLoading && jobs && jobs.items.length === 0 && (
+          <EmptyState message={t('jobSeekerProfile:noJobsYet')} />
+        )}
 
         {!jobsLoading && jobs && jobs.items.length > 0 && (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">

@@ -13,7 +13,10 @@ export default function JobAdCreatePage() {
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8 sm:px-6">
-      <Link to="/employer/job-advertisements" className="text-sm font-medium text-primary hover:underline">
+      <Link
+        to="/employer/job-advertisements"
+        className="text-sm font-medium text-primary hover:underline"
+      >
         {t('backToList')}
       </Link>
       <PageHeader title={t('createAction')} />

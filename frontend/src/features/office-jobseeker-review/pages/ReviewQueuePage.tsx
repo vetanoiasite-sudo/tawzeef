@@ -16,7 +16,14 @@ const COMPLAINT_THRESHOLD = 3
 
 type StatusFilterValue = JobSeekerReviewStatusCode | 'all'
 
-const STATUS_FILTERS: StatusFilterValue[] = ['all', 'Submitted', 'UnderReview', 'Approved', 'Rejected', 'Suspended']
+const STATUS_FILTERS: StatusFilterValue[] = [
+  'all',
+  'Submitted',
+  'UnderReview',
+  'Approved',
+  'Rejected',
+  'Suspended',
+]
 
 const PAGE_SIZE = 20
 
@@ -62,16 +69,24 @@ export default function ReviewQueuePage() {
                   </span>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
-                  <StatusTag domain="jobSeekerReview" value={row.reviewStatus} label={t(`status.${row.reviewStatus}`)} />
+                  <StatusTag
+                    domain="jobSeekerReview"
+                    value={row.reviewStatus}
+                    label={t(`status.${row.reviewStatus}`)}
+                  />
                   <span
                     className={clsx(
                       'text-sm font-medium',
-                      row.validComplaintCount >= COMPLAINT_THRESHOLD ? 'text-danger' : 'text-text-muted',
+                      row.validComplaintCount >= COMPLAINT_THRESHOLD
+                        ? 'text-danger'
+                        : 'text-text-muted',
                     )}
                   >
                     {t('columnComplaints')}: {row.validComplaintCount}
                   </span>
-                  <span className="text-sm text-text-muted">{new Date(row.lastUpdatedAt).toLocaleDateString('ar')}</span>
+                  <span className="text-sm text-text-muted">
+                    {new Date(row.lastUpdatedAt).toLocaleDateString('ar')}
+                  </span>
                 </div>
               </Card>
             </Link>
@@ -79,7 +94,13 @@ export default function ReviewQueuePage() {
         </div>
       )}
 
-      {data && <Pagination pageIndex={pageIndex} totalPages={data.pagination.totalPages} onChange={setPageIndex} />}
+      {data && (
+        <Pagination
+          pageIndex={pageIndex}
+          totalPages={data.pagination.totalPages}
+          onChange={setPageIndex}
+        />
+      )}
     </div>
   )
 }

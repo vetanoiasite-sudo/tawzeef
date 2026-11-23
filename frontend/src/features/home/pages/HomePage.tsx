@@ -57,7 +57,10 @@ function TrustStats() {
   ]
 
   return (
-    <section ref={ref} className="w-full border-b border-border-primary bg-surface px-4 py-10 sm:px-8 xl:px-16 2xl:px-24">
+    <section
+      ref={ref}
+      className="w-full border-b border-border-primary bg-surface px-4 py-10 sm:px-8 xl:px-16 2xl:px-24"
+    >
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
         {stats.map((s, i) => (
           <div
@@ -121,7 +124,9 @@ function HeroSearch() {
       <div
         aria-hidden
         className="absolute inset-0 -z-10"
-        style={{ background: 'linear-gradient(180deg, rgba(0,16,24,0.72) 0%, rgba(18,24,135,0.72) 100%)' }}
+        style={{
+          background: 'linear-gradient(180deg, rgba(0,16,24,0.72) 0%, rgba(18,24,135,0.72) 100%)',
+        }}
       />
 
       <div className="flex w-full flex-1 flex-col items-center justify-center gap-6 px-4 pb-16 pt-24 text-center text-white sm:px-8 sm:pb-20 sm:pt-32 xl:px-16 2xl:px-24">
@@ -158,9 +163,7 @@ function HeroSearch() {
           {/* Open-jobs count lives inside the bar, between the city field and the
            *  submit button — like the Wuzzuf-style "X Open Jobs" badge. */}
           <span className="hidden whitespace-nowrap px-3 text-[13px] font-medium text-content-tertiary sm:inline">
-            {countQuery.isLoading
-              ? '...'
-              : `${totalOpenJobs.toLocaleString('ar-EG')} وظيفة متاحة`}
+            {countQuery.isLoading ? '...' : `${totalOpenJobs.toLocaleString('ar-EG')} وظيفة متاحة`}
           </span>
 
           <Button type="submit" variant="primary" size="lg" className="sm:min-w-[120px]">
@@ -185,7 +188,13 @@ function HeroSearch() {
 function ChevronDownIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M6 9l6 6 6-6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   )
 }
@@ -358,10 +367,14 @@ function JobCard({ job }: { job: JobListItem }) {
 
 function employmentTypeLabel(t: JobListItem['employmentType']) {
   switch (t) {
-    case 'FullTime': return 'دوام كامل'
-    case 'PartTime': return 'دوام جزئي'
-    case 'Contract': return 'عقد'
-    default: return ''
+    case 'FullTime':
+      return 'دوام كامل'
+    case 'PartTime':
+      return 'دوام جزئي'
+    case 'Contract':
+      return 'عقد'
+    default:
+      return ''
   }
 }
 
@@ -377,7 +390,10 @@ function GridSkeleton() {
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="h-28 animate-pulse rounded-300 border border-border-primary bg-surface" />
+        <div
+          key={i}
+          className="h-28 animate-pulse rounded-300 border border-border-primary bg-surface"
+        />
       ))}
     </div>
   )
@@ -404,7 +420,9 @@ function BrowseByCategory() {
               <span className="text-content-tertiary transition-colors group-hover:text-brand">
                 <CategoryIcon categoryKey={c.key} />
               </span>
-              <span className="text-[14px] font-bold text-content-primary group-hover:text-brand">{c.label}</span>
+              <span className="text-[14px] font-bold text-content-primary group-hover:text-brand">
+                {c.label}
+              </span>
             </Link>
           ))}
         </Reveal>
@@ -499,7 +517,14 @@ function SectionHeader({ title, action }: { title: string; action?: React.ReactN
 
 function SearchIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0 text-content-tertiary">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+      className="shrink-0 text-content-tertiary"
+    >
       <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.8" />
       <path d="M20 20l-3-3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
     </svg>
@@ -508,7 +533,14 @@ function SearchIcon() {
 
 function PinIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0 text-content-tertiary">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+      className="shrink-0 text-content-tertiary"
+    >
       <path
         d="M12 22s7-7.5 7-13a7 7 0 1 0-14 0c0 5.5 7 13 7 13Z"
         stroke="currentColor"
@@ -537,7 +569,12 @@ function BuildingIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
       <rect x="4" y="3" width="16" height="18" rx="1" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M8 8h2M14 8h2M8 12h2M14 12h2M8 16h2M14 16h2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path
+        d="M8 8h2M14 8h2M8 12h2M14 12h2M8 16h2M14 16h2"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
     </svg>
   )
 }
@@ -546,8 +583,18 @@ function UsersIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
       <circle cx="9" cy="8" r="3" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M3 20c0-3 2.7-5 6-5s6 2 6 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      <path d="M16 4.2a3 3 0 0 1 0 5.6M19.5 20c0-2.6-1.8-4.4-4-4.9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path
+        d="M3 20c0-3 2.7-5 6-5s6 2 6 5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M16 4.2a3 3 0 0 1 0 5.6M19.5 20c0-2.6-1.8-4.4-4-4.9"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
     </svg>
   )
 }
@@ -557,49 +604,114 @@ function UsersIcon() {
 /* -------------------------------------------------------------------------- */
 
 function CategoryIcon({ categoryKey }: { categoryKey: (typeof TOP_CATEGORIES)[number]['key'] }) {
-  const props = { width: 24, height: 24, viewBox: '0 0 24 24', fill: 'none', 'aria-hidden': true } as const
+  const props = {
+    width: 24,
+    height: 24,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    'aria-hidden': true,
+  } as const
   switch (categoryKey) {
     case 'office':
       return (
         <svg {...props}>
-          <rect x="3" y="4" width="18" height="14" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
-          <path d="M3 9h18M8 4v-.01M8 14h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          <rect
+            x="3"
+            y="4"
+            width="18"
+            height="14"
+            rx="1.5"
+            stroke="currentColor"
+            strokeWidth="1.8"
+          />
+          <path
+            d="M3 9h18M8 4v-.01M8 14h4"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+          />
         </svg>
       )
     case 'sales':
       return (
         <svg {...props}>
-          <path d="M3 17l5-5 4 4 8-9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M15 7h5v5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M3 17l5-5 4 4 8-9"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M15 7h5v5"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       )
     case 'accounting':
       return (
         <svg {...props}>
           <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
-          <path d="M9 9.5c0-1 1-1.8 3-1.8s3 .8 3 1.8-1 1.5-3 1.8-3 .8-3 1.9 1 1.8 3 1.8 3-.8 3-1.8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          <path
+            d="M9 9.5c0-1 1-1.8 3-1.8s3 .8 3 1.8-1 1.5-3 1.8-3 .8-3 1.9 1 1.8 3 1.8 3-.8 3-1.8"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+          />
         </svg>
       )
     case 'it':
       return (
         <svg {...props}>
-          <rect x="3" y="5" width="18" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
+          <rect
+            x="3"
+            y="5"
+            width="18"
+            height="12"
+            rx="1.5"
+            stroke="currentColor"
+            strokeWidth="1.8"
+          />
           <path d="M8 21h8M12 17v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
         </svg>
       )
     case 'retail':
       return (
         <svg {...props}>
-          <path d="M4 8l1.5-4h13L20 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M4 8h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-          <path d="M9 12a3 3 0 0 0 6 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          <path
+            d="M4 8l1.5-4h13L20 8"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M4 8h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8Z"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M9 12a3 3 0 0 0 6 0"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+          />
         </svg>
       )
     case 'logistics':
       return (
         <svg {...props}>
           <rect x="2" y="8" width="12" height="9" rx="1" stroke="currentColor" strokeWidth="1.8" />
-          <path d="M14 11h4l3 3v3h-7v-6Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+          <path
+            d="M14 11h4l3 3v3h-7v-6Z"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinejoin="round"
+          />
           <circle cx="6.5" cy="18.5" r="1.6" stroke="currentColor" strokeWidth="1.6" />
           <circle cx="17" cy="18.5" r="1.6" stroke="currentColor" strokeWidth="1.6" />
         </svg>
@@ -618,8 +730,18 @@ function CategoryIcon({ categoryKey }: { categoryKey: (typeof TOP_CATEGORIES)[nu
     case 'health':
       return (
         <svg {...props}>
-          <path d="M12 21s-7-4.4-9.3-9A5 5 0 0 1 12 6a5 5 0 0 1 9.3 6c-2.3 4.6-9.3 9-9.3 9Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-          <path d="M9.5 12h2M12 9.5v5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          <path
+            d="M12 21s-7-4.4-9.3-9A5 5 0 0 1 12 6a5 5 0 0 1 9.3 6c-2.3 4.6-9.3 9-9.3 9Z"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M9.5 12h2M12 9.5v5"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+          />
         </svg>
       )
     default:

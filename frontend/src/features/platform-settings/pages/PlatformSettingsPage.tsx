@@ -18,10 +18,7 @@ function SettingRow({ setting }: { setting: PlatformSetting }) {
   const label = t(`settingLabel.${setting.key}`, { defaultValue: setting.key })
 
   function handleSave() {
-    update.mutate(
-      { key: setting.key, value },
-      { onSuccess: () => setEditing(false) },
-    )
+    update.mutate({ key: setting.key, value }, { onSuccess: () => setEditing(false) })
   }
 
   return (
@@ -32,7 +29,14 @@ function SettingRow({ setting }: { setting: PlatformSetting }) {
           <p className="text-sm text-content-tertiary">{setting.description}</p>
         </div>
         {!editing && (
-          <Button variant="secondary" size="sm" onClick={() => { setValue(setting.value); setEditing(true) }}>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              setValue(setting.value)
+              setEditing(true)
+            }}
+          >
             {t('editAction')}
           </Button>
         )}
@@ -46,7 +50,12 @@ function SettingRow({ setting }: { setting: PlatformSetting }) {
           <Button size="sm" disabled={update.isPending} onClick={handleSave}>
             {t('saveAction')}
           </Button>
-          <Button variant="secondary" size="sm" disabled={update.isPending} onClick={() => setEditing(false)}>
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={update.isPending}
+            onClick={() => setEditing(false)}
+          >
             {t('cancelAction')}
           </Button>
         </div>
@@ -60,7 +69,9 @@ function SettingRow({ setting }: { setting: PlatformSetting }) {
         </p>
       )}
 
-      <p className="text-xs text-content-tertiary">{t('savedAt', { date: new Date(setting.updatedAt).toLocaleString('ar-EG') })}</p>
+      <p className="text-xs text-content-tertiary">
+        {t('savedAt', { date: new Date(setting.updatedAt).toLocaleString('ar-EG') })}
+      </p>
     </Card>
   )
 }
@@ -77,7 +88,9 @@ export default function PlatformSettingsPage() {
       <p className="text-sm text-content-tertiary">{t('pageSubtitle')}</p>
 
       <div className="flex flex-col gap-4">
-        {settings?.map((setting) => <SettingRow key={setting.key} setting={setting} />)}
+        {settings?.map((setting) => (
+          <SettingRow key={setting.key} setting={setting} />
+        ))}
         {settings?.length === 0 && (
           <Card>
             <p className="text-sm text-content-tertiary">{t('emptyState')}</p>

@@ -22,14 +22,19 @@ export default function OfficeJobAdApplicantsPage() {
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-8 sm:px-6">
-      <Link to={`/office/job-advertisements/${adId}`} className="text-sm font-medium text-primary hover:underline">
+      <Link
+        to={`/office/job-advertisements/${adId}`}
+        className="text-sm font-medium text-primary hover:underline"
+      >
         {t('backToQueue')}
       </Link>
       <PageHeader title={t('applicantsTitle')} />
 
       {isLoading && <LoadingState />}
 
-      {!isLoading && data && data.items.length === 0 && <EmptyState message={t('emptyApplicants')} />}
+      {!isLoading && data && data.items.length === 0 && (
+        <EmptyState message={t('emptyApplicants')} />
+      )}
 
       {!isLoading && data && data.items.length > 0 && (
         <div className="flex flex-col gap-3">
@@ -39,9 +44,13 @@ export default function OfficeJobAdApplicantsPage() {
                 <div>
                   <p className="font-semibold text-text">
                     {applicant.jobSeekerName}
-                    {applicant.withdrawnAt && <span className="ms-2 text-xs text-danger">({t('withdrawn')})</span>}
+                    {applicant.withdrawnAt && (
+                      <span className="ms-2 text-xs text-danger">({t('withdrawn')})</span>
+                    )}
                   </p>
-                  <p className="text-xs text-text-muted">{new Date(applicant.appliedAt).toLocaleDateString('ar')}</p>
+                  <p className="text-xs text-text-muted">
+                    {new Date(applicant.appliedAt).toLocaleDateString('ar')}
+                  </p>
                 </div>
                 <StatusTag
                   domain="applicationEmployerFacing"
@@ -63,7 +72,13 @@ export default function OfficeJobAdApplicantsPage() {
         </div>
       )}
 
-      {data && <Pagination pageIndex={pageIndex} totalPages={data.pagination.totalPages} onChange={setPageIndex} />}
+      {data && (
+        <Pagination
+          pageIndex={pageIndex}
+          totalPages={data.pagination.totalPages}
+          onChange={setPageIndex}
+        />
+      )}
     </div>
   )
 }

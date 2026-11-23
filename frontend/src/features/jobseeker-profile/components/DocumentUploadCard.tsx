@@ -40,7 +40,9 @@ export function DocumentUploadCard({
         )}
       </div>
 
-      <p className="text-sm text-text-muted">{document ? document.originalFileName : t('noFileUploaded')}</p>
+      <p className="text-sm text-text-muted">
+        {document ? document.originalFileName : t('noFileUploaded')}
+      </p>
       {document?.rejectionReason && (
         <p className="text-sm text-danger">
           {t('rejectionReasonLabel')}: {document.rejectionReason}
@@ -54,7 +56,12 @@ export function DocumentUploadCard({
         className="hidden"
         onChange={handleFileChange}
       />
-      <Button variant="secondary" disabled={isUploading} onClick={() => inputRef.current?.click()} className="self-start">
+      <Button
+        variant="secondary"
+        disabled={isUploading}
+        onClick={() => inputRef.current?.click()}
+        className="self-start"
+      >
         {document ? t('replace') : t('upload')}
       </Button>
       <p className="text-xs text-text-muted">{t('uploadHint')}</p>

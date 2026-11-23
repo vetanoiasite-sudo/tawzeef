@@ -20,8 +20,10 @@ export function useOfficeEmployerDetail(id: string) {
 export function useApproveDocument(employerId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (documentId: string) => officeEmployerReviewApi.approveDocument({ employerId, documentId }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: officeEmployerReviewKeys.detail(employerId) }),
+    mutationFn: (documentId: string) =>
+      officeEmployerReviewApi.approveDocument({ employerId, documentId }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: officeEmployerReviewKeys.detail(employerId) }),
   })
 }
 
@@ -30,7 +32,8 @@ export function useRejectDocument(employerId: string) {
   return useMutation({
     mutationFn: ({ documentId, reason }: { documentId: string; reason: string }) =>
       officeEmployerReviewApi.rejectDocument({ employerId, documentId, reason }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: officeEmployerReviewKeys.detail(employerId) }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: officeEmployerReviewKeys.detail(employerId) }),
   })
 }
 
@@ -38,7 +41,8 @@ export function useApproveProfile(employerId: string) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: () => officeEmployerReviewApi.approveProfile(employerId),
-    onSuccess: (data) => queryClient.setQueryData(officeEmployerReviewKeys.detail(employerId), data),
+    onSuccess: (data) =>
+      queryClient.setQueryData(officeEmployerReviewKeys.detail(employerId), data),
   })
 }
 
@@ -46,7 +50,8 @@ export function useRejectProfile(employerId: string) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (reason: string) => officeEmployerReviewApi.rejectProfile({ employerId, reason }),
-    onSuccess: (data) => queryClient.setQueryData(officeEmployerReviewKeys.detail(employerId), data),
+    onSuccess: (data) =>
+      queryClient.setQueryData(officeEmployerReviewKeys.detail(employerId), data),
   })
 }
 
@@ -54,14 +59,17 @@ export function useStopCooperation(employerId: string) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (reason: string) => officeEmployerReviewApi.stopCooperation({ employerId, reason }),
-    onSuccess: (data) => queryClient.setQueryData(officeEmployerReviewKeys.detail(employerId), data),
+    onSuccess: (data) =>
+      queryClient.setQueryData(officeEmployerReviewKeys.detail(employerId), data),
   })
 }
 
 export function useResumeCooperation(employerId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (reason: string) => officeEmployerReviewApi.resumeCooperation({ employerId, reason }),
-    onSuccess: (data) => queryClient.setQueryData(officeEmployerReviewKeys.detail(employerId), data),
+    mutationFn: (reason: string) =>
+      officeEmployerReviewApi.resumeCooperation({ employerId, reason }),
+    onSuccess: (data) =>
+      queryClient.setQueryData(officeEmployerReviewKeys.detail(employerId), data),
   })
 }

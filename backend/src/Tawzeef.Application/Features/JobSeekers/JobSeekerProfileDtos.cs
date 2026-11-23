@@ -10,6 +10,14 @@ public class JobSeekerDocumentDto
     public string ReviewStatus { get; set; } = string.Empty;
     public string? RejectionReason { get; set; }
     public DateTime UploadedAt { get; set; }
+
+    /// <summary>Only ever populated on the response to uploading a Cv document, and only when the
+    /// local text-heuristic parser (ICvParser) found something — never written to the profile by
+    /// the upload itself, purely a suggestion the job seeker reviews/edits in the profile form
+    /// before saving. Never a phone number or email, by construction (CvParser excludes any line
+    /// matching either pattern from every heuristic).</summary>
+    public string? SuggestedJobTitle { get; set; }
+    public byte? SuggestedYearsOfExperience { get; set; }
 }
 
 /// <summary>Mirrors JobApplications/JobApplicationDtos.cs's CvFileDto — same "stream straight
@@ -34,6 +42,7 @@ public class JobSeekerProfileDto
     public byte? YearsOfExperience { get; set; }
     public string? Skills { get; set; }
     public string? CareerSummary { get; set; }
+    public string? JobTitle { get; set; }
     public string ReviewStatus { get; set; } = string.Empty;
     public string? RejectionReason { get; set; }
     public string? SuspensionReason { get; set; }
@@ -73,4 +82,7 @@ public class UpdateJobSeekerProfileDto
 
     [MaxLength(2000)]
     public string? CareerSummary { get; set; }
+
+    [MaxLength(150)]
+    public string? JobTitle { get; set; }
 }

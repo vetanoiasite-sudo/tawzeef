@@ -1,5 +1,10 @@
 import clsx from 'clsx'
-import { forwardRef, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from 'react'
+import {
+  forwardRef,
+  type InputHTMLAttributes,
+  type ReactNode,
+  type TextareaHTMLAttributes,
+} from 'react'
 
 /** Figma Text input (component 150:3768 et al) — 48px tall, 8px radius, 1px
  * border, brand border on focus, negative token on error. */
@@ -48,7 +53,9 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(function T
           {...props}
         />
         {endIcon && (
-          <span className="absolute inset-y-0 end-3 flex items-center text-content-tertiary">{endIcon}</span>
+          <span className="absolute inset-y-0 end-3 flex items-center text-content-tertiary">
+            {endIcon}
+          </span>
         )}
       </div>
       {error ? (

@@ -1,5 +1,10 @@
 import { httpClient } from '@/shared/api/httpClient'
-import type { JobDetails, JobListItem, JobSearchFilter, PublicPlatformStats } from '../types/publicJobs.types'
+import type {
+  JobDetails,
+  JobListItem,
+  JobSearchFilter,
+  PublicPlatformStats,
+} from '../types/publicJobs.types'
 
 export const publicJobsApi = {
   search: (filter: JobSearchFilter) =>

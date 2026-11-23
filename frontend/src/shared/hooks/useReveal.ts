@@ -9,7 +9,9 @@ import { useEffect, useRef, useState } from 'react'
 export function useReveal<T extends HTMLElement>(threshold = 0.2) {
   const ref = useRef<T | null>(null)
   const [visible, setVisible] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    () =>
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   )
 
   useEffect(() => {

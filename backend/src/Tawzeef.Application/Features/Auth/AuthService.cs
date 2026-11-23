@@ -181,6 +181,7 @@ public class AuthService(
             LegalName = dto.LegalName.Trim(),
             DisplayName = dto.DisplayName.Trim(),
             RepresentativeName = user.FullName,
+            CompanyEmail = email,
             VerificationStatus = EmployerVerificationStatus.Draft,
             CooperationStatus = EmployerCooperationStatus.Active,
         };
@@ -291,6 +292,23 @@ public class AuthService(
         // Email first (JobSeeker/Employer accounts), then phone/username (OfficeAdmin/OfficeStaff/
         // SuperAdmin, which never collect an email) — see LoginDto's doc comment.
         var user = await userManager.FindByEmailAsync(identifier) ?? await userManager.FindByNameAsync(identifier);
+
+        if (user is null)
+        {
+            var emp = await uow.Repository<Employer>().FindAsync(e => e.CompanyEmail == identifier, ct: ct);
+            if (emp is not null)
+            {
+                user = await userManager.FindByIdAsync(emp.UserId.ToString());
+            }
+        }
+        if (user is null)
+        {
+            var profile = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.Email == identifier, ct: ct);
+            if (profile is not null)
+            {
+                user = await userManager.FindByIdAsync(profile.UserId.ToString());
+            }
+        }
         if (user is null || !await userManager.CheckPasswordAsync(user, dto.Password))
             return ServiceResult<AuthResultDto>.Invalid("Incorrect email/phone number or password.");
 

@@ -34,17 +34,36 @@ export default function OfficeDashboardPage() {
   const canReviewJobAds = hasPermission('jobadvertisements.review')
   const canReviewComplaints = hasPermission('complaints.view')
   const canReviewSuggestions = hasPermission('suggestions.view')
-  const canViewFollowUps = user?.role !== 'Employer' && user?.role !== 'JobSeeker' && hasPermission('hiringfollowupreports.view')
+  const canViewFollowUps =
+    user?.role !== 'Employer' &&
+    user?.role !== 'JobSeeker' &&
+    hasPermission('hiringfollowupreports.view')
 
   // Hooks can't be called conditionally, so every queue is always queried with pageSize: 1 (just
   // enough for the totalCount header) — a tile whose permission check above is false never uses
   // its result (filtered out of `tiles` below), so its request either never fires in practice
   // (React Query dedupes against the same queue page already cached from that feature's own list
   // page) or quietly 403s in the background with nothing rendered from it.
-  const pendingJobSeekers = useJobSeekerReviewQueue({ reviewStatus: 'Submitted', pageIndex: 0, pageSize: 1 })
-  const pendingEmployers = useEmployerReviewQueue({ verificationStatus: 'Submitted', pageIndex: 0, pageSize: 1 })
-  const pendingJobAds = useJobAdReviewQueue({ status: 'SubmittedForReview', pageIndex: 0, pageSize: 1 })
-  const awaitingPayment = useJobAdReviewQueue({ status: 'ApprovedAwaitingPayment', pageIndex: 0, pageSize: 1 })
+  const pendingJobSeekers = useJobSeekerReviewQueue({
+    reviewStatus: 'Submitted',
+    pageIndex: 0,
+    pageSize: 1,
+  })
+  const pendingEmployers = useEmployerReviewQueue({
+    verificationStatus: 'Submitted',
+    pageIndex: 0,
+    pageSize: 1,
+  })
+  const pendingJobAds = useJobAdReviewQueue({
+    status: 'SubmittedForReview',
+    pageIndex: 0,
+    pageSize: 1,
+  })
+  const awaitingPayment = useJobAdReviewQueue({
+    status: 'ApprovedAwaitingPayment',
+    pageIndex: 0,
+    pageSize: 1,
+  })
   const newComplaints = useComplaintQueue({ status: 'New', pageIndex: 0, pageSize: 1 })
   const newSuggestions = useSuggestionQueue({ status: 'New', pageIndex: 0, pageSize: 1 })
   const dueFollowUps = useDueFollowUps({ pageIndex: 0, pageSize: 1 })

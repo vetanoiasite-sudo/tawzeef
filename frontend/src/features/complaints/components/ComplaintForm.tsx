@@ -31,7 +31,11 @@ export function ComplaintForm({
   return (
     <form onSubmit={(e) => void handleSubmit(onSubmit)(e)}>
       <Card className="flex flex-col gap-4">
-        <Select id="subjectType" label={t('complaints:subjectTypeLabel')} {...register('subjectType')}>
+        <Select
+          id="subjectType"
+          label={t('complaints:subjectTypeLabel')}
+          {...register('subjectType')}
+        >
           <option value="JobSeeker">{t('complaints:subjectType.JobSeeker')}</option>
           <option value="Employer">{t('complaints:subjectType.Employer')}</option>
         </Select>

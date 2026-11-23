@@ -44,11 +44,15 @@ export default function OfficeUsersPage() {
         <InviteOfficeUserForm
           isSubmitting={inviteUser.isPending}
           error={errorMessage(inviteUser.error)}
-          onSubmit={(payload) => inviteUser.mutate(payload, { onSuccess: () => setShowInvite(false) })}
+          onSubmit={(payload) =>
+            inviteUser.mutate(payload, { onSuccess: () => setShowInvite(false) })
+          }
           onCancel={() => setShowInvite(false)}
         />
       )}
-      {inviteUser.isSuccess && !showInvite && <p className="text-sm text-success">{t('inviteSuccess')}</p>}
+      {inviteUser.isSuccess && !showInvite && (
+        <p className="text-sm text-success">{t('inviteSuccess')}</p>
+      )}
 
       {isLoading && <LoadingState />}
 

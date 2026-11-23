@@ -106,7 +106,9 @@ export default function JobListPage() {
         <div className="flex flex-1 flex-col gap-4">
           {isLoading && <LoadingState />}
 
-          {!isLoading && data && data.items.length === 0 && <EmptyState message={t('emptyResults')} />}
+          {!isLoading && data && data.items.length === 0 && (
+            <EmptyState message={t('emptyResults')} />
+          )}
 
           {!isLoading && data && data.items.length > 0 && (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">

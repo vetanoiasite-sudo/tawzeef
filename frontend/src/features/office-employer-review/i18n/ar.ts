@@ -53,5 +53,6 @@ export const officeEmployerReviewAr = {
   phoneLabel: 'رقم الهاتف',
   representativeLabel: 'ممثل الشركة',
   businessActivityLabel: 'النشاط التجاري',
-  complaintThresholdWarning: 'وصل عدد الشكاوى الصحيحة المؤكدة ضد هذه الشركة إلى {{count}} — راجع إمكانية اتخاذ قرار إداري.',
+  complaintThresholdWarning:
+    'وصل عدد الشكاوى الصحيحة المؤكدة ضد هذه الشركة إلى {{count}} — راجع إمكانية اتخاذ قرار إداري.',
 }

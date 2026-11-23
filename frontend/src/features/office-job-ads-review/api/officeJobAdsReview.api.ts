@@ -14,17 +14,27 @@ export const officeJobAdsReviewApi = {
       pageIndex: filter.pageIndex,
       pageSize: filter.pageSize,
     }),
-  getById: (id: string) => httpClient.get<OfficeJobAdDetail>(`/api/office/job-advertisements/${id}`),
-  approve: (id: string) => httpClient.post<OfficeJobAdDetail>(`/api/office/job-advertisements/${id}/approve`),
+  getById: (id: string) =>
+    httpClient.get<OfficeJobAdDetail>(`/api/office/job-advertisements/${id}`),
+  approve: (id: string) =>
+    httpClient.post<OfficeJobAdDetail>(`/api/office/job-advertisements/${id}/approve`),
   reject: ({ id, reason }: { id: string; reason: string }) =>
     httpClient.post<OfficeJobAdDetail>(`/api/office/job-advertisements/${id}/reject`, { reason }),
-  pause: (id: string) => httpClient.post<OfficeJobAdDetail>(`/api/office/job-advertisements/${id}/pause`),
-  resume: (id: string) => httpClient.post<OfficeJobAdDetail>(`/api/office/job-advertisements/${id}/resume`),
+  pause: (id: string) =>
+    httpClient.post<OfficeJobAdDetail>(`/api/office/job-advertisements/${id}/pause`),
+  resume: (id: string) =>
+    httpClient.post<OfficeJobAdDetail>(`/api/office/job-advertisements/${id}/resume`),
   confirmPayment: ({ id, amount, currency }: { id: string; amount: number; currency: string }) =>
-    httpClient.post<OfficeJobAdDetail>(`/api/office/job-advertisements/${id}/payment/confirm`, { amount, currency }),
-  listApplicants: (adId: string, filter: ApplicantsFilter) =>
-    httpClient.getPaged<OfficeApplicantListItem[]>(`/api/office/job-advertisements/${adId}/applicants`, {
-      pageIndex: filter.pageIndex,
-      pageSize: filter.pageSize,
+    httpClient.post<OfficeJobAdDetail>(`/api/office/job-advertisements/${id}/payment/confirm`, {
+      amount,
+      currency,
     }),
+  listApplicants: (adId: string, filter: ApplicantsFilter) =>
+    httpClient.getPaged<OfficeApplicantListItem[]>(
+      `/api/office/job-advertisements/${adId}/applicants`,
+      {
+        pageIndex: filter.pageIndex,
+        pageSize: filter.pageSize,
+      },
+    ),
 }

@@ -23,12 +23,17 @@ export default function OfficeHiringFollowUpsDuePage() {
 
       {isLoading && <LoadingState />}
 
-      {!isLoading && data && data.items.length === 0 && <EmptyState message={t('emptyDueFollowUps')} />}
+      {!isLoading && data && data.items.length === 0 && (
+        <EmptyState message={t('emptyDueFollowUps')} />
+      )}
 
       {!isLoading && data && data.items.length > 0 && (
         <div className="flex flex-col gap-3">
           {data.items.map((row) => (
-            <Card key={row.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <Card
+              key={row.id}
+              className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+            >
               <div className="flex flex-col gap-1">
                 <p className="font-semibold text-text">{row.jobSeekerName}</p>
                 <p className="text-sm text-text-muted">
@@ -40,7 +45,11 @@ export default function OfficeHiringFollowUpsDuePage() {
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <StatusTag domain="hiringFollowUp" value={row.status} label={t(`followUpStatus.${row.status}`)} />
+                <StatusTag
+                  domain="hiringFollowUp"
+                  value={row.status}
+                  label={t(`followUpStatus.${row.status}`)}
+                />
                 <Link to={`/office/applications/${row.jobApplicationId}`}>
                   <Button variant="secondary">{t('viewAction')}</Button>
                 </Link>
@@ -50,7 +59,13 @@ export default function OfficeHiringFollowUpsDuePage() {
         </div>
       )}
 
-      {data && <Pagination pageIndex={pageIndex} totalPages={data.pagination.totalPages} onChange={setPageIndex} />}
+      {data && (
+        <Pagination
+          pageIndex={pageIndex}
+          totalPages={data.pagination.totalPages}
+          onChange={setPageIndex}
+        />
+      )}
     </div>
   )
 }

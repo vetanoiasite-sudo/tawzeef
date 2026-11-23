@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ApiError } from '@/shared/api/types'
-import { useInterview, useScheduleInterview, useUpdateInterview } from '../api/interviewsAndReports.queries'
+import {
+  useInterview,
+  useScheduleInterview,
+  useUpdateInterview,
+} from '../api/interviewsAndReports.queries'
 import type { InterviewStatusCode } from '../types/interviewsAndReports.types'
 import { Card } from '@/shared/ui/Card'
 import { TextInput } from '@/shared/ui/TextInput'
@@ -13,7 +17,13 @@ function errorMessage(error: unknown): string | undefined {
   return error instanceof ApiError ? error.messages[0] : undefined
 }
 
-export function InterviewPanel({ applicationId, editable }: { applicationId: string; editable: boolean }) {
+export function InterviewPanel({
+  applicationId,
+  editable,
+}: {
+  applicationId: string
+  editable: boolean
+}) {
   const { t } = useTranslation('interviewsAndReports')
   const { data: interview, error, isLoading } = useInterview(applicationId)
   const schedule = useScheduleInterview(applicationId)
@@ -60,7 +70,9 @@ export function InterviewPanel({ applicationId, editable }: { applicationId: str
         >
           {t('scheduleInterview')}
         </Button>
-        {errorMessage(schedule.error) && <p className="text-sm text-danger">{errorMessage(schedule.error)}</p>}
+        {errorMessage(schedule.error) && (
+          <p className="text-sm text-danger">{errorMessage(schedule.error)}</p>
+        )}
       </Card>
     )
   }
@@ -68,14 +80,19 @@ export function InterviewPanel({ applicationId, editable }: { applicationId: str
   return (
     <Card className="flex flex-col gap-3 text-sm">
       <p className="text-text">
-        {t('scheduledAtLabel')}: {interview.scheduledAt ? new Date(interview.scheduledAt).toLocaleString('ar') : '—'}
+        {t('scheduledAtLabel')}:{' '}
+        {interview.scheduledAt ? new Date(interview.scheduledAt).toLocaleString('ar') : '—'}
       </p>
       <p className="text-text">
         {t('locationLabel')}: {interview.locationOrMeetingDetails ?? '—'}
       </p>
       <div className="flex items-center gap-2 text-text">
         <span>{t('interviewStatusLabel')}:</span>
-        <StatusTag domain="interview" value={interview.status} label={t(`interviewStatus.${interview.status}`)} />
+        <StatusTag
+          domain="interview"
+          value={interview.status}
+          label={t(`interviewStatus.${interview.status}`)}
+        />
       </div>
 
       {editable && interview.status === 'Scheduled' && (
@@ -85,14 +102,18 @@ export function InterviewPanel({ applicationId, editable }: { applicationId: str
               key={status}
               variant="secondary"
               disabled={update.isPending}
-              onClick={() => update.mutate({ scheduledAt: '', locationOrMeetingDetails: '', status })}
+              onClick={() =>
+                update.mutate({ scheduledAt: '', locationOrMeetingDetails: '', status })
+              }
             >
               {t(`interviewStatus.${status}`)}
             </Button>
           ))}
         </div>
       )}
-      {errorMessage(update.error) && <p className="text-sm text-danger">{errorMessage(update.error)}</p>}
+      {errorMessage(update.error) && (
+        <p className="text-sm text-danger">{errorMessage(update.error)}</p>
+      )}
     </Card>
   )
 }

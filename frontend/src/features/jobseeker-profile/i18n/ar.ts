@@ -29,6 +29,8 @@ export const jobSeekerProfileAr = {
   yearsOfExperienceLabel: 'سنوات الخبرة',
   skillsLabel: 'المهارات',
   careerSummaryLabel: 'نبذة مختصرة',
+  jobTitleLabel: 'المسمى الوظيفي',
+  cvSuggestionHint: 'مقترح من ملف الـ CV اللي رفعته — راجعه وعدّله لو محتاج قبل الحفظ',
   save: 'حفظ',
   saveSuccess: 'تم حفظ البيانات',
   documentsSection: 'المستندات المطلوبة',

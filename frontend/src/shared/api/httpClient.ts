@@ -94,11 +94,19 @@ async function request<T>(
   return envelope.data as T
 }
 
-export type PaginationMeta = { totalCount: number; pageIndex: number; pageSize: number; totalPages: number }
+export type PaginationMeta = {
+  totalCount: number
+  pageIndex: number
+  pageSize: number
+  totalPages: number
+}
 
 /** BACKEND_GUIDELINES.md §11: paged list endpoints carry their page info in an X-Pagination
  * response header instead of the ServiceResult envelope. */
-async function requestPaged<T>(path: string, query?: RequestOptions['query']): Promise<{ items: T; pagination: PaginationMeta }> {
+async function requestPaged<T>(
+  path: string,
+  query?: RequestOptions['query'],
+): Promise<{ items: T; pagination: PaginationMeta }> {
   const headers: HeadersInit = { Accept: 'application/json' }
   const token = getAuthToken()
   if (token) headers['Authorization'] = `Bearer ${token}`
@@ -117,7 +125,10 @@ async function requestPaged<T>(path: string, query?: RequestOptions['query']): P
 
   const envelope = (await response.json().catch(() => null)) as ApiEnvelope<T> | null
   if (!response.ok || !envelope?.isSuccess) {
-    throw new ApiError(errorKindFor(response.status), envelope?.errorMessages ?? ['Something went wrong.'])
+    throw new ApiError(
+      errorKindFor(response.status),
+      envelope?.errorMessages ?? ['Something went wrong.'],
+    )
   }
 
   const paginationHeader = response.headers.get('X-Pagination')
@@ -150,7 +161,10 @@ async function requestBlob(path: string): Promise<{ blob: Blob; fileName: string
 
   if (!response.ok) {
     const envelope = (await response.json().catch(() => null)) as ApiEnvelope<unknown> | null
-    throw new ApiError(errorKindFor(response.status), envelope?.errorMessages ?? ['Something went wrong.'])
+    throw new ApiError(
+      errorKindFor(response.status),
+      envelope?.errorMessages ?? ['Something went wrong.'],
+    )
   }
 
   const blob = await response.blob()

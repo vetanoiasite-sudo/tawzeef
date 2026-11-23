@@ -85,8 +85,7 @@
   /* Font families — Arabic uses Noto Kufi Arabic (per the requirement); Latin
    * uses Roboto from the Figma design system. Display headings reuse the sans
    * stack so Arabic headlines stay in Noto Kufi. */
-  --font-sans: 'Noto Kufi Arabic', 'Roboto', system-ui, 'Segoe UI', Tahoma,
-    sans-serif;
+  --font-sans: 'Noto Kufi Arabic', 'Roboto', system-ui, 'Segoe UI', Tahoma, sans-serif;
   --font-latin: 'Roboto', system-ui, 'Segoe UI', Tahoma, sans-serif;
   --font-display: 'Noto Kufi Arabic', 'Roboto', system-ui, sans-serif;
 }

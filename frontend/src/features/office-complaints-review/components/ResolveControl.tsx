@@ -34,11 +34,22 @@ export function ResolveControl({
 
       {outcome && (
         <Card className="flex flex-col gap-3">
-          <p className="text-sm text-text">{outcome === 'Resolved' ? t('resolveAsResolved') : t('resolveAsRejected')}</p>
-          <TextArea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t('resolveNotesPlaceholder')} rows={2} />
+          <p className="text-sm text-text">
+            {outcome === 'Resolved' ? t('resolveAsResolved') : t('resolveAsRejected')}
+          </p>
+          <TextArea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder={t('resolveNotesPlaceholder')}
+            rows={2}
+          />
           {error && <p className="text-sm text-danger">{error}</p>}
           <div className="flex gap-2">
-            <Button variant="primary" disabled={isSubmitting || !notes.trim()} onClick={() => onResolve(outcome, notes.trim())}>
+            <Button
+              variant="primary"
+              disabled={isSubmitting || !notes.trim()}
+              onClick={() => onResolve(outcome, notes.trim())}
+            >
               {t('confirm')}
             </Button>
             <Button variant="secondary" onClick={() => setOutcome(null)}>

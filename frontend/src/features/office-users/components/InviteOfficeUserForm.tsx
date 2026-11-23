@@ -37,7 +37,12 @@ export function InviteOfficeUserForm({
   return (
     <form onSubmit={handleSubmit}>
       <Card className="flex flex-col gap-4">
-        <TextInput id="fullName" label={t('fullNameLabel')} value={fullName} onChange={(e) => setFullName(e.target.value)} />
+        <TextInput
+          id="fullName"
+          label={t('fullNameLabel')}
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+        />
 
         <TextInput
           id="mobileNumber"
@@ -47,7 +52,12 @@ export function InviteOfficeUserForm({
           onChange={(e) => setMobileNumber(e.target.value)}
         />
 
-        <Select id="role" label={t('roleLabel')} value={role} onChange={(e) => setRole(e.target.value as OfficeUserRoleCode)}>
+        <Select
+          id="role"
+          label={t('roleLabel')}
+          value={role}
+          onChange={(e) => setRole(e.target.value as OfficeUserRoleCode)}
+        >
           <option value="OfficeStaff">{t('role.OfficeStaff')}</option>
           <option value="OfficeAdmin">{t('role.OfficeAdmin')}</option>
         </Select>
@@ -62,7 +72,11 @@ export function InviteOfficeUserForm({
         {error && <p className="text-sm text-danger">{error}</p>}
 
         <div className="flex gap-2">
-          <Button type="submit" variant="primary" disabled={isSubmitting || !fullName.trim() || !mobileNumber.trim()}>
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={isSubmitting || !fullName.trim() || !mobileNumber.trim()}
+          >
             {t('send')}
           </Button>
           <Button type="button" variant="secondary" onClick={onCancel}>

@@ -200,6 +200,7 @@ static async Task SeedDemoAsync()
 {
     const string DEMO_OFFICE_CODE = "DEMO";
     const string DEMO_EMPLOYER_PHONE = "01999999999";
+    const string DEMO_EMPLOYER_EMAIL = "employer@tawzeef.com";
     const string DEMO_EMPLOYER_PASSWORD = "Demo_1234567!";
 
     var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
@@ -218,6 +219,17 @@ static async Task SeedDemoAsync()
 
     if (await db.EmploymentOffices.AnyAsync(o => o.Code == DEMO_OFFICE_CODE))
     {
+        var existingUser = await userManager.FindByNameAsync(DEMO_EMPLOYER_PHONE);
+        if (existingUser is not null && string.IsNullOrWhiteSpace(existingUser.Email))
+        {
+            await userManager.SetEmailAsync(existingUser, DEMO_EMPLOYER_EMAIL);
+            var existingEmp = await db.Employers.FirstOrDefaultAsync(e => e.UserId == existingUser.Id);
+            if (existingEmp is not null && string.IsNullOrWhiteSpace(existingEmp.CompanyEmail))
+            {
+                existingEmp.CompanyEmail = DEMO_EMPLOYER_EMAIL;
+                await db.SaveChangesAsync();
+            }
+        }
         Console.WriteLine("Demo data already seeded — nothing to do.");
         return;
     }
@@ -243,6 +255,7 @@ static async Task SeedDemoAsync()
         UserName = DEMO_EMPLOYER_PHONE,
         PhoneNumber = DEMO_EMPLOYER_PHONE,
         PhoneNumberConfirmed = true,
+        Email = DEMO_EMPLOYER_EMAIL,
         FullName = "شركة النيل للتجارة (تجريبي)",
     };
     var createResult = await userManager.CreateAsync(employerUser, DEMO_EMPLOYER_PASSWORD);
@@ -262,6 +275,7 @@ static async Task SeedDemoAsync()
         BusinessActivity = "تجارة عامة وتوريدات",
         Address = "شارع التحرير، وسط البلد",
         City = "القاهرة",
+        CompanyEmail = DEMO_EMPLOYER_EMAIL,
         RepresentativeName = "ممثل الشركة",
         VerificationStatus = Tawzeef.Domain.Enums.EmployerVerificationStatus.Approved,
         ApprovedAt = DateTime.UtcNow,
@@ -317,7 +331,7 @@ static async Task SeedDemoAsync()
 
     Console.WriteLine($"Seeded demo data:");
     Console.WriteLine($"  office:   {office.Id}  ({office.Code} / {office.ArName})");
-    Console.WriteLine($"  employer: {employer.Id} ({employer.DisplayName}, login {DEMO_EMPLOYER_PHONE} / {DEMO_EMPLOYER_PASSWORD})");
+    Console.WriteLine($"  employer: {employer.Id} ({employer.DisplayName}, login {DEMO_EMPLOYER_EMAIL} / {DEMO_EMPLOYER_PASSWORD})");
     Console.WriteLine($"  ads:      {ads.Count} published, 15-day window");
 }
 

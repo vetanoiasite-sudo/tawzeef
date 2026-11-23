@@ -8,7 +8,13 @@ import { TawzeefLogo } from '@/shared/ui/TawzeefLogo'
  * gradients, no heavy shadows, no decorative glows. Keeps every auth screen
  * identical.
  */
-export function AuthScaffold({ children, maxWidth = 460 }: { children: ReactNode; maxWidth?: number }) {
+export function AuthScaffold({
+  children,
+  maxWidth = 460,
+}: {
+  children: ReactNode
+  maxWidth?: number
+}) {
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-content-primary">
       <div

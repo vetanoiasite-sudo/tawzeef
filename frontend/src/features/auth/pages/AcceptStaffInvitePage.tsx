@@ -12,7 +12,11 @@ import { AuthScaffold } from '../components/AuthScaffold'
 import { OtpStep } from '../components/OtpStep'
 import { PhoneStep } from '../components/PhoneStep'
 import { RegistrationStepper } from '../components/RegistrationStepper'
-import type { AcceptInvitePasswordFormValues, RequestOtpFormValues, VerifyOtpFormValues } from '../schemas/auth.schemas'
+import type {
+  AcceptInvitePasswordFormValues,
+  RequestOtpFormValues,
+  VerifyOtpFormValues,
+} from '../schemas/auth.schemas'
 
 type Step = 'phone' | 'otp' | 'details'
 

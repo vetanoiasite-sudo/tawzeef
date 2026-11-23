@@ -62,7 +62,11 @@ export function JobAdForm({
           {...register('description')}
         />
 
-        <TextInput id="category" label={t('employerJobAds:categoryLabel')} {...register('category')} />
+        <TextInput
+          id="category"
+          label={t('employerJobAds:categoryLabel')}
+          {...register('category')}
+        />
 
         {/* A governorate dropdown, not free text — public search filters by this same fixed
          *  list (frontend/src/shared/constants/governorates.ts), so a typed city name here
@@ -76,7 +80,11 @@ export function JobAdForm({
           ))}
         </Select>
 
-        <Select id="employmentType" label={t('employerJobAds:employmentTypeLabel')} {...register('employmentType')}>
+        <Select
+          id="employmentType"
+          label={t('employerJobAds:employmentTypeLabel')}
+          {...register('employmentType')}
+        >
           <option value="">—</option>
           <option value="FullTime">{t('employerJobAds:employmentType.FullTime')}</option>
           <option value="PartTime">{t('employerJobAds:employmentType.PartTime')}</option>
@@ -89,13 +97,32 @@ export function JobAdForm({
           {...register('experienceRequirement')}
         />
 
-        <TextInput id="workingHours" label={t('employerJobAds:workingHoursLabel')} {...register('workingHours')} />
+        <TextInput
+          id="workingHours"
+          label={t('employerJobAds:workingHoursLabel')}
+          {...register('workingHours')}
+        />
 
-        <TextInput id="address" label={t('employerJobAds:addressLabel')} className="sm:col-span-2" {...register('address')} />
+        <TextInput
+          id="address"
+          label={t('employerJobAds:addressLabel')}
+          className="sm:col-span-2"
+          {...register('address')}
+        />
 
-        <TextInput id="salaryMin" type="number" label={t('employerJobAds:salaryMinLabel')} {...register('salaryMin')} />
+        <TextInput
+          id="salaryMin"
+          type="number"
+          label={t('employerJobAds:salaryMinLabel')}
+          {...register('salaryMin')}
+        />
 
-        <TextInput id="salaryMax" type="number" label={t('employerJobAds:salaryMaxLabel')} {...register('salaryMax')} />
+        <TextInput
+          id="salaryMax"
+          type="number"
+          label={t('employerJobAds:salaryMaxLabel')}
+          {...register('salaryMax')}
+        />
 
         <TextInput
           id="vacancyCount"

@@ -69,7 +69,9 @@ export function useJobAdApplicants(adId: string, filter: ApplicantsFilter) {
 export function useUpdateApplicationOutcome(adId: string, filter: ApplicantsFilter) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (vars: { applicationId: string; outcome: string; notes?: string }) => employerJobAdsApi.updateOutcome(vars),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: employerJobAdsKeys.applicants(adId, filter) }),
+    mutationFn: (vars: { applicationId: string; outcome: string; notes?: string }) =>
+      employerJobAdsApi.updateOutcome(vars),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: employerJobAdsKeys.applicants(adId, filter) }),
   })
 }

@@ -6,7 +6,7 @@ using Tawzeef.Domain.Enums;
 
 namespace Tawzeef.Application.Features.JobSeekers;
 
-public class JobSeekerProfileService(IUnitOfWork uow, IFileStorage fileStorage, IConfiguration configuration) : IJobSeekerProfileService
+public class JobSeekerProfileService(IUnitOfWork uow, IFileStorage fileStorage, IConfiguration configuration, ICvParser cvParser) : IJobSeekerProfileService
 {
     // BUSINESS_REQUIREMENTS.md §5.1 Step 4 — confirmed 2026-11-18: PDF/JPG/PNG, 5 MB, configurable.
     private static readonly string[] DefaultAllowedMimeTypes = ["application/pdf", "image/jpeg", "image/png"];
@@ -34,6 +34,7 @@ public class JobSeekerProfileService(IUnitOfWork uow, IFileStorage fileStorage, 
         profile.YearsOfExperience = dto.YearsOfExperience;
         profile.Skills = dto.Skills?.Trim();
         profile.CareerSummary = dto.CareerSummary?.Trim();
+        profile.JobTitle = dto.JobTitle?.Trim();
 
         // WORKFLOWS_AND_STATE_MACHINES.md §1: editing an Approved profile automatically reverts it
         // to UnderReview — not a client choice.
@@ -74,7 +75,13 @@ public class JobSeekerProfileService(IUnitOfWork uow, IFileStorage fileStorage, 
             uow.Repository<JobSeekerDocument>().Update(old);
         }
 
-        var storageKey = await fileStorage.SaveAsync(content, originalFileName, contentType, ct);
+        // Buffered once so the same bytes can both be saved and (for a Cv) parsed for suggestions
+        // — the original stream may not be seekable/re-readable a second time.
+        using var buffer = new MemoryStream();
+        await content.CopyToAsync(buffer, ct);
+        var fileBytes = buffer.ToArray();
+
+        var storageKey = await fileStorage.SaveAsync(new MemoryStream(fileBytes), originalFileName, contentType, ct);
         var document = new JobSeekerDocument
         {
             Id = Guid.NewGuid(),
@@ -95,7 +102,17 @@ public class JobSeekerProfileService(IUnitOfWork uow, IFileStorage fileStorage, 
 
         await uow.SaveChangesAsync(ct);
 
-        return ServiceResult<JobSeekerDocumentDto>.Success(document.ToDto());
+        var dto = document.ToDto();
+        if (documentType == JobSeekerDocumentType.Cv)
+        {
+            // Suggestions only — never written to the profile here. The job seeker reviews/edits
+            // them in the profile form and saves explicitly via UpdateMyProfileAsync.
+            var suggestion = await cvParser.TryParseAsync(fileBytes, contentType, ct);
+            dto.SuggestedJobTitle = suggestion?.SuggestedJobTitle;
+            dto.SuggestedYearsOfExperience = suggestion?.SuggestedYearsOfExperience;
+        }
+
+        return ServiceResult<JobSeekerDocumentDto>.Success(dto);
     }
 
     public async Task<ServiceResult<JobSeekerProfileDto>> SubmitForReviewAsync(Guid userId, CancellationToken ct = default)

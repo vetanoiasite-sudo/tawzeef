@@ -2,7 +2,8 @@
 
 export type AuditLogTargetTypeCode = 'JobSeeker' | 'Employer'
 
-export type AuditLogDecisionTypeCode = 'Suspend' | 'Reinstate' | 'StopCooperation' | 'ResumeCooperation'
+export type AuditLogDecisionTypeCode =
+  'Suspend' | 'Reinstate' | 'StopCooperation' | 'ResumeCooperation'
 
 export type AuditLogEntry = {
   id: string

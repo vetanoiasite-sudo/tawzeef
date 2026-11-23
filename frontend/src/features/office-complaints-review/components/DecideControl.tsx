@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { ComplaintSubjectTypeCode, OfficeDecisionTypeCode } from '../types/officeComplaintReview.types'
+import type {
+  ComplaintSubjectTypeCode,
+  OfficeDecisionTypeCode,
+} from '../types/officeComplaintReview.types'
 import { Button } from '@/shared/ui/Button'
 import { TextArea } from '@/shared/ui/TextInput'
 

@@ -59,9 +59,14 @@ export function useAccess() {
   function hasPermission(permissionCode: string): boolean {
     if (!user) return false
     if (user.isSuperAdmin) return true
-    if (user.role === 'JobSeeker' && JOB_SEEKER_OWN_PERMISSIONS.includes(permissionCode)) return true
+    if (user.role === 'JobSeeker' && JOB_SEEKER_OWN_PERMISSIONS.includes(permissionCode))
+      return true
     if (user.role === 'Employer' && EMPLOYER_OWN_PERMISSIONS.includes(permissionCode)) return true
-    if ((user.role === 'JobSeeker' || user.role === 'Employer') && SHARED_OWN_PERMISSIONS.includes(permissionCode)) return true
+    if (
+      (user.role === 'JobSeeker' || user.role === 'Employer') &&
+      SHARED_OWN_PERMISSIONS.includes(permissionCode)
+    )
+      return true
     return user.permissions.includes(permissionCode)
   }
 

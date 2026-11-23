@@ -34,7 +34,8 @@ export const interviewsAndReportsAr = {
   concernsLabel: 'نقاط تحتاج اهتمام',
   recommendationLabel: 'التوصية',
   notesLabel: 'ملاحظات',
-  reportMustFollowCompletedInterview: 'يجب تحديد المقابلة كـ "تمت" أو "لم يحضر" أولًا قبل كتابة التقرير',
+  reportMustFollowCompletedInterview:
+    'يجب تحديد المقابلة كـ "تمت" أو "لم يحضر" أولًا قبل كتابة التقرير',
 
   evaluationSection: 'تقييم المتقدم',
   noEvaluationYet: 'لم يتم تقييم المتقدم بعد',

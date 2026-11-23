@@ -14,6 +14,10 @@ export type JobSeekerDocument = {
   reviewStatus: DocumentReviewStatusCode
   rejectionReason: string | null
   uploadedAt: string
+  /** Only ever set on the response right after uploading a Cv document, when the local
+   * text-heuristic parser found something — a suggestion to review/edit, never auto-saved. */
+  suggestedJobTitle?: string | null
+  suggestedYearsOfExperience?: number | null
 }
 
 export type JobSeekerProfile = {
@@ -28,6 +32,7 @@ export type JobSeekerProfile = {
   yearsOfExperience: number | null
   skills: string | null
   careerSummary: string | null
+  jobTitle: string | null
   reviewStatus: JobSeekerReviewStatusCode
   rejectionReason: string | null
   documents: JobSeekerDocument[]
@@ -42,6 +47,7 @@ export type UpdateJobSeekerProfilePayload = {
   yearsOfExperience?: number
   skills?: string
   careerSummary?: string
+  jobTitle?: string
 }
 
 /** The 3 required documents (BUSINESS_REQUIREMENTS.md §5.1 Step 4) — fixed, not server-driven. */

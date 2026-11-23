@@ -1,6 +1,7 @@
 /** Mirrors backend/src/Tawzeef.Application/Features/JobApplications/JobApplicationDtos.cs. */
 
-export type JobSeekerFacingStatusCode = 'NotContacted' | 'ContactedNotSuitable' | 'ContactedInterviewScheduled'
+export type JobSeekerFacingStatusCode =
+  'NotContacted' | 'ContactedNotSuitable' | 'ContactedInterviewScheduled'
 
 export type MyApplicationListItem = {
   id: string

@@ -1,5 +1,8 @@
 import { httpClient } from '@/shared/api/httpClient'
-import type { MyApplicationListItem, MyApplicationsFilter } from '../types/jobSeekerApplications.types'
+import type {
+  MyApplicationListItem,
+  MyApplicationsFilter,
+} from '../types/jobSeekerApplications.types'
 
 export const jobSeekerApplicationsApi = {
   apply: (jobAdvertisementId: string) =>
@@ -9,5 +12,6 @@ export const jobSeekerApplicationsApi = {
       pageIndex: filter.pageIndex,
       pageSize: filter.pageSize,
     }),
-  withdraw: (id: string) => httpClient.post<void>(`/api/job-seekers/me/applications/${id}/withdraw`),
+  withdraw: (id: string) =>
+    httpClient.post<void>(`/api/job-seekers/me/applications/${id}/withdraw`),
 }

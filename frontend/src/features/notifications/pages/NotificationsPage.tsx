@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useMarkAllNotificationsRead, useMarkNotificationRead, useMyNotifications } from '../api/notifications.queries'
+import {
+  useMarkAllNotificationsRead,
+  useMarkNotificationRead,
+  useMyNotifications,
+} from '../api/notifications.queries'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
@@ -26,7 +30,11 @@ export default function NotificationsPage() {
       <PageHeader
         title={t('pageTitle')}
         action={
-          <Button variant="secondary" disabled={markAllRead.isPending} onClick={() => markAllRead.mutate()}>
+          <Button
+            variant="secondary"
+            disabled={markAllRead.isPending}
+            onClick={() => markAllRead.mutate()}
+          >
             {t('markAllRead')}
           </Button>
         }
@@ -53,14 +61,24 @@ export default function NotificationsPage() {
           {data.items.map((n) => (
             <Card
               key={n.id}
-              className={clsx('flex items-start justify-between gap-3', !n.readAt && 'border-primary bg-primary/5')}
+              className={clsx(
+                'flex items-start justify-between gap-3',
+                !n.readAt && 'border-primary bg-primary/5',
+              )}
             >
               <div className="flex flex-col gap-1">
                 <p className="text-sm text-text">{n.message}</p>
-                <p className="text-xs text-text-muted">{new Date(n.createdAt).toLocaleString('ar')}</p>
+                <p className="text-xs text-text-muted">
+                  {new Date(n.createdAt).toLocaleString('ar')}
+                </p>
               </div>
               {!n.readAt && (
-                <Button variant="ghost" disabled={markRead.isPending} onClick={() => markRead.mutate(n.id)} className="shrink-0 px-2">
+                <Button
+                  variant="ghost"
+                  disabled={markRead.isPending}
+                  onClick={() => markRead.mutate(n.id)}
+                  className="shrink-0 px-2"
+                >
                   {t('markRead')}
                 </Button>
               )}
@@ -69,7 +87,13 @@ export default function NotificationsPage() {
         </div>
       )}
 
-      {data && <Pagination pageIndex={pageIndex} totalPages={data.pagination.totalPages} onChange={setPageIndex} />}
+      {data && (
+        <Pagination
+          pageIndex={pageIndex}
+          totalPages={data.pagination.totalPages}
+          onChange={setPageIndex}
+        />
+      )}
     </div>
   )
 }

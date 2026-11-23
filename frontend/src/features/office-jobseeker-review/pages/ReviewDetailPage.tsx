@@ -71,7 +71,11 @@ export default function ReviewDetailPage() {
       <Card className="flex flex-col gap-2">
         <div className="flex items-center gap-2 text-sm text-text-muted">
           {t('columnStatus')}:
-          <StatusTag domain="jobSeekerReview" value={profile.reviewStatus} label={t(`status.${profile.reviewStatus}`)} />
+          <StatusTag
+            domain="jobSeekerReview"
+            value={profile.reviewStatus}
+            label={t(`status.${profile.reviewStatus}`)}
+          />
         </div>
         {profile.rejectionReason && (
           <p className="text-sm text-danger">
@@ -125,7 +129,11 @@ export default function ReviewDetailPage() {
             profileId={profileId}
             isApproving={approveDocument.isPending}
             isRejecting={rejectDocument.isPending}
-            rejectError={rejectDocument.variables?.documentId === document.id ? errorMessage(rejectDocument.error) : undefined}
+            rejectError={
+              rejectDocument.variables?.documentId === document.id
+                ? errorMessage(rejectDocument.error)
+                : undefined
+            }
             onApprove={() => approveDocument.mutate(document.id)}
             onReject={(reason) => rejectDocument.mutate({ documentId: document.id, reason })}
           />
@@ -136,7 +144,11 @@ export default function ReviewDetailPage() {
         <section className="flex flex-col gap-2">
           {!showRejectProfile && (
             <div className="flex gap-2">
-              <Button disabled={approveProfile.isPending} onClick={() => approveProfile.mutate()} className="bg-success hover:bg-success/90">
+              <Button
+                disabled={approveProfile.isPending}
+                onClick={() => approveProfile.mutate()}
+                className="bg-success hover:bg-success/90"
+              >
                 {t('approveProfile')}
               </Button>
               <Button variant="danger" onClick={() => setShowRejectProfile(true)}>
@@ -156,7 +168,9 @@ export default function ReviewDetailPage() {
               onCancel={() => setShowRejectProfile(false)}
             />
           )}
-          {errorMessage(approveProfile.error) && <p className="text-sm text-danger">{errorMessage(approveProfile.error)}</p>}
+          {errorMessage(approveProfile.error) && (
+            <p className="text-sm text-danger">{errorMessage(approveProfile.error)}</p>
+          )}
         </section>
       )}
 

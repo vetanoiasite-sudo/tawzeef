@@ -11,5 +11,6 @@ export const jobSeekerProfileFormSchema = z.object({
     .refine((v) => v === '' || (/^\d+$/.test(v) && Number(v) <= 80), 'validation:invalidNumber'),
   skills: z.string().trim().max(1000, 'validation:tooLong'),
   careerSummary: z.string().trim().max(2000, 'validation:tooLong'),
+  jobTitle: z.string().trim().max(150, 'validation:tooLong'),
 })
 export type JobSeekerProfileFormValues = z.infer<typeof jobSeekerProfileFormSchema>

@@ -22,7 +22,15 @@ const DOT_CLASSES: Record<StatusTone, string> = {
  * UI_UX_GUIDELINES.md §3/§5 — the one place a status value becomes a color. Never color alone:
  * the translated label is always present too (an a11y requirement, not just a nicety).
  */
-export function StatusTag({ domain, value, label }: { domain: StatusDomain; value: string; label: string }) {
+export function StatusTag({
+  domain,
+  value,
+  label,
+}: {
+  domain: StatusDomain
+  value: string
+  label: string
+}) {
   const tone = resolveStatusTone(domain, value)
   return (
     <span
@@ -31,7 +39,10 @@ export function StatusTag({ domain, value, label }: { domain: StatusDomain; valu
         TONE_CLASSES[tone],
       )}
     >
-      <span className={clsx('size-1.5 shrink-0 rounded-full', DOT_CLASSES[tone])} aria-hidden="true" />
+      <span
+        className={clsx('size-1.5 shrink-0 rounded-full', DOT_CLASSES[tone])}
+        aria-hidden="true"
+      />
       {label}
     </span>
   )

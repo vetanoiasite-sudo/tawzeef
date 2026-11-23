@@ -12,7 +12,12 @@ import { Select } from '@/shared/ui/Select'
 
 const PAGE_SIZE = 20
 const TARGET_TYPES: AuditLogTargetTypeCode[] = ['JobSeeker', 'Employer']
-const DECISION_TYPES: AuditLogDecisionTypeCode[] = ['Suspend', 'Reinstate', 'StopCooperation', 'ResumeCooperation']
+const DECISION_TYPES: AuditLogDecisionTypeCode[] = [
+  'Suspend',
+  'Reinstate',
+  'StopCooperation',
+  'ResumeCooperation',
+]
 
 /** سجل التدقيق — a read-only viewer over OfficeDecision rows (suspend/reinstate/stop-cooperation/
  * resume-cooperation). Office staff implicitly see only their own office (the backend scopes it
@@ -24,7 +29,12 @@ export default function AuditLogPage() {
   const [decisionType, setDecisionType] = useState<AuditLogDecisionTypeCode | undefined>(undefined)
   const [pageIndex, setPageIndex] = useState(0)
 
-  const { data, isLoading } = useAuditLog({ targetType, decisionType, pageIndex, pageSize: PAGE_SIZE })
+  const { data, isLoading } = useAuditLog({
+    targetType,
+    decisionType,
+    pageIndex,
+    pageSize: PAGE_SIZE,
+  })
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-8 sm:px-6">
@@ -104,7 +114,13 @@ export default function AuditLogPage() {
         </div>
       )}
 
-      {data && <Pagination pageIndex={pageIndex} totalPages={data.pagination.totalPages} onChange={setPageIndex} />}
+      {data && (
+        <Pagination
+          pageIndex={pageIndex}
+          totalPages={data.pagination.totalPages}
+          onChange={setPageIndex}
+        />
+      )}
     </div>
   )
 }

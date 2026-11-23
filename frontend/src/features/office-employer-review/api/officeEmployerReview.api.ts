@@ -15,8 +15,18 @@ export const officeEmployerReviewApi = {
     }),
   getById: (id: string) => httpClient.get<OfficeEmployerDetail>(`/api/office/employers/${id}`),
   approveDocument: ({ employerId, documentId }: { employerId: string; documentId: string }) =>
-    httpClient.post<OfficeEmployerDocument>(`/api/office/employers/${employerId}/documents/${documentId}/approve`),
-  rejectDocument: ({ employerId, documentId, reason }: { employerId: string; documentId: string; reason: string }) =>
+    httpClient.post<OfficeEmployerDocument>(
+      `/api/office/employers/${employerId}/documents/${documentId}/approve`,
+    ),
+  rejectDocument: ({
+    employerId,
+    documentId,
+    reason,
+  }: {
+    employerId: string
+    documentId: string
+    reason: string
+  }) =>
     httpClient.post<OfficeEmployerDocument>(
       `/api/office/employers/${employerId}/documents/${documentId}/reject`,
       { reason },
@@ -26,7 +36,12 @@ export const officeEmployerReviewApi = {
   rejectProfile: ({ employerId, reason }: { employerId: string; reason: string }) =>
     httpClient.post<OfficeEmployerDetail>(`/api/office/employers/${employerId}/reject`, { reason }),
   stopCooperation: ({ employerId, reason }: { employerId: string; reason: string }) =>
-    httpClient.post<OfficeEmployerDetail>(`/api/office/employers/${employerId}/stop-cooperation`, { reason }),
+    httpClient.post<OfficeEmployerDetail>(`/api/office/employers/${employerId}/stop-cooperation`, {
+      reason,
+    }),
   resumeCooperation: ({ employerId, reason }: { employerId: string; reason: string }) =>
-    httpClient.post<OfficeEmployerDetail>(`/api/office/employers/${employerId}/resume-cooperation`, { reason }),
+    httpClient.post<OfficeEmployerDetail>(
+      `/api/office/employers/${employerId}/resume-cooperation`,
+      { reason },
+    ),
 }

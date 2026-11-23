@@ -6,9 +6,7 @@ export function AuthHeader({ title, subtitle }: { title: string; subtitle?: stri
   return (
     <div className="mb-6 flex flex-col items-center gap-1 text-center">
       <h1 className="text-[28px] font-bold leading-[32px] text-content-primary">{title}</h1>
-      {subtitle && (
-        <p className="text-[14px] leading-[20px] text-content-secondary">{subtitle}</p>
-      )}
+      {subtitle && <p className="text-[14px] leading-[20px] text-content-secondary">{subtitle}</p>}
     </div>
   )
 }

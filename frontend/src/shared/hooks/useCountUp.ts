@@ -8,7 +8,10 @@ export function useCountUp(target: number, start: boolean, durationMs = 900): nu
 
   useEffect(() => {
     if (!start) return
-    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
       setValue(target)
       return
     }

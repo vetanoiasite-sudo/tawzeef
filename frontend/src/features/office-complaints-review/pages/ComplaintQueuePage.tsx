@@ -11,7 +11,13 @@ import { LoadingState } from '@/shared/ui/LoadingState'
 import { Pagination } from '@/shared/ui/Pagination'
 import { StatusTag } from '@/shared/ui/StatusTag'
 
-const STATUS_FILTERS: (ComplaintStatusCode | 'all')[] = ['all', 'New', 'UnderReview', 'Resolved', 'Rejected']
+const STATUS_FILTERS: (ComplaintStatusCode | 'all')[] = [
+  'all',
+  'New',
+  'UnderReview',
+  'Resolved',
+  'Rejected',
+]
 
 const PAGE_SIZE = 20
 
@@ -36,7 +42,10 @@ export default function ComplaintQueuePage() {
       <PageHeader title={t('queueTitle')} />
 
       <FilterChips
-        options={STATUS_FILTERS.map((s) => ({ value: s, label: s === 'all' ? t('filterAll') : t(`status.${s}`) }))}
+        options={STATUS_FILTERS.map((s) => ({
+          value: s,
+          label: s === 'all' ? t('filterAll') : t(`status.${s}`),
+        }))}
         value={status}
         onChange={handleFilterChange}
       />
@@ -51,12 +60,23 @@ export default function ComplaintQueuePage() {
             <Card key={row.id} className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-col gap-1">
                 <span className="font-medium text-text">{row.subjectName}</span>
-                <span className="text-xs text-text-muted">{new Date(row.createdAt).toLocaleDateString('ar')}</span>
+                <span className="text-xs text-text-muted">
+                  {new Date(row.createdAt).toLocaleDateString('ar')}
+                </span>
               </div>
               <div className="flex flex-wrap items-center gap-3">
-                <StatusTag domain="complaint" value={row.status} label={t(`status.${row.status}`)} />
-                <span className="text-sm text-text-muted">{t(`validity.${row.validityDecision}`)}</span>
-                <Link to={`/office/complaints/${row.id}`} className="text-sm font-medium text-primary hover:underline">
+                <StatusTag
+                  domain="complaint"
+                  value={row.status}
+                  label={t(`status.${row.status}`)}
+                />
+                <span className="text-sm text-text-muted">
+                  {t(`validity.${row.validityDecision}`)}
+                </span>
+                <Link
+                  to={`/office/complaints/${row.id}`}
+                  className="text-sm font-medium text-primary hover:underline"
+                >
                   {t('viewAction')}
                 </Link>
               </div>
@@ -65,7 +85,13 @@ export default function ComplaintQueuePage() {
         </div>
       )}
 
-      {data && <Pagination pageIndex={pageIndex} totalPages={data.pagination.totalPages} onChange={setPageIndex} />}
+      {data && (
+        <Pagination
+          pageIndex={pageIndex}
+          totalPages={data.pagination.totalPages}
+          onChange={setPageIndex}
+        />
+      )}
     </div>
   )
 }

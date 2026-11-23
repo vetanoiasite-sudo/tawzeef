@@ -19,6 +19,7 @@ public class JobSeekerProfileConfiguration : IEntityTypeConfiguration<JobSeekerP
         b.Property(x => x.Education).HasMaxLength(200);
         b.Property(x => x.Skills).HasMaxLength(1000);
         b.Property(x => x.CareerSummary).HasMaxLength(2000);
+        b.Property(x => x.JobTitle).HasMaxLength(150);
         b.Property(x => x.RejectionReason).HasMaxLength(500);
         b.Property(x => x.SuspensionReason).HasMaxLength(500);
 

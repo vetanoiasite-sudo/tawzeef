@@ -51,5 +51,6 @@ export const officeJobSeekerReviewAr = {
   yearsOfExperienceLabel: 'سنوات الخبرة',
   skillsLabel: 'المهارات',
   careerSummaryLabel: 'نبذة مختصرة',
-  complaintThresholdWarning: 'وصل عدد الشكاوى الصحيحة المؤكدة ضد هذا الباحث إلى {{count}} — راجع إمكانية اتخاذ قرار إداري.',
+  complaintThresholdWarning:
+    'وصل عدد الشكاوى الصحيحة المؤكدة ضد هذا الباحث إلى {{count}} — راجع إمكانية اتخاذ قرار إداري.',
 }

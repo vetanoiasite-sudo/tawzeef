@@ -13,7 +13,13 @@ function errorMessage(error: unknown): string | undefined {
   return error instanceof ApiError ? error.messages[0] : undefined
 }
 
-export function InterviewReportPanel({ applicationId, editable }: { applicationId: string; editable: boolean }) {
+export function InterviewReportPanel({
+  applicationId,
+  editable,
+}: {
+  applicationId: string
+  editable: boolean
+}) {
   const { t } = useTranslation('interviewsAndReports')
   const { data: report, error, isLoading } = useInterviewReport(applicationId)
   const create = useCreateInterviewReport(applicationId)
@@ -39,7 +45,10 @@ export function InterviewReportPanel({ applicationId, editable }: { applicationI
     return (
       <Card className="flex flex-col gap-3">
         <p className="text-sm text-text-muted">{t('noReportYet')}</p>
-        <Select value={attendance} onChange={(e) => setAttendance(e.target.value as AttendanceResultCode)}>
+        <Select
+          value={attendance}
+          onChange={(e) => setAttendance(e.target.value as AttendanceResultCode)}
+        >
           <option value="Attended">{t('attendance.Attended')}</option>
           <option value="DidNotAttend">{t('attendance.DidNotAttend')}</option>
         </Select>
@@ -67,7 +76,12 @@ export function InterviewReportPanel({ applicationId, editable }: { applicationI
           onChange={(e) => setRecommendation(e.target.value)}
           rows={2}
         />
-        <TextArea placeholder={t('notesLabel')} value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
+        <TextArea
+          placeholder={t('notesLabel')}
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          rows={2}
+        />
         <Button
           variant="primary"
           disabled={create.isPending}
@@ -86,7 +100,9 @@ export function InterviewReportPanel({ applicationId, editable }: { applicationI
         >
           {t('writeReport')}
         </Button>
-        {errorMessage(create.error) && <p className="text-sm text-danger">{errorMessage(create.error)}</p>}
+        {errorMessage(create.error) && (
+          <p className="text-sm text-danger">{errorMessage(create.error)}</p>
+        )}
       </Card>
     )
   }
@@ -96,11 +112,31 @@ export function InterviewReportPanel({ applicationId, editable }: { applicationI
       <p className="text-text">
         {t('attendanceLabel')}: {t(`attendance.${report.attendance}`)}
       </p>
-      {report.interviewResult && <p className="text-text">{t('interviewResultLabel')}: {report.interviewResult}</p>}
-      {report.strengths && <p className="text-text">{t('strengthsLabel')}: {report.strengths}</p>}
-      {report.concerns && <p className="text-text">{t('concernsLabel')}: {report.concerns}</p>}
-      {report.recommendation && <p className="text-text">{t('recommendationLabel')}: {report.recommendation}</p>}
-      {report.notes && <p className="text-text">{t('notesLabel')}: {report.notes}</p>}
+      {report.interviewResult && (
+        <p className="text-text">
+          {t('interviewResultLabel')}: {report.interviewResult}
+        </p>
+      )}
+      {report.strengths && (
+        <p className="text-text">
+          {t('strengthsLabel')}: {report.strengths}
+        </p>
+      )}
+      {report.concerns && (
+        <p className="text-text">
+          {t('concernsLabel')}: {report.concerns}
+        </p>
+      )}
+      {report.recommendation && (
+        <p className="text-text">
+          {t('recommendationLabel')}: {report.recommendation}
+        </p>
+      )}
+      {report.notes && (
+        <p className="text-text">
+          {t('notesLabel')}: {report.notes}
+        </p>
+      )}
     </Card>
   )
 }

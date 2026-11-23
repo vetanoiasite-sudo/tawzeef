@@ -7,7 +7,8 @@ export type ComplaintStatusCode =
 
 export type ComplaintValidityDecisionCode = 'Pending' | 'Valid' | 'Invalid'
 
-export type OfficeDecisionTypeCode = 'Suspend' | 'Reinstate' | 'StopCooperation' | 'ResumeCooperation'
+export type OfficeDecisionTypeCode =
+  'Suspend' | 'Reinstate' | 'StopCooperation' | 'ResumeCooperation'
 
 export type OfficeComplaint = {
   id: string

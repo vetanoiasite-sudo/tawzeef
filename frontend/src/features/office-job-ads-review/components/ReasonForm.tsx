@@ -29,7 +29,11 @@ export function ReasonForm({
       />
       {error && <p className="text-sm text-danger">{error}</p>}
       <div className="flex gap-2">
-        <Button variant="danger" disabled={isSubmitting || !reason.trim()} onClick={() => onConfirm(reason.trim())}>
+        <Button
+          variant="danger"
+          disabled={isSubmitting || !reason.trim()}
+          onClick={() => onConfirm(reason.trim())}
+        >
           {confirmLabel}
         </Button>
         <Button variant="secondary" onClick={onCancel}>

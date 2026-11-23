@@ -37,8 +37,16 @@ export default function MySuggestionsPage() {
 
       {showForm && (
         <Card className="flex flex-col gap-3">
-          <TextArea id="content" rows={4} label={t('contentLabel')} value={content} onChange={(e) => setContent(e.target.value)} />
-          {errorMessage(create.error) && <p className="text-sm text-danger">{errorMessage(create.error)}</p>}
+          <TextArea
+            id="content"
+            rows={4}
+            label={t('contentLabel')}
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+          />
+          {errorMessage(create.error) && (
+            <p className="text-sm text-danger">{errorMessage(create.error)}</p>
+          )}
           <div className="flex gap-2">
             <Button
               variant="primary"
@@ -73,8 +81,14 @@ export default function MySuggestionsPage() {
           {data.items.map((suggestion) => (
             <Card key={suggestion.id} className="flex flex-col gap-2">
               <div className="flex items-center justify-between gap-2">
-                <StatusTag domain="suggestion" value={suggestion.status} label={t(`status.${suggestion.status}`)} />
-                <span className="text-xs text-text-muted">{new Date(suggestion.creationDate).toLocaleDateString('ar')}</span>
+                <StatusTag
+                  domain="suggestion"
+                  value={suggestion.status}
+                  label={t(`status.${suggestion.status}`)}
+                />
+                <span className="text-xs text-text-muted">
+                  {new Date(suggestion.creationDate).toLocaleDateString('ar')}
+                </span>
               </div>
               <p className="text-sm text-text">{suggestion.content}</p>
               {suggestion.officeNotes && (

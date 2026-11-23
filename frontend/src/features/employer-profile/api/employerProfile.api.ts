@@ -10,7 +10,13 @@ export const employerProfileApi = {
   getMyProfile: () => httpClient.get<EmployerProfile>('/api/employers/me'),
   updateMyProfile: (payload: UpdateEmployerProfilePayload) =>
     httpClient.put<EmployerProfile>('/api/employers/me', payload),
-  uploadDocument: ({ documentType, file }: { documentType: EmployerDocumentTypeCode; file: File }) => {
+  uploadDocument: ({
+    documentType,
+    file,
+  }: {
+    documentType: EmployerDocumentTypeCode
+    file: File
+  }) => {
     const form = new FormData()
     form.append('DocumentType', documentType)
     form.append('File', file)

@@ -49,10 +49,14 @@ export function ApplicantRow({
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <p className="font-semibold text-text">{applicant.jobSeekerName}</p>
-          <p className="text-xs text-text-muted">{new Date(applicant.appliedAt).toLocaleDateString('ar')}</p>
+          <p className="text-xs text-text-muted">
+            {new Date(applicant.appliedAt).toLocaleDateString('ar')}
+          </p>
         </div>
         {applicant.withdrawnAt && (
-          <span className="rounded-full bg-neutral/10 px-2.5 py-1 text-xs font-medium text-neutral">{t('withdrawn')}</span>
+          <span className="rounded-full bg-neutral/10 px-2.5 py-1 text-xs font-medium text-neutral">
+            {t('withdrawn')}
+          </span>
         )}
       </div>
 
@@ -86,7 +90,11 @@ export function ApplicantRow({
 
       <div className="flex flex-wrap items-center gap-3 border-t border-surface-muted pt-3">
         {isGated && (
-          <Button variant="secondary" disabled={downloading} onClick={() => void handleDownloadCv()}>
+          <Button
+            variant="secondary"
+            disabled={downloading}
+            onClick={() => void handleDownloadCv()}
+          >
             {t('downloadCv')}
           </Button>
         )}

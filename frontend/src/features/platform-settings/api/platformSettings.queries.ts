@@ -12,7 +12,8 @@ export function usePlatformSettings() {
 export function useUpdatePlatformSetting() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ key, value }: { key: string; value: string }) => platformSettingsApi.update(key, value),
+    mutationFn: ({ key, value }: { key: string; value: string }) =>
+      platformSettingsApi.update(key, value),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: platformSettingsKeys.list() })
     },

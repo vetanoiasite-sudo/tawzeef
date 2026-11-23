@@ -35,7 +35,10 @@ export default function SuggestionQueuePage() {
       <PageHeader title={t('queueTitle')} />
 
       <FilterChips
-        options={STATUS_FILTERS.map((s) => ({ value: s, label: s === 'all' ? t('filterAll') : t(`status.${s}`) }))}
+        options={STATUS_FILTERS.map((s) => ({
+          value: s,
+          label: s === 'all' ? t('filterAll') : t(`status.${s}`),
+        }))}
         value={status}
         onChange={handleFilterChange}
       />
@@ -50,8 +53,14 @@ export default function SuggestionQueuePage() {
             <Link key={row.id} to={`/office/suggestions/${row.id}`} className="block">
               <Card className="flex flex-col gap-2 transition-colors duration-150 hover:border-primary">
                 <div className="flex items-center justify-between gap-2">
-                  <StatusTag domain="suggestion" value={row.status} label={t(`status.${row.status}`)} />
-                  <span className="text-xs text-text-muted">{new Date(row.creationDate).toLocaleDateString('ar')}</span>
+                  <StatusTag
+                    domain="suggestion"
+                    value={row.status}
+                    label={t(`status.${row.status}`)}
+                  />
+                  <span className="text-xs text-text-muted">
+                    {new Date(row.creationDate).toLocaleDateString('ar')}
+                  </span>
                 </div>
                 <p className="text-sm text-text">{row.content}</p>
               </Card>
@@ -60,7 +69,13 @@ export default function SuggestionQueuePage() {
         </div>
       )}
 
-      {data && <Pagination pageIndex={pageIndex} totalPages={data.pagination.totalPages} onChange={setPageIndex} />}
+      {data && (
+        <Pagination
+          pageIndex={pageIndex}
+          totalPages={data.pagination.totalPages}
+          onChange={setPageIndex}
+        />
+      )}
     </div>
   )
 }

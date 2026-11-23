@@ -24,10 +24,35 @@ export const officeComplaintReviewApi = {
       pageSize: filter.pageSize,
     }),
   getById: (id: string) => httpClient.get<OfficeComplaint>(`/api/office/complaints/${id}`),
-  triage: ({ id, validityDecision }: { id: string; validityDecision: ComplaintValidityDecisionCode }) =>
+  triage: ({
+    id,
+    validityDecision,
+  }: {
+    id: string
+    validityDecision: ComplaintValidityDecisionCode
+  }) =>
     httpClient.post<OfficeComplaint>(`/api/office/complaints/${id}/triage`, { validityDecision }),
-  resolve: ({ id, outcome, resolutionNotes }: { id: string; outcome: 'Resolved' | 'Rejected'; resolutionNotes: string }) =>
-    httpClient.post<OfficeComplaint>(`/api/office/complaints/${id}/resolve`, { outcome, resolutionNotes }),
-  decide: ({ id, decisionType, reason }: { id: string; decisionType: OfficeDecisionTypeCode; reason: string }) =>
+  resolve: ({
+    id,
+    outcome,
+    resolutionNotes,
+  }: {
+    id: string
+    outcome: 'Resolved' | 'Rejected'
+    resolutionNotes: string
+  }) =>
+    httpClient.post<OfficeComplaint>(`/api/office/complaints/${id}/resolve`, {
+      outcome,
+      resolutionNotes,
+    }),
+  decide: ({
+    id,
+    decisionType,
+    reason,
+  }: {
+    id: string
+    decisionType: OfficeDecisionTypeCode
+    reason: string
+  }) =>
     httpClient.post<DecideResult>(`/api/office/complaints/${id}/decide`, { decisionType, reason }),
 }

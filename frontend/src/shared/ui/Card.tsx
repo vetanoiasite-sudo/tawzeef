@@ -6,10 +6,7 @@ import type { HTMLAttributes } from 'react'
 export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={clsx(
-        'rounded-300 border border-border-primary bg-surface p-6',
-        className,
-      )}
+      className={clsx('rounded-300 border border-border-primary bg-surface p-6', className)}
       {...props}
     />
   )

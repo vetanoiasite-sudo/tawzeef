@@ -31,7 +31,11 @@ export const jobSeekerDetailsSchema = z.object({
 export type JobSeekerDetailsFormValues = z.infer<typeof jobSeekerDetailsSchema>
 
 export const employerDetailsSchema = z.object({
-  representativeName: z.string().trim().min(2, 'validation:required').max(200, 'validation:tooLong'),
+  representativeName: z
+    .string()
+    .trim()
+    .min(2, 'validation:required')
+    .max(200, 'validation:tooLong'),
   legalName: z.string().trim().min(2, 'validation:required').max(250, 'validation:tooLong'),
   displayName: z.string().trim().min(2, 'validation:required').max(250, 'validation:tooLong'),
   email: z.email('validation:emailFormat'),

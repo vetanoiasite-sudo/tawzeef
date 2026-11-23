@@ -17,11 +17,21 @@ export function Pagination({
 
   return (
     <div className="flex items-center justify-center gap-4">
-      <Button variant="secondary" disabled={pageIndex === 0} onClick={() => onChange(pageIndex - 1)}>
+      <Button
+        variant="secondary"
+        disabled={pageIndex === 0}
+        onClick={() => onChange(pageIndex - 1)}
+      >
         {t('prevPage')}
       </Button>
-      <span className="text-sm text-text-muted">{t('pageOf', { current: pageIndex + 1, total: totalPages })}</span>
-      <Button variant="secondary" disabled={pageIndex + 1 >= totalPages} onClick={() => onChange(pageIndex + 1)}>
+      <span className="text-sm text-text-muted">
+        {t('pageOf', { current: pageIndex + 1, total: totalPages })}
+      </span>
+      <Button
+        variant="secondary"
+        disabled={pageIndex + 1 >= totalPages}
+        onClick={() => onChange(pageIndex + 1)}
+      >
         {t('nextPage')}
       </Button>
     </div>

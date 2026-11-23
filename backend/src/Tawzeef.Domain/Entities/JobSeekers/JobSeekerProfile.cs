@@ -22,6 +22,7 @@ public class JobSeekerProfile : IEntity
     public byte? YearsOfExperience { get; set; }
     public string? Skills { get; set; }
     public string? CareerSummary { get; set; }
+    public string? JobTitle { get; set; }
 
     public JobSeekerReviewStatus ReviewStatus { get; set; } = JobSeekerReviewStatus.Draft;
     public Guid? ApprovedBy { get; set; }

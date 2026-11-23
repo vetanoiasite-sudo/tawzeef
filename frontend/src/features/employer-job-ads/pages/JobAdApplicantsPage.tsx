@@ -23,14 +23,19 @@ export default function JobAdApplicantsPage() {
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-8 sm:px-6">
-      <Link to={`/employer/job-advertisements/${adId}`} className="text-sm font-medium text-primary hover:underline">
+      <Link
+        to={`/employer/job-advertisements/${adId}`}
+        className="text-sm font-medium text-primary hover:underline"
+      >
         {t('backToList')}
       </Link>
       <PageHeader title={t('applicantsTitle')} />
 
       {isLoading && <LoadingState />}
 
-      {!isLoading && data && data.items.length === 0 && <EmptyState message={t('emptyApplicants')} />}
+      {!isLoading && data && data.items.length === 0 && (
+        <EmptyState message={t('emptyApplicants')} />
+      )}
 
       {!isLoading && data && data.items.length > 0 && (
         <div className="flex flex-col gap-4">
@@ -38,7 +43,10 @@ export default function JobAdApplicantsPage() {
             <ApplicantRow
               key={applicant.applicationId}
               applicant={applicant}
-              isUpdating={updateOutcome.isPending && updateOutcome.variables?.applicationId === applicant.applicationId}
+              isUpdating={
+                updateOutcome.isPending &&
+                updateOutcome.variables?.applicationId === applicant.applicationId
+              }
               onUpdateOutcome={(outcome: EmployerFacingStatusCode) =>
                 updateOutcome.mutate({ applicationId: applicant.applicationId, outcome })
               }
@@ -47,7 +55,13 @@ export default function JobAdApplicantsPage() {
         </div>
       )}
 
-      {data && <Pagination pageIndex={pageIndex} totalPages={data.pagination.totalPages} onChange={setPageIndex} />}
+      {data && (
+        <Pagination
+          pageIndex={pageIndex}
+          totalPages={data.pagination.totalPages}
+          onChange={setPageIndex}
+        />
+      )}
     </div>
   )
 }

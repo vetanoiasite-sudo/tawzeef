@@ -20,7 +20,9 @@ export function JobCard({ job }: { job: JobListItem }) {
         </div>
         <div className="flex flex-wrap gap-2">
           {job.category && (
-            <span className="rounded-full bg-surface-muted px-2.5 py-1 text-xs font-medium text-text-muted">{job.category}</span>
+            <span className="rounded-full bg-surface-muted px-2.5 py-1 text-xs font-medium text-text-muted">
+              {job.category}
+            </span>
           )}
           {job.employmentType && (
             <span className="rounded-full bg-surface-muted px-2.5 py-1 text-xs font-medium text-text-muted">

@@ -4,7 +4,13 @@ import { ApiError } from '@/shared/api/types'
 import { httpClient } from '@/shared/api/httpClient'
 import { OfficeForm } from '../components/OfficeForm'
 import { OfficeRow } from '../components/OfficeRow'
-import { useActivateOffice, useCreateOffice, useDeactivateOffice, useOffices, useUpdateOffice } from '../api/superAdmin.queries'
+import {
+  useActivateOffice,
+  useCreateOffice,
+  useDeactivateOffice,
+  useOffices,
+  useUpdateOffice,
+} from '../api/superAdmin.queries'
 import type { CreateOfficePayload } from '../types/superAdmin.types'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Button } from '@/shared/ui/Button'
@@ -64,12 +70,16 @@ export default function SuperAdminOfficesPage() {
           isSubmitting={createOffice.isPending}
           error={errorMessage(createOffice.error)}
           onSubmit={(payload) =>
-            createOffice.mutate(payload as CreateOfficePayload, { onSuccess: () => setShowCreate(false) })
+            createOffice.mutate(payload as CreateOfficePayload, {
+              onSuccess: () => setShowCreate(false),
+            })
           }
           onCancel={() => setShowCreate(false)}
         />
       )}
-      {createOffice.isSuccess && !showCreate && <p className="text-sm text-success">{t('createSuccess')}</p>}
+      {createOffice.isSuccess && !showCreate && (
+        <p className="text-sm text-success">{t('createSuccess')}</p>
+      )}
 
       {isLoading && <LoadingState />}
 
@@ -82,11 +92,17 @@ export default function SuperAdminOfficesPage() {
               key={office.id}
               office={office}
               isSaving={updateOffice.isPending}
-              saveError={updateOffice.variables?.id === office.id ? errorMessage(updateOffice.error) : undefined}
+              saveError={
+                updateOffice.variables?.id === office.id
+                  ? errorMessage(updateOffice.error)
+                  : undefined
+              }
               isTogglingStatus={activateOffice.isPending || deactivateOffice.isPending}
               onSave={(payload) => updateOffice.mutate({ id: office.id, payload })}
               onToggleStatus={() =>
-                office.status === 'Active' ? deactivateOffice.mutate(office.id) : activateOffice.mutate(office.id)
+                office.status === 'Active'
+                  ? deactivateOffice.mutate(office.id)
+                  : activateOffice.mutate(office.id)
               }
             />
           ))}
