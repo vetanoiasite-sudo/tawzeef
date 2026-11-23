@@ -2,12 +2,10 @@ import clsx from 'clsx'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
-import { useJobSearch, usePublicPlatformStats } from '@/features/public-jobs/api/publicJobs.queries'
+import { useJobSearch } from '@/features/public-jobs/api/publicJobs.queries'
 import type { JobListItem } from '@/features/public-jobs/types/publicJobs.types'
 import { Button } from '@/shared/ui/Button'
 import { Reveal } from '@/shared/ui/Reveal'
-import { useCountUp } from '@/shared/hooks/useCountUp'
-import { useReveal } from '@/shared/hooks/useReveal'
 import { EGYPT_GOVERNORATES } from '@/shared/constants/governorates'
 
 /** Governorates shown in the "Browse by governorate" quick-access grid. */
@@ -29,61 +27,11 @@ export default function HomePage() {
   return (
     <div className="flex flex-col">
       <HeroSearch />
-      <TrustStats />
       <LatestJobs />
       <BrowseByCategory />
       <BrowseByCity />
       <JoinTawzeefCTA />
     </div>
-  )
-}
-
-/* -------------------------------------------------------------------------- */
-/* Trust strip — real platform counts, animated in on first view              */
-/* -------------------------------------------------------------------------- */
-
-function TrustStats() {
-  const { ref, visible } = useReveal<HTMLDivElement>()
-  const { data } = usePublicPlatformStats()
-
-  const jobs = useCountUp(data?.activeJobsCount ?? 0, visible && !!data)
-  const employers = useCountUp(data?.approvedEmployersCount ?? 0, visible && !!data)
-  const jobSeekers = useCountUp(data?.approvedJobSeekersCount ?? 0, visible && !!data)
-
-  const stats = [
-    { icon: <BriefcaseIcon />, value: jobs, label: 'وظيفة متاحة الآن' },
-    { icon: <BuildingIcon />, value: employers, label: 'مكتب عمل موثّق' },
-    { icon: <UsersIcon />, value: jobSeekers, label: 'باحث عمل معتمد' },
-  ]
-
-  return (
-    <section
-      ref={ref}
-      className="w-full border-b border-border-primary bg-surface px-4 py-10 sm:px-8 xl:px-16 2xl:px-24"
-    >
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-        {stats.map((s, i) => (
-          <div
-            key={s.label}
-            style={{ transitionDelay: visible ? `${i * 100}ms` : '0ms' }}
-            className={clsx(
-              'flex items-center justify-center gap-4 transition-[opacity,transform] duration-700 ease-out sm:justify-start',
-              visible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0',
-            )}
-          >
-            <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand">
-              {s.icon}
-            </span>
-            <div className="flex flex-col">
-              <span className="text-[28px] font-extrabold leading-tight text-content-primary tabular-nums">
-                {s.value.toLocaleString('ar-EG')}+
-              </span>
-              <span className="text-[13px] font-medium text-content-secondary">{s.label}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
   )
 }
 
@@ -547,54 +495,6 @@ function PinIcon() {
         strokeWidth="1.8"
       />
       <circle cx="12" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.8" />
-    </svg>
-  )
-}
-
-/* -------------------------------------------------------------------------- */
-/* Trust-strip icons                                                          */
-/* -------------------------------------------------------------------------- */
-
-function BriefcaseIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <rect x="3" y="7" width="18" height="13" rx="2" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M3 12h18" stroke="currentColor" strokeWidth="1.8" />
-    </svg>
-  )
-}
-
-function BuildingIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <rect x="4" y="3" width="16" height="18" rx="1" stroke="currentColor" strokeWidth="1.8" />
-      <path
-        d="M8 8h2M14 8h2M8 12h2M14 12h2M8 16h2M14 16h2"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-    </svg>
-  )
-}
-
-function UsersIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <circle cx="9" cy="8" r="3" stroke="currentColor" strokeWidth="1.8" />
-      <path
-        d="M3 20c0-3 2.7-5 6-5s6 2 6 5"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-      <path
-        d="M16 4.2a3 3 0 0 1 0 5.6M19.5 20c0-2.6-1.8-4.4-4-4.9"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
     </svg>
   )
 }
