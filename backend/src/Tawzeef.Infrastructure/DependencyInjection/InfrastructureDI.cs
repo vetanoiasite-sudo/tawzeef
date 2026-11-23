@@ -45,7 +45,13 @@ public static class InfrastructureDI
         services.AddSingleton<ICvParser, CvParser>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<IOtpSender, DevLogOtpSender>();
-        services.AddScoped<IEmailSender, DevLogEmailSender>();
+
+        // Real SMTP once Smtp:Host is configured (any environment) — otherwise keep logging
+        // instead of the request failing on an unconfigured SmtpClient.
+        if (string.IsNullOrWhiteSpace(configuration["Smtp:Host"]))
+            services.AddScoped<IEmailSender, DevLogEmailSender>();
+        else
+            services.AddScoped<IEmailSender, SmtpEmailSender>();
         services.AddHostedService<JobAdvertisementExpiryService>();
 
         return services;
