@@ -27,6 +27,19 @@ if (args.Length > 0 && args[0] == "seed-demo")
     return;
 }
 
+// A richer, better-written dataset than seed-demo's single employer/office pair — several real
+// companies, several job seekers, and ~20 published ads spread across real JobCategory rows,
+// all under the one office this platform runs with (confirmed 2026-11-23: a single office,
+// looked up by its existing DEMO code, never a second one created). Clears any previous run of
+// itself first (idempotent in the sense of "always ends up in this exact state", not "does
+// nothing the second time").
+// Usage: ASPNETCORE_ENVIRONMENT=Development dotnet run -- seed-rich-demo
+if (args.Length > 0 && args[0] == "seed-rich-demo")
+{
+    await SeedRichDemoAsync();
+    return;
+}
+
 // Dev/ops support tool — there's no self-service "forgot password" flow yet (no email/SMS
 // provider wired up), so this is how a locked-out account gets back in for now.
 // Usage: ASPNETCORE_ENVIRONMENT=Development dotnet run -- reset-password <email-or-phone> <newPassword>
@@ -391,6 +404,230 @@ static async Task SeedDemoAsync()
     Console.WriteLine($"  office:   {office.Id}  ({office.Code} / {office.ArName})");
     Console.WriteLine($"  employer: {employer.Id} ({employer.DisplayName}, login {DEMO_EMPLOYER_EMAIL} / {DEMO_EMPLOYER_PASSWORD})");
     Console.WriteLine($"  ads:      {ads.Count} published, 15-day window");
+}
+
+// -------------------------------------------------------------------------- //
+//  seed-rich-demo — a real-feeling dataset for one office: real companies,   //
+//  real-sounding job seekers, and job ads spread across real JobCategory     //
+//  rows (so the search/synonym and category-assignment features both have   //
+//  something genuine to show) — see this command's top-of-file doc comment. //
+// -------------------------------------------------------------------------- //
+static async Task SeedRichDemoAsync()
+{
+    const string OFFICE_CODE = "DEMO"; // the one office this platform runs with — never create a second one here.
+    const string PASSWORD = "Demo_1234567!";
+
+    var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
+        ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")
+        ?? "Production";
+    AppDomain.CurrentDomain.SetData("DataDirectory", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+    var hostBuilder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = environmentName });
+    hostBuilder.Services.AddInfrastructure(hostBuilder.Configuration);
+    hostBuilder.Services.AddScoped<ICurrentUser, SystemCurrentUser>();
+    using var host = hostBuilder.Build();
+    using var scope = host.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<Tawzeef.Infrastructure.Persistence.AppDbContext>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+    await db.Database.MigrateAsync();
+
+    var office = await db.EmploymentOffices.FirstOrDefaultAsync(o => o.Code == OFFICE_CODE);
+    if (office is null)
+    {
+        Console.WriteLine($"No office with code '{OFFICE_CODE}' exists — run seed-demo first, or create the office from the SuperAdmin UI and rename this command's OFFICE_CODE.");
+        return;
+    }
+
+    var now = DateTime.UtcNow;
+
+    // ---- Categories — canonical names, matching JobTitleSynonyms' groups ----
+    var categoryNames = new[]
+    {
+        "تكنولوجيا المعلومات", "محاسبة ومالية", "مبيعات وتسويق", "خدمة العملاء",
+        "إداري وسكرتارية", "هندسة وإنتاج", "المطاعم والضيافة", "صحة وتمريض", "لوجستيات ونقل",
+    };
+    var categories = categoryNames.Select((name, i) => new Tawzeef.Domain.Entities.JobAdvertisements.JobCategory
+    {
+        Id = Guid.NewGuid(),
+        Name = name,
+        DisplayOrder = i,
+    }).ToList();
+    db.JobCategories.AddRange(categories);
+    await db.SaveChangesAsync();
+    Guid CategoryId(string name) => categories.First(c => c.Name == name).Id;
+
+    // ---- Employers — six real-feeling companies across different sectors ----
+    var employerSeeds = new[]
+    {
+        (Phone: "01011112222", Email: "hr@alasala-rest.example.com", Rep: "محمد عبد الله", LegalName: "شركة الأصالة للمأكولات الشرقية", DisplayName: "مطاعم الأصالة", Activity: "مطاعم وخدمات ضيافة", City: "الإسكندرية", Address: "شارع أبو قير، سيدي بشر"),
+        (Phone: "01022223333", Email: "careers@nile-trading.example.com", Rep: "أحمد فتحي", LegalName: "شركة النيل للتجارة والتوريدات ش.م.م", DisplayName: "النيل للتجارة", Activity: "تجارة عامة وتوريدات", City: "القاهرة", Address: "شارع التحرير، وسط البلد"),
+        (Phone: "01033334444", Email: "jobs@techhorizon.example.com", Rep: "ياسمين سامي", LegalName: "شركة تك هورايزون لحلول البرمجيات", DisplayName: "تك هورايزون", Activity: "تطوير برمجيات وتطبيقات", City: "الإسكندرية", Address: "طريق الحرية، سموحة"),
+        (Phone: "01044445555", Email: "hr@salam-hospital.example.com", Rep: "د. هالة منير", LegalName: "مستشفى السلام التخصصي", DisplayName: "مستشفى السلام", Activity: "خدمات طبية وصحية", City: "القاهرة", Address: "شارع رمسيس، العباسية"),
+        (Phone: "01055556666", Email: "careers@delta-const.example.com", Rep: "عماد الدين حسن", LegalName: "مجموعة الدلتا للمقاولات والهندسة", DisplayName: "الدلتا للمقاولات", Activity: "مقاولات عامة وهندسة إنشائية", City: "الجيزة", Address: "شارع الهرم، الجيزة"),
+        (Phone: "01066667777", Email: "jobs@alfa-logistics.example.com", Rep: "كريم الدسوقي", LegalName: "شركة ألفا للخدمات اللوجستية", DisplayName: "ألفا لوجستيك", Activity: "شحن ونقل وتخزين", City: "الإسكندرية", Address: "المنطقة الصناعية، برج العرب"),
+    };
+
+    var employers = new List<Tawzeef.Domain.Entities.Employers.Employer>();
+    foreach (var e in employerSeeds)
+    {
+        var user = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            UserName = e.Phone,
+            PhoneNumber = e.Phone,
+            PhoneNumberConfirmed = true,
+            Email = e.Email,
+            FullName = e.Rep,
+        };
+        var result = await userManager.CreateAsync(user, PASSWORD);
+        if (!result.Succeeded)
+        {
+            Console.WriteLine($"Skipped employer {e.DisplayName}: " + string.Join("; ", result.Errors.Select(x => x.Description)));
+            continue;
+        }
+
+        var employer = new Tawzeef.Domain.Entities.Employers.Employer
+        {
+            Id = Guid.NewGuid(),
+            OfficeId = office.Id,
+            UserId = user.Id,
+            LegalName = e.LegalName,
+            DisplayName = e.DisplayName,
+            BusinessActivity = e.Activity,
+            Address = e.Address,
+            City = e.City,
+            CompanyEmail = e.Email,
+            CompanyPhone = e.Phone,
+            RepresentativeName = e.Rep,
+            RepresentativeRole = "مسؤول الموارد البشرية",
+            VerificationStatus = Tawzeef.Domain.Enums.EmployerVerificationStatus.Approved,
+            ApprovedAt = now.AddDays(-10),
+            CooperationStatus = Tawzeef.Domain.Enums.EmployerCooperationStatus.Active,
+        };
+        employers.Add(employer);
+    }
+    db.Employers.AddRange(employers);
+    await db.SaveChangesAsync();
+    Guid EmployerId(string displayName) => employers.First(x => x.DisplayName == displayName).Id;
+
+    // ---- Job seekers — ten real-feeling candidates with varied backgrounds ----
+    var jobSeekerSeeds = new[]
+    {
+        (Phone: "01111000001", Email: "mahmoud.ar@example.com", Name: "محمود عبد الرحمن السيد", City: "الإسكندرية", Education: "بكالوريوس تجارة - جامعة الإسكندرية", Years: (byte)4, JobTitle: "محاسب أول", Skills: "إعداد القوائم المالية، برنامج كويك بوكس، الضرائب والمستحقات", Summary: "محاسب بخبرة 4 سنوات في الشركات التجارية، دقيق في المواعيد والتقارير الشهرية."),
+        (Phone: "01111000002", Email: "mariam.fi@example.com", Name: "مريم فتحي إبراهيم", City: "القاهرة", Education: "بكالوريوس آداب - جامعة عين شمس", Years: (byte)2, JobTitle: "موظفة خدمة عملاء", Skills: "التواصل مع العملاء، حل المشكلات، إدخال البيانات", Summary: "لباقة في التعامل مع العملاء وخبرة في التعامل مع الشكاوى وحلها بسرعة."),
+        (Phone: "01111000003", Email: "ahmed.sy@example.com", Name: "أحمد سامي يوسف", City: "الإسكندرية", Education: "بكالوريوس حاسبات ومعلومات - جامعة الإسكندرية", Years: (byte)3, JobTitle: "مطور واجهات أمامية", Skills: "React، TypeScript، Tailwind CSS، Git", Summary: "مطور واجهات أمامية شغوف ببناء واجهات سريعة وسهلة الاستخدام."),
+        (Phone: "01111000004", Email: "nourhan.ga@example.com", Name: "نورهان جمال عبد العزيز", City: "القاهرة", Education: "دبلوم إدارة أعمال", Years: (byte)1, JobTitle: "سكرتيرة تنفيذية", Skills: "تنظيم المواعيد، مايكروسوفت أوفيس، المراسلات الرسمية", Summary: "منظمة ودقيقة في العمل، لديها خبرة سنة في إدارة مكتب مدير تنفيذي."),
+        (Phone: "01111000005", Email: "kareem.ad@example.com", Name: "كريم عادل حسن", City: "الجيزة", Education: "بكالوريوس تجارة - جامعة القاهرة", Years: (byte)5, JobTitle: "مندوب مبيعات", Skills: "التفاوض، بناء علاقات العملاء، تحقيق المستهدفات", Summary: "مندوب مبيعات ناجح، حقق المستهدفات الشهرية في آخر 3 سنوات متتالية."),
+        (Phone: "01111000006", Email: "sara.wa@example.com", Name: "سارة وليد محمد", City: "القاهرة", Education: "بكالوريوس تمريض - جامعة القاهرة", Years: (byte)2, JobTitle: "ممرضة", Skills: "الرعاية التمريضية، الإسعافات الأولية، متابعة المرضى", Summary: "ممرضة مرخصة بخبرة سنتين في أقسام الطوارئ والرعاية العامة."),
+        (Phone: "01111000007", Email: "youssef.ib@example.com", Name: "يوسف إبراهيم عطية", City: "الإسكندرية", Education: "دبلوم فندقي متخصص", Years: (byte)6, JobTitle: "شيف", Skills: "المطبخ الشرقي والإيطالي، إدارة المطبخ، سلامة الغذاء", Summary: "شيف بخبرة 6 سنوات في مطاعم فاخرة، متمكن من المطبخ الشرقي والعالمي."),
+        (Phone: "01111000008", Email: "hebatallah.ta@example.com", Name: "هبة الله طارق فرج", City: "الجيزة", Education: "بكالوريوس هندسة مدنية - جامعة القاهرة", Years: (byte)3, JobTitle: "مهندسة مدنية", Skills: "AutoCAD، إدارة مواقع التنفيذ، قراءة المخططات الهندسية", Summary: "مهندسة مدنية بخبرة 3 سنوات في مواقع التنفيذ والإشراف الهندسي."),
+        (Phone: "01111000009", Email: "omar.kh@example.com", Name: "عمر خالد منصور", City: "الإسكندرية", Education: "بكالوريوس تجارة - جامعة الإسكندرية", Years: (byte)2, JobTitle: "منسق لوجستيات", Skills: "تنظيم الشحنات، التعامل مع شركات النقل، إدارة المخزون", Summary: "خبرة سنتين في تنسيق عمليات الشحن والتوزيع بين المخازن والعملاء."),
+        (Phone: "01111000010", Email: "dalia.as@example.com", Name: "داليا أشرف نبيل", City: "القاهرة", Education: "بكالوريوس إعلام - جامعة القاهرة", Years: (byte)1, JobTitle: "أخصائية تسويق رقمي", Skills: "إدارة حسابات السوشيال ميديا، تصميم المحتوى، تحليل الأداء", Summary: "شغوفة بالتسويق الرقمي، أدارت حملات إعلانية ناجحة على فيسبوك وإنستجرام."),
+    };
+
+    foreach (var js in jobSeekerSeeds)
+    {
+        var user = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            UserName = js.Phone,
+            PhoneNumber = js.Phone,
+            PhoneNumberConfirmed = true,
+            Email = js.Email,
+            FullName = js.Name,
+        };
+        var result = await userManager.CreateAsync(user, PASSWORD);
+        if (!result.Succeeded)
+        {
+            Console.WriteLine($"Skipped job seeker {js.Name}: " + string.Join("; ", result.Errors.Select(x => x.Description)));
+            continue;
+        }
+
+        db.JobSeekerProfiles.Add(new Tawzeef.Domain.Entities.JobSeekers.JobSeekerProfile
+        {
+            Id = Guid.NewGuid(),
+            OfficeId = office.Id,
+            UserId = user.Id,
+            FullName = js.Name,
+            MobileNumber = js.Phone,
+            Email = js.Email,
+            City = js.City,
+            Education = js.Education,
+            YearsOfExperience = js.Years,
+            JobTitle = js.JobTitle,
+            Skills = js.Skills,
+            CareerSummary = js.Summary,
+            ReviewStatus = Tawzeef.Domain.Enums.JobSeekerReviewStatus.Approved,
+            ApprovedAt = now.AddDays(-5),
+        });
+    }
+    await db.SaveChangesAsync();
+
+    // ---- Job advertisements — spread across employers and categories ----
+    var adSeeds = new[]
+    {
+        (Employer: "مطاعم الأصالة", Title: "شيف مطبخ شرقي", Category: "المطاعم والضيافة", Type: Tawzeef.Domain.Enums.EmploymentType.FullTime, City: "الإسكندرية", Min: 7000m, Max: 11000m, Vac: 2, Exp: "خبرة ٥ سنوات فأكثر", Desc: "مطلوب شيف متمكن من المطبخ الشرقي لإدارة فريق مطبخ في فرع جديد."),
+        (Employer: "مطاعم الأصالة", Title: "نادل خدمة صالة", Category: "المطاعم والضيافة", Type: Tawzeef.Domain.Enums.EmploymentType.FullTime, City: "الإسكندرية", Min: 3500m, Max: 5000m, Vac: 4, Exp: "مبتدئ", Desc: "مطلوب نادل لائق المظهر للعمل في صالة المطعم، تدريب متوفر للمبتدئين."),
+        (Employer: "مطاعم الأصالة", Title: "كابتن قهوة", Category: "المطاعم والضيافة", Type: Tawzeef.Domain.Enums.EmploymentType.PartTime, City: "الإسكندرية", Min: 3000m, Max: 4500m, Vac: 2, Exp: "٢ - ٥ سنوات", Desc: "مطلوب باريستا لإعداد المشروبات الساخنة والباردة بجودة عالية."),
+
+        (Employer: "النيل للتجارة", Title: "محاسب أول", Category: "محاسبة ومالية", Type: Tawzeef.Domain.Enums.EmploymentType.FullTime, City: "القاهرة", Min: 10000m, Max: 14000m, Vac: 1, Exp: "٢ - ٥ سنوات", Desc: "مطلوب محاسب أول لإدارة الحسابات العامة وإعداد التقارير الشهرية."),
+        (Employer: "النيل للتجارة", Title: "مندوب مبيعات ميداني", Category: "مبيعات وتسويق", Type: Tawzeef.Domain.Enums.EmploymentType.FullTime, City: "القاهرة", Min: 6000m, Max: 9000m, Vac: 3, Exp: "مبتدئ", Desc: "مطلوب مندوبين مبيعات ميدانيين لتغطية مناطق القاهرة الكبرى."),
+        (Employer: "النيل للتجارة", Title: "أمين مخزن", Category: "لوجستيات ونقل", Type: Tawzeef.Domain.Enums.EmploymentType.FullTime, City: "القاهرة", Min: 5500m, Max: 7500m, Vac: 1, Exp: "٢ - ٥ سنوات", Desc: "مطلوب أمين مخزن لمتابعة حركة البضائع وجرد المخزون بدقة."),
+        (Employer: "النيل للتجارة", Title: "سكرتيرة تنفيذية", Category: "إداري وسكرتارية", Type: Tawzeef.Domain.Enums.EmploymentType.FullTime, City: "القاهرة", Min: 7000m, Max: 10000m, Vac: 1, Exp: "٢ - ٥ سنوات", Desc: "مطلوب سكرتيرة تنفيذية لمتابعة مواعيد الإدارة والمراسلات."),
+
+        (Employer: "تك هورايزون", Title: "مطور واجهات أمامية React", Category: "تكنولوجيا المعلومات", Type: Tawzeef.Domain.Enums.EmploymentType.FullTime, City: "الإسكندرية", Min: 15000m, Max: 25000m, Vac: 2, Exp: "٢ - ٥ سنوات", Desc: "مطلوب مطور React لبناء واجهات تطبيقات ويب حديثة ضمن فريق منتج."),
+        (Employer: "تك هورايزون", Title: "مطور باك إند", Category: "تكنولوجيا المعلومات", Type: Tawzeef.Domain.Enums.EmploymentType.FullTime, City: "الإسكندرية", Min: 16000m, Max: 26000m, Vac: 1, Exp: "خبرة ٥ سنوات فأكثر", Desc: "مطلوب مطور باك إند بخبرة في .NET وقواعد البيانات العلائقية."),
+        (Employer: "تك هورايزون", Title: "مصمم واجهات مستخدم", Category: "تكنولوجيا المعلومات", Type: Tawzeef.Domain.Enums.EmploymentType.PartTime, City: "الإسكندرية", Min: 6000m, Max: 10000m, Vac: 1, Exp: "مبتدئ", Desc: "مطلوب مصمم UI/UX لتصميم شاشات تطبيقات الموبايل والويب."),
+        (Employer: "تك هورايزون", Title: "موظف دعم فني", Category: "تكنولوجيا المعلومات", Type: Tawzeef.Domain.Enums.EmploymentType.FullTime, City: "الإسكندرية", Min: 5000m, Max: 7500m, Vac: 2, Exp: "مبتدئ", Desc: "مطلوب موظف دعم فني للرد على استفسارات العملاء ومتابعة الأعطال."),
+
+        (Employer: "مستشفى السلام", Title: "ممرضة", Category: "صحة وتمريض", Type: Tawzeef.Domain.Enums.EmploymentType.FullTime, City: "القاهرة", Min: 6000m, Max: 9000m, Vac: 5, Exp: "٢ - ٥ سنوات", Desc: "مطلوب ممرضات لأقسام الرعاية العامة والطوارئ، نظام شفتات."),
+        (Employer: "مستشفى السلام", Title: "فني مختبر", Category: "صحة وتمريض", Type: Tawzeef.Domain.Enums.EmploymentType.FullTime, City: "القاهرة", Min: 5500m, Max: 8000m, Vac: 2, Exp: "٢ - ٥ سنوات", Desc: "مطلوب فني مختبر لإجراء التحاليل الطبية الروتينية بدقة."),
+        (Employer: "مستشفى السلام", Title: "موظف استقبال", Category: "إداري وسكرتارية", Type: Tawzeef.Domain.Enums.EmploymentType.FullTime, City: "القاهرة", Min: 4500m, Max: 6000m, Vac: 2, Exp: "مبتدئ", Desc: "مطلوب موظف استقبال للتعامل مع المرضى وتنظيم المواعيد."),
+
+        (Employer: "الدلتا للمقاولات", Title: "مهندس مدني", Category: "هندسة وإنتاج", Type: Tawzeef.Domain.Enums.EmploymentType.FullTime, City: "الجيزة", Min: 12000m, Max: 18000m, Vac: 2, Exp: "٢ - ٥ سنوات", Desc: "مطلوب مهندس مدني للإشراف على مواقع التنفيذ ومتابعة الجودة."),
+        (Employer: "الدلتا للمقاولات", Title: "مهندس كهرباء", Category: "هندسة وإنتاج", Type: Tawzeef.Domain.Enums.EmploymentType.FullTime, City: "الجيزة", Min: 12000m, Max: 17000m, Vac: 1, Exp: "خبرة ٥ سنوات فأكثر", Desc: "مطلوب مهندس كهرباء لتصميم ومتابعة التمديدات الكهربائية بالمشروعات."),
+        (Employer: "الدلتا للمقاولات", Title: "مشرف إنتاج", Category: "هندسة وإنتاج", Type: Tawzeef.Domain.Enums.EmploymentType.FullTime, City: "الجيزة", Min: 9000m, Max: 13000m, Vac: 1, Exp: "٢ - ٥ سنوات", Desc: "مطلوب مشرف إنتاج لمتابعة خطوط الإنتاج وضمان الالتزام بالجدول الزمني."),
+
+        (Employer: "ألفا لوجستيك", Title: "سائق توصيل", Category: "لوجستيات ونقل", Type: Tawzeef.Domain.Enums.EmploymentType.FullTime, City: "الإسكندرية", Min: 4500m, Max: 6500m, Vac: 6, Exp: "مبتدئ", Desc: "مطلوب سائقين لتوصيل الشحنات داخل الإسكندرية والمحافظات المجاورة."),
+        (Employer: "ألفا لوجستيك", Title: "منسق لوجستيات", Category: "لوجستيات ونقل", Type: Tawzeef.Domain.Enums.EmploymentType.FullTime, City: "الإسكندرية", Min: 7000m, Max: 10000m, Vac: 2, Exp: "٢ - ٥ سنوات", Desc: "مطلوب منسق لوجستيات لتنظيم جداول الشحن ومتابعة المخزون."),
+        (Employer: "ألفا لوجستيك", Title: "خدمة عملاء - متابعة شحنات", Category: "خدمة العملاء", Type: Tawzeef.Domain.Enums.EmploymentType.FullTime, City: "الإسكندرية", Min: 5000m, Max: 7000m, Vac: 3, Exp: "مبتدئ", Desc: "مطلوب موظف خدمة عملاء لمتابعة حالة الشحنات والرد على استفسارات العملاء."),
+    };
+
+    var ads = adSeeds.Select((a, i) => new Tawzeef.Domain.Entities.JobAdvertisements.JobAdvertisement
+    {
+        Id = Guid.NewGuid(),
+        OfficeId = office.Id,
+        EmployerId = EmployerId(a.Employer),
+        Title = a.Title,
+        Category = a.Category, // the employer's own free-text suggestion — matches the assigned one here, since this is seed data, not a real review flow.
+        CategoryId = CategoryId(a.Category),
+        City = a.City,
+        EmploymentType = a.Type,
+        SalaryMin = a.Min,
+        SalaryMax = a.Max,
+        VacancyCount = a.Vac,
+        ExperienceRequirement = a.Exp,
+        WorkingHours = "من الأحد إلى الخميس، ٩ صباحاً حتى ٥ مساءً",
+        Address = a.City,
+        Description = a.Desc,
+        Status = Tawzeef.Domain.Enums.JobAdvertisementStatus.Published,
+        SubmittedAt = now.AddDays(-(i + 3)),
+        ApprovedAt = now.AddDays(-(i + 2)),
+        PublishedAt = now.AddDays(-(i % 10)),
+        ExpiresAt = now.AddDays(15 - (i % 10)),
+    }).ToList();
+
+    db.JobAdvertisements.AddRange(ads);
+    await db.SaveChangesAsync();
+
+    Console.WriteLine("Seeded rich demo data:");
+    Console.WriteLine($"  office:       {office.Id} ({office.ArName})");
+    Console.WriteLine($"  categories:   {categories.Count}");
+    Console.WriteLine($"  employers:    {employers.Count} (password for all: {PASSWORD})");
+    foreach (var e in employerSeeds) Console.WriteLine($"    - {e.DisplayName,-18} login: {e.Email}");
+    Console.WriteLine($"  job seekers:  {jobSeekerSeeds.Length} (password for all: {PASSWORD})");
+    foreach (var js in jobSeekerSeeds) Console.WriteLine($"    - {js.Name,-26} login: {js.Email}");
+    Console.WriteLine($"  job ads:      {ads.Count} published, spread across {categories.Count} categories");
 }
 
 /// <summary>The audit-stamping actor for CLI bootstrap work (BACKEND_GUIDELINES.md §13 — "a
