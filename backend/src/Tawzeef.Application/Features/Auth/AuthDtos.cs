@@ -86,11 +86,11 @@ public class AcceptOfficeInviteDto
     public string Password { get; set; } = string.Empty;
 }
 
-/// <summary>Identifier is always an email now (temporary product decision, 2026-11-23) — every
-/// account type (JobSeeker, Employer, OfficeAdmin, OfficeStaff, SuperAdmin) requires one at
-/// creation. AuthService.LoginAsync still falls back to a phone/username lookup afterward, purely
-/// so an account created before this change (no email on file) keeps working — never rely on that
-/// fallback for a new account.</summary>
+/// <summary>Identifier is always an email, for every account type (JobSeeker, Employer,
+/// OfficeAdmin, OfficeStaff, SuperAdmin) — temporary product decision, 2026-11-23, confirmed again
+/// 2026-11-23: phone-number login is deliberately not supported, even as a fallback, until OTP
+/// phone verification comes back. Every account creation path requires an email (registration,
+/// office-staff invite, seed-superadmin) specifically so this holds with no exceptions.</summary>
 public class LoginDto
 {
     [Required]

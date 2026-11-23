@@ -258,9 +258,10 @@ public class AuthService(
     public async Task<ServiceResult<AuthResultDto>> LoginAsync(LoginDto dto, CancellationToken ct = default)
     {
         var identifier = dto.Identifier.Trim();
-        // Email first (JobSeeker/Employer accounts), then phone/username (OfficeAdmin/OfficeStaff/
-        // SuperAdmin, which never collect an email) — see LoginDto's doc comment.
-        var user = await userManager.FindByEmailAsync(identifier) ?? await userManager.FindByNameAsync(identifier);
+        // Email only — no phone/username fallback. Login is by email for every account type now
+        // (office staff included, since every invite carries one), per explicit product decision;
+        // phone-based login is deliberately out until OTP comes back (LoginDto's doc comment).
+        var user = await userManager.FindByEmailAsync(identifier);
 
         if (user is null)
         {
