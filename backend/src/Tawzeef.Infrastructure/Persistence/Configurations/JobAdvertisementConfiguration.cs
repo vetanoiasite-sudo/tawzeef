@@ -25,5 +25,10 @@ public class JobAdvertisementConfiguration : IEntityTypeConfiguration<JobAdverti
         // DATABASE_DOCUMENTATION.md §5 — the hot path for public search and the expiry read-time filter.
         b.HasIndex(x => new { x.OfficeId, x.Status, x.ExpiresAt });
         b.HasIndex(x => new { x.EmployerId, x.Status });
+
+        // No navigation property on JobAdvertisement — resolved via an explicit query in service
+        // code, same unconstrained-reference style already used for RenewedFromAdvertisementId
+        // above (no HasOne/WithMany, just an indexed Guid column).
+        b.HasIndex(x => x.CategoryId);
     }
 }

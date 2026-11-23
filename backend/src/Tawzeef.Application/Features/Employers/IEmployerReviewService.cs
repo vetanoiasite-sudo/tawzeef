@@ -10,6 +10,13 @@ public interface IEmployerReviewService
 
     Task<ServiceResult<EmployerProfileDto>> GetByIdAsync(Guid officeId, Guid id, CancellationToken ct = default);
 
+    /// <summary>Office-side correction of an employer's own profile fields (e.g. a typo the
+    /// employer can't easily get back and fix themselves) — unlike the employer's own
+    /// UpdateMyProfileAsync, this does NOT revert an Approved profile to UnderReview: the office
+    /// making its own fix doesn't need to re-approve itself.</summary>
+    Task<ServiceResult<EmployerProfileDto>> UpdateAsync(
+        Guid officeId, Guid employerId, UpdateEmployerProfileDto dto, CancellationToken ct = default);
+
     Task<ServiceResult<EmployerDocumentFileDto>> GetDocumentFileAsync(
         Guid officeId, Guid employerId, Guid documentId, CancellationToken ct = default);
 

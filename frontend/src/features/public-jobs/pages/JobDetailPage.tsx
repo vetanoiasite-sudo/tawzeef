@@ -105,10 +105,6 @@ export default function JobDetailPage() {
               </p>
             </div>
           )}
-          <div>
-            <p className="text-text-muted">{t('vacancyCountLabel')}</p>
-            <p className="text-text">{job.vacancyCount}</p>
-          </div>
         </section>
 
         {job.contactNote && (

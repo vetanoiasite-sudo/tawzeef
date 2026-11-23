@@ -20,6 +20,13 @@ public class OfficeEmployersController(IEmployerReviewService service, ICurrentU
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
         => Respond(await service.GetByIdAsync(RequireOfficeId(), id, ct));
 
+    /// <summary>Office-side correction — fixes a typo the employer themselves got wrong, no
+    /// re-approval needed (IEmployerReviewService.UpdateAsync's doc comment).</summary>
+    [HttpPut("{id:guid}")]
+    [RequiresPermission("employers.review")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateEmployerProfileDto dto, CancellationToken ct)
+        => Respond(await service.UpdateAsync(RequireOfficeId(), id, dto, ct));
+
     /// <summary>Not a signed, short-lived URL token (no such file-serving infrastructure exists
     /// yet) — an ordinary authenticated GET, re-checking office ownership on every call, streamed
     /// through the existing IFileStorage abstraction. Mirrors OfficeJobSeekersController's exact

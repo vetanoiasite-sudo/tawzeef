@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Tawzeef.Api.Common;
+using Tawzeef.Application.Features.JobAdvertisements;
 using Tawzeef.Application.Features.PublicJobs;
 
 namespace Tawzeef.Api.Controllers;
@@ -10,11 +11,17 @@ namespace Tawzeef.Api.Controllers;
 /// same pattern as AuthController.</summary>
 [Route("api/jobs")]
 [AllowAnonymous]
-public class PublicJobsController(IPublicJobSearchService service) : ApiControllerBase
+public class PublicJobsController(IPublicJobSearchService service, IJobAdvertisementReviewService jobAdvertisementService) : ApiControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> Search([FromQuery] JobSearchQueryDto query, CancellationToken ct)
         => RespondPaged(await service.SearchAsync(query, ct));
+
+    /// <summary>Platform-wide categories (office-managed — JobCategory's doc comment), for the
+    /// search filter dropdown. Not office-scoped, safe for anonymous use — not sensitive.</summary>
+    [HttpGet("categories")]
+    public async Task<IActionResult> GetCategories(CancellationToken ct)
+        => Respond(await jobAdvertisementService.ListCategoriesAsync(ct));
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)

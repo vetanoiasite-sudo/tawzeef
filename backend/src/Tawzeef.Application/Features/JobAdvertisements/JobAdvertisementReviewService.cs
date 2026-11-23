@@ -32,13 +32,25 @@ public class JobAdvertisementReviewService(
             : await uow.Repository<Employer>().ListAsync(e => employerIds.Contains(e.Id), ct: ct);
         var namesByEmployer = employers.ToDictionary(e => e.Id, e => e.DisplayName);
 
+        var categoryNamesById = await GetCategoryNamesByIdAsync(page.Items.Select(a => a.CategoryId), ct);
+
         return ServiceResult<PagedResult<JobAdvertisementListItemDto>>.Success(new PagedResult<JobAdvertisementListItemDto>
         {
-            Items = page.Items.Select(a => a.ToListItemDto(namesByEmployer.GetValueOrDefault(a.EmployerId))).ToList(),
+            Items = page.Items.Select(a => a.ToListItemDto(
+                namesByEmployer.GetValueOrDefault(a.EmployerId),
+                a.CategoryId.HasValue ? categoryNamesById.GetValueOrDefault(a.CategoryId.Value) : null)).ToList(),
             PageIndex = page.PageIndex,
             PageSize = page.PageSize,
             TotalCount = page.TotalCount,
         });
+    }
+
+    private async Task<Dictionary<Guid, string>> GetCategoryNamesByIdAsync(IEnumerable<Guid?> categoryIds, CancellationToken ct)
+    {
+        var ids = categoryIds.Where(id => id.HasValue).Select(id => id!.Value).Distinct().ToList();
+        if (ids.Count == 0) return [];
+        var categories = await uow.Repository<JobCategory>().ListAsync(c => ids.Contains(c.Id), ct: ct);
+        return categories.ToDictionary(c => c.Id, c => c.Name);
     }
 
     public async Task<ServiceResult<JobAdvertisementDto>> GetByIdAsync(Guid officeId, Guid id, CancellationToken ct = default)
@@ -56,7 +68,89 @@ public class JobAdvertisementReviewService(
 
         var employer = await uow.Repository<Employer>().FindAsync(e => e.Id == ad.EmployerId, ct: ct);
         var payment = await uow.Repository<AdvertisementPayment>().FindAsync(p => p.JobAdvertisementId == ad.Id, ct: ct);
-        return ServiceResult<JobAdvertisementDto>.Success(ad.ToDto(payment, employer?.DisplayName));
+        var categoryName = await GetCategoryNameAsync(ad.CategoryId, ct);
+        return ServiceResult<JobAdvertisementDto>.Success(ad.ToDto(payment, employer?.DisplayName, categoryName));
+    }
+
+    public async Task<ServiceResult<JobAdvertisementDto>> UpdateAsync(
+        Guid officeId, Guid id, UpdateJobAdvertisementDto dto, CancellationToken ct = default)
+    {
+        var ad = await uow.Repository<JobAdvertisement>().FindAsync(a => a.Id == id && a.OfficeId == officeId, ct: ct);
+        if (ad is null) return ServiceResult<JobAdvertisementDto>.NotFound("Advertisement not found.");
+
+        // Reuses the exact same field-application logic as the employer's own create/update path
+        // (JobAdvertisementMapping.ApplyFrom) — deliberately no Published -> UnderReview demotion
+        // here (this method's own doc comment on the interface explains why). ApplyFrom only ever
+        // touches the employer's free-text Category suggestion, never CategoryId — the office's
+        // own category assignment is untouched by this action, use AssignCategoryAsync for that.
+        ad.ApplyFrom(dto);
+        uow.Repository<JobAdvertisement>().Update(ad);
+        await uow.SaveChangesAsync(ct);
+
+        var employer = await uow.Repository<Employer>().FindAsync(e => e.Id == ad.EmployerId, ct: ct);
+        var payment = await uow.Repository<AdvertisementPayment>().FindAsync(p => p.JobAdvertisementId == ad.Id, ct: ct);
+        var categoryName = await GetCategoryNameAsync(ad.CategoryId, ct);
+        return ServiceResult<JobAdvertisementDto>.Success(ad.ToDto(payment, employer?.DisplayName, categoryName));
+    }
+
+    public async Task<ServiceResult<List<JobCategoryDto>>> ListCategoriesAsync(CancellationToken ct = default)
+    {
+        var categories = await uow.Repository<JobCategory>().ListAsync(c => c.IsActive, ct: ct);
+        return ServiceResult<List<JobCategoryDto>>.Success(categories
+            .OrderBy(c => c.DisplayOrder).ThenBy(c => c.Name)
+            .Select(c => new JobCategoryDto { Id = c.Id, Name = c.Name, DisplayOrder = c.DisplayOrder })
+            .ToList());
+    }
+
+    public async Task<ServiceResult<JobAdvertisementDto>> AssignCategoryAsync(
+        Guid officeId, Guid id, AssignJobCategoryDto dto, CancellationToken ct = default)
+    {
+        var ad = await uow.Repository<JobAdvertisement>().FindAsync(a => a.Id == id && a.OfficeId == officeId, ct: ct);
+        if (ad is null) return ServiceResult<JobAdvertisementDto>.NotFound("Advertisement not found.");
+
+        Guid categoryId;
+        if (dto.ExistingCategoryId.HasValue)
+        {
+            var existing = await uow.Repository<JobCategory>().FindAsync(c => c.Id == dto.ExistingCategoryId.Value && c.IsActive, ct: ct);
+            if (existing is null) return ServiceResult<JobAdvertisementDto>.Invalid("That category doesn't exist.");
+            categoryId = existing.Id;
+        }
+        else if (!string.IsNullOrWhiteSpace(dto.NewCategoryName))
+        {
+            var name = dto.NewCategoryName.Trim();
+            var duplicate = await uow.Repository<JobCategory>().FindAsync(c => c.Name == name, ct: ct);
+            if (duplicate is not null)
+            {
+                categoryId = duplicate.Id; // Already exists (maybe created by another reviewer just now) — reuse it, don't duplicate.
+            }
+            else
+            {
+                var existingCategories = await uow.Repository<JobCategory>().ListAsync(ct: ct);
+                var nextDisplayOrder = existingCategories.Count == 0 ? 0 : existingCategories.Max(c => c.DisplayOrder) + 1;
+                var newCategory = new JobCategory { Id = Guid.NewGuid(), Name = name, DisplayOrder = nextDisplayOrder };
+                await uow.Repository<JobCategory>().AddAsync(newCategory, ct);
+                categoryId = newCategory.Id;
+            }
+        }
+        else
+        {
+            return ServiceResult<JobAdvertisementDto>.Invalid("Pick an existing category or name a new one.");
+        }
+
+        ad.CategoryId = categoryId;
+        uow.Repository<JobAdvertisement>().Update(ad);
+        await uow.SaveChangesAsync(ct);
+
+        var employer = await uow.Repository<Employer>().FindAsync(e => e.Id == ad.EmployerId, ct: ct);
+        var categoryName = await GetCategoryNameAsync(ad.CategoryId, ct);
+        return ServiceResult<JobAdvertisementDto>.Success(ad.ToDto(employerDisplayName: employer?.DisplayName, categoryName: categoryName));
+    }
+
+    private async Task<string?> GetCategoryNameAsync(Guid? categoryId, CancellationToken ct)
+    {
+        if (!categoryId.HasValue) return null;
+        var category = await uow.Repository<JobCategory>().FindAsync(c => c.Id == categoryId.Value, ct: ct);
+        return category?.Name;
     }
 
     public async Task<ServiceResult<JobAdvertisementDto>> ApproveAsync(Guid officeId, Guid reviewerId, Guid id, CancellationToken ct = default)
@@ -65,6 +159,10 @@ public class JobAdvertisementReviewService(
         if (ad is null) return ServiceResult<JobAdvertisementDto>.NotFound("Advertisement not found.");
         if (ad.Status != JobAdvertisementStatus.UnderReview)
             return ServiceResult<JobAdvertisementDto>.Conflict("The advertisement is not under review.");
+        // Confirmed 2026-11-23: the office must assign a real category before approving —
+        // JobAdvertisement.CategoryId's doc comment.
+        if (ad.CategoryId is null)
+            return ServiceResult<JobAdvertisementDto>.Invalid("Assign a category before approving this advertisement.");
 
         ad.Status = JobAdvertisementStatus.ApprovedAwaitingPayment;
         ad.ApprovedBy = reviewerId;

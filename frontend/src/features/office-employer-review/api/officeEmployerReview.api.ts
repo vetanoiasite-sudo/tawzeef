@@ -4,6 +4,7 @@ import type {
   OfficeEmployerDocument,
   OfficeEmployerListItem,
   ReviewQueueFilter,
+  UpdateEmployerPayload,
 } from '../types/officeEmployerReview.types'
 
 export const officeEmployerReviewApi = {
@@ -14,6 +15,8 @@ export const officeEmployerReviewApi = {
       pageSize: filter.pageSize,
     }),
   getById: (id: string) => httpClient.get<OfficeEmployerDetail>(`/api/office/employers/${id}`),
+  update: ({ employerId, payload }: { employerId: string; payload: UpdateEmployerPayload }) =>
+    httpClient.put<OfficeEmployerDetail>(`/api/office/employers/${employerId}`, payload),
   approveDocument: ({ employerId, documentId }: { employerId: string; documentId: string }) =>
     httpClient.post<OfficeEmployerDocument>(
       `/api/office/employers/${employerId}/documents/${documentId}/approve`,

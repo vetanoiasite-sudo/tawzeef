@@ -36,6 +36,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityUser
     public DbSet<Complaint> Complaints => Set<Complaint>();
     public DbSet<OfficeStaffInvite> OfficeStaffInvites => Set<OfficeStaffInvite>();
     public DbSet<JobAdvertisement> JobAdvertisements => Set<JobAdvertisement>();
+    public DbSet<JobCategory> JobCategories => Set<JobCategory>();
     public DbSet<AdvertisementPayment> AdvertisementPayments => Set<AdvertisementPayment>();
     public DbSet<JobApplication> JobApplications => Set<JobApplication>();
     public DbSet<ApplicationStatusHistory> ApplicationStatusHistories => Set<ApplicationStatusHistory>();

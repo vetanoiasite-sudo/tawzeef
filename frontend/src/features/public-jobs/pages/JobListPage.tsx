@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { JobCard } from '../components/JobCard'
 import { useJobSearch } from '../api/publicJobs.queries'
 import type { EmploymentTypeCode } from '../types/publicJobs.types'
+import { useJobCategories } from '@/features/job-categories'
 import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { TextInput } from '@/shared/ui/TextInput'
@@ -22,19 +23,23 @@ export default function JobListPage() {
   const [keyword, setKeyword] = useState('')
   const [city, setCity] = useState('')
   const [category, setCategory] = useState('')
+  const [employerName, setEmployerName] = useState('')
   const [employmentType, setEmploymentType] = useState<EmploymentTypeCode | ''>('')
   const [pageIndex, setPageIndex] = useState(0)
 
   /* Debounced: the DB must not get a request per keystroke. The query only fires once the
-   * user stops typing for 400ms (useDebouncedValue), not on every onChange. City is a select
-   * (discrete choices, not typed), so it fires its own filter change immediately. */
+   * user stops typing for 400ms (useDebouncedValue), not on every onChange. City/Category are
+   * selects (discrete choices, not typed), so they fire their own filter change immediately. */
   const debouncedKeyword = useDebouncedValue(keyword, 400)
-  const debouncedCategory = useDebouncedValue(category, 400)
+  const debouncedEmployerName = useDebouncedValue(employerName, 400)
+
+  const { data: categories } = useJobCategories()
 
   const { data, isLoading } = useJobSearch({
     keyword: debouncedKeyword.trim() || undefined,
     city: city || undefined,
-    category: debouncedCategory.trim() || undefined,
+    category: category || undefined,
+    employerName: debouncedEmployerName.trim() || undefined,
     employmentType: employmentType || undefined,
     pageIndex,
     pageSize: PAGE_SIZE,
@@ -77,14 +82,31 @@ export default function JobListPage() {
               </option>
             ))}
           </Select>
-          <TextInput
+          {/* Real office-managed categories now (JobCategory), not free text — a typed value
+           *  could never match since a Published ad's category is always office-assigned. */}
+          <Select
             label={t('categoryPlaceholder')}
             value={category}
             onChange={(e) => {
               setCategory(e.target.value)
               setPageIndex(0)
             }}
-            placeholder={t('categoryPlaceholder')}
+          >
+            <option value="">{t('categoryPlaceholder')}</option>
+            {categories?.map((c) => (
+              <option key={c.id} value={c.name}>
+                {c.name}
+              </option>
+            ))}
+          </Select>
+          <TextInput
+            label={t('employerFilterLabel')}
+            value={employerName}
+            onChange={(e) => {
+              setEmployerName(e.target.value)
+              setPageIndex(0)
+            }}
+            placeholder={t('employerFilterLabel')}
           />
           <Select
             label={t('employmentTypeAll')}

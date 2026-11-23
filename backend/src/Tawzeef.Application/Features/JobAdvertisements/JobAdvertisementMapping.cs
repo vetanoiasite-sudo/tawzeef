@@ -20,12 +20,13 @@ internal static class JobAdvertisementMapping
         return ad;
     }
 
-    public static JobAdvertisementListItemDto ToListItemDto(this JobAdvertisement ad, string? employerDisplayName = null) => new()
+    public static JobAdvertisementListItemDto ToListItemDto(this JobAdvertisement ad, string? employerDisplayName = null, string? categoryName = null) => new()
     {
         Id = ad.Id,
         Title = ad.Title,
         City = ad.City,
         Category = ad.Category,
+        CategoryName = categoryName,
         Status = ad.Status.ToString(),
         VacancyCount = ad.VacancyCount,
         SubmittedAt = ad.SubmittedAt,
@@ -34,7 +35,7 @@ internal static class JobAdvertisementMapping
         EmployerDisplayName = employerDisplayName,
     };
 
-    public static JobAdvertisementDto ToDto(this JobAdvertisement ad, AdvertisementPayment? payment = null, string? employerDisplayName = null) => new()
+    public static JobAdvertisementDto ToDto(this JobAdvertisement ad, AdvertisementPayment? payment = null, string? employerDisplayName = null, string? categoryName = null) => new()
     {
         Id = ad.Id,
         Title = ad.Title,
@@ -43,6 +44,8 @@ internal static class JobAdvertisementMapping
         WorkingHours = ad.WorkingHours,
         Address = ad.Address,
         Category = ad.Category,
+        CategoryId = ad.CategoryId,
+        CategoryName = categoryName,
         City = ad.City,
         EmploymentType = ad.EmploymentType?.ToString(),
         SalaryMin = ad.SalaryMin,

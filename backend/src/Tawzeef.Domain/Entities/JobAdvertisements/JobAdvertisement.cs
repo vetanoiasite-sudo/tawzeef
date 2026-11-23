@@ -3,9 +3,14 @@ using Tawzeef.Domain.Enums;
 
 namespace Tawzeef.Domain.Entities.JobAdvertisements;
 
-/// <summary>DATABASE_DOCUMENTATION.md §5, WORKFLOWS_AND_STATE_MACHINES.md §5. Category/City are
-/// free text (DATABASE_DOCUMENTATION.md §7.1's JobCategory/City lookup tables are a proposed,
-/// not-yet-confirmed addition) — same deviation as Employer.City/JobSeekerProfile.City.</summary>
+/// <summary>DATABASE_DOCUMENTATION.md §5, WORKFLOWS_AND_STATE_MACHINES.md §5. City is still free
+/// text (DATABASE_DOCUMENTATION.md §7.1's City lookup table is a proposed, not-yet-confirmed
+/// addition) — same deviation as Employer.City/JobSeekerProfile.City. Category is split in two,
+/// confirmed 2026-11-23: <see cref="Category"/> stays free text — now specifically the employer's
+/// own suggestion, typed at creation, never authoritative — and <see cref="CategoryId"/> is the
+/// office-assigned real category (<see cref="JobCategory"/>), set during review and required
+/// before approval. Public search/display use <see cref="CategoryId"/> once set; the employer's
+/// free text is for the office's reference only.</summary>
 public class JobAdvertisement : IEntity
 {
     public Guid Id { get; set; }
@@ -18,7 +23,15 @@ public class JobAdvertisement : IEntity
     public string? ExperienceRequirement { get; set; }
     public string? WorkingHours { get; set; }
     public string? Address { get; set; }
+
+    /// <summary>The employer's own free-text guess at creation time — never authoritative, never
+    /// used for search/display once <see cref="CategoryId"/> is assigned. See the class doc comment.</summary>
     public string? Category { get; set; }
+
+    /// <summary>Office-assigned, set during review (JobAdvertisementReviewService.AssignCategoryAsync)
+    /// — required before <see cref="JobAdvertisementStatus.UnderReview"/> can move to Approved.</summary>
+    public Guid? CategoryId { get; set; }
+
     public string? City { get; set; }
     public EmploymentType? EmploymentType { get; set; }
     public decimal? SalaryMin { get; set; }

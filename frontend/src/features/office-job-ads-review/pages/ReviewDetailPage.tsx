@@ -3,15 +3,19 @@ import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 import { ApiError } from '@/shared/api/types'
 import { useAccess } from '@/shared/auth/useAccess'
+import { CategoryAssignmentForm } from '../components/CategoryAssignmentForm'
+import { OfficeJobAdEditForm } from '../components/OfficeJobAdEditForm'
 import { PaymentConfirmForm } from '../components/PaymentConfirmForm'
 import { ReasonForm } from '../components/ReasonForm'
 import {
   useApproveJobAd,
+  useAssignCategory,
   useConfirmPayment,
   useOfficeJobAdDetail,
   usePauseJobAd,
   useRejectJobAd,
   useResumeJobAd,
+  useUpdateJobAd,
 } from '../api/officeJobAdsReview.queries'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Card } from '@/shared/ui/Card'
@@ -30,6 +34,7 @@ export default function ReviewDetailPage() {
   const adId = id ?? ''
   const [showReject, setShowReject] = useState(false)
   const [showPayment, setShowPayment] = useState(false)
+  const [showEdit, setShowEdit] = useState(false)
 
   const { data: ad, isLoading } = useOfficeJobAdDetail(adId)
   const approve = useApproveJobAd(adId)
@@ -37,16 +42,40 @@ export default function ReviewDetailPage() {
   const pause = usePauseJobAd(adId)
   const resume = useResumeJobAd(adId)
   const confirmPayment = useConfirmPayment(adId)
+  const update = useUpdateJobAd(adId)
+  const assignCategory = useAssignCategory(adId)
 
   if (isLoading || !ad) {
     return <LoadingState />
   }
 
+  const canEdit = hasPermission('jobadvertisements.edit')
+  const canAssignCategory = ad.status === 'UnderReview' && hasPermission('jobadvertisements.approve')
   const canDecide = ad.status === 'UnderReview' && hasPermission('jobadvertisements.approve')
   const canConfirmPayment =
     ad.status === 'ApprovedAwaitingPayment' && hasPermission('advertisementpayments.record')
   const canPause = ad.status === 'Published' && hasPermission('jobadvertisements.pause')
   const canResume = ad.status === 'Paused' && hasPermission('jobadvertisements.pause')
+
+  if (showEdit) {
+    return (
+      <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8 sm:px-6">
+        <Link
+          to="/office/job-advertisements"
+          className="text-sm font-medium text-primary hover:underline"
+        >
+          {t('backToQueue')}
+        </Link>
+        <OfficeJobAdEditForm
+          ad={ad}
+          isSubmitting={update.isPending}
+          error={errorMessage(update.error)}
+          onSubmit={(payload) => update.mutate(payload, { onSuccess: () => setShowEdit(false) })}
+          onCancel={() => setShowEdit(false)}
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8 sm:px-6">
@@ -58,7 +87,16 @@ export default function ReviewDetailPage() {
       </Link>
 
       <Card className="flex flex-col gap-5">
-        <PageHeader title={ad.title} />
+        <PageHeader
+          title={ad.title}
+          action={
+            canEdit && (
+              <Button variant="secondary" size="sm" onClick={() => setShowEdit(true)}>
+                {t('editAction')}
+              </Button>
+            )
+          }
+        />
         <p className="text-sm text-text-muted">{ad.employerDisplayName}</p>
 
         <div className="flex flex-col gap-2 rounded-md bg-surface-muted p-4">
@@ -100,13 +138,29 @@ export default function ReviewDetailPage() {
           </section>
         )}
 
+        {canAssignCategory && (
+          <section className="flex flex-col gap-2 border-t border-surface-muted pt-5">
+            <CategoryAssignmentForm
+              employerSuggestion={ad.category}
+              currentCategoryId={ad.categoryId}
+              currentCategoryName={ad.categoryName}
+              isSubmitting={assignCategory.isPending}
+              error={errorMessage(assignCategory.error)}
+              onAssign={(vars) => assignCategory.mutate(vars)}
+            />
+            {!ad.categoryId && (
+              <p className="text-sm text-content-tertiary">{t('categoryRequiredBeforeApprove')}</p>
+            )}
+          </section>
+        )}
+
         {canDecide && (
           <section className="flex flex-col gap-2 border-t border-surface-muted pt-5">
             {!showReject ? (
               <div className="flex gap-3">
                 <Button
                   variant="success"
-                  disabled={approve.isPending}
+                  disabled={approve.isPending || !ad.categoryId}
                   onClick={() => approve.mutate()}
                 >
                   {t('approveAction')}

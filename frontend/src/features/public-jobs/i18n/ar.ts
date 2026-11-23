@@ -4,6 +4,7 @@ export const publicJobsAr = {
   cityPlaceholder: 'المدينة',
   cityAll: 'كل المحافظات',
   categoryPlaceholder: 'التخصص',
+  employerFilterLabel: 'اسم الشركة',
   employmentTypeAll: 'كل أنواع العمل',
   employmentType: {
     FullTime: 'دوام كامل',

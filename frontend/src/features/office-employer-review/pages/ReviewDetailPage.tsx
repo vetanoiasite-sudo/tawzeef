@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom'
 import { ApiError } from '@/shared/api/types'
 import { useAccess } from '@/shared/auth/useAccess'
 import { DocumentReviewRow } from '../components/DocumentReviewRow'
+import { OfficeEmployerEditForm } from '../components/OfficeEmployerEditForm'
 import { ReasonForm } from '../components/ReasonForm'
 import {
   useApproveDocument,
@@ -13,6 +14,7 @@ import {
   useRejectProfile,
   useResumeCooperation,
   useStopCooperation,
+  useUpdateEmployerProfile,
 } from '../api/officeEmployerReview.queries'
 import { Card } from '@/shared/ui/Card'
 import { Button } from '@/shared/ui/Button'
@@ -31,6 +33,7 @@ export default function ReviewDetailPage() {
   const [showRejectProfile, setShowRejectProfile] = useState(false)
   const [showStopCooperation, setShowStopCooperation] = useState(false)
   const [showResumeCooperation, setShowResumeCooperation] = useState(false)
+  const [showEdit, setShowEdit] = useState(false)
 
   const { data: employer, isLoading } = useOfficeEmployerDetail(employerId)
   const approveDocument = useApproveDocument(employerId)
@@ -39,11 +42,13 @@ export default function ReviewDetailPage() {
   const rejectProfile = useRejectProfile(employerId)
   const stopCooperation = useStopCooperation(employerId)
   const resumeCooperation = useResumeCooperation(employerId)
+  const updateProfile = useUpdateEmployerProfile(employerId)
 
   if (isLoading || !employer) {
     return <LoadingState />
   }
 
+  const canEdit = hasPermission('employers.review')
   const canDecideProfile = employer.verificationStatus === 'UnderReview'
   // API_DOCUMENTATION.md §3.5: stop/resume-cooperation is gated by complaints.decide, not
   // employers.suspend — OfficeAdmin only (RBAC_PERMISSIONS.md footnote 5).
@@ -101,32 +106,51 @@ export default function ReviewDetailPage() {
         )}
       </Card>
 
-      <Card className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
-        <div>
-          <p className="text-text-muted">{t('representativeLabel')}</p>
-          <p className="text-text">{employer.representativeName ?? '—'}</p>
-        </div>
-        <div>
-          <p className="text-text-muted">{t('cityLabel')}</p>
-          <p className="text-text">{employer.city ?? '—'}</p>
-        </div>
-        <div>
-          <p className="text-text-muted">{t('emailLabel')}</p>
-          <p className="text-text">{employer.companyEmail ?? '—'}</p>
-        </div>
-        <div>
-          <p className="text-text-muted">{t('phoneLabel')}</p>
-          <p className="text-text">{employer.companyPhone ?? '—'}</p>
-        </div>
-        <div className="sm:col-span-2">
-          <p className="text-text-muted">{t('addressLabel')}</p>
-          <p className="text-text">{employer.address ?? '—'}</p>
-        </div>
-        <div className="sm:col-span-2">
-          <p className="text-text-muted">{t('businessActivityLabel')}</p>
-          <p className="text-text">{employer.businessActivity ?? '—'}</p>
-        </div>
-      </Card>
+      {showEdit ? (
+        <OfficeEmployerEditForm
+          employer={employer}
+          isSubmitting={updateProfile.isPending}
+          error={errorMessage(updateProfile.error)}
+          onSubmit={(payload) =>
+            updateProfile.mutate(payload, { onSuccess: () => setShowEdit(false) })
+          }
+          onCancel={() => setShowEdit(false)}
+        />
+      ) : (
+        <Card className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
+          {canEdit && (
+            <div className="sm:col-span-2">
+              <Button variant="secondary" size="sm" onClick={() => setShowEdit(true)}>
+                {t('editAction')}
+              </Button>
+            </div>
+          )}
+          <div>
+            <p className="text-text-muted">{t('representativeLabel')}</p>
+            <p className="text-text">{employer.representativeName ?? '—'}</p>
+          </div>
+          <div>
+            <p className="text-text-muted">{t('cityLabel')}</p>
+            <p className="text-text">{employer.city ?? '—'}</p>
+          </div>
+          <div>
+            <p className="text-text-muted">{t('emailLabel')}</p>
+            <p className="text-text">{employer.companyEmail ?? '—'}</p>
+          </div>
+          <div>
+            <p className="text-text-muted">{t('phoneLabel')}</p>
+            <p className="text-text">{employer.companyPhone ?? '—'}</p>
+          </div>
+          <div className="sm:col-span-2">
+            <p className="text-text-muted">{t('addressLabel')}</p>
+            <p className="text-text">{employer.address ?? '—'}</p>
+          </div>
+          <div className="sm:col-span-2">
+            <p className="text-text-muted">{t('businessActivityLabel')}</p>
+            <p className="text-text">{employer.businessActivity ?? '—'}</p>
+          </div>
+        </Card>
+      )}
 
       <section className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold text-text">{t('documentsSection')}</h2>

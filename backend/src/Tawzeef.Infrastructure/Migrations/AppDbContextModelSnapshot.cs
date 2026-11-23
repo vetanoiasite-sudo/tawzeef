@@ -688,6 +688,9 @@ namespace Tawzeef.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<Guid?>("CategoryId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("City")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -766,11 +769,50 @@ namespace Tawzeef.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CategoryId");
+
                     b.HasIndex("EmployerId", "Status");
 
                     b.HasIndex("OfficeId", "Status", "ExpiresAt");
 
                     b.ToTable("JobAdvertisements", (string)null);
+                });
+
+            modelBuilder.Entity("Tawzeef.Domain.Entities.JobAdvertisements.JobCategory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("ModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("JobCategories", (string)null);
                 });
 
             modelBuilder.Entity("Tawzeef.Domain.Entities.JobApplications.ApplicationStatusHistory", b =>

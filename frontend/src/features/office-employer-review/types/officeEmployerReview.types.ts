@@ -49,6 +49,18 @@ export type OfficeEmployerDetail = {
   documents: OfficeEmployerDocument[]
 }
 
+/** Mirrors backend's UpdateEmployerProfileDto (same shape the employer's own profile form posts)
+ * — office-side correction of a typo, never resets VerificationStatus. */
+export type UpdateEmployerPayload = {
+  businessActivity?: string
+  address?: string
+  city?: string
+  companyEmail?: string
+  companyPhone?: string
+  representativeName?: string
+  representativeRole?: string
+}
+
 export type ReviewQueueFilter = {
   verificationStatus?: EmployerVerificationStatusCode
   pageIndex: number

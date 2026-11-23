@@ -80,6 +80,30 @@ public class EmployerReviewService(IUnitOfWork uow, IFileStorage fileStorage) : 
         return ServiceResult<EmployerProfileDto>.Success(employer.ToDto(documents, validComplaintCount));
     }
 
+    public async Task<ServiceResult<EmployerProfileDto>> UpdateAsync(
+        Guid officeId, Guid employerId, UpdateEmployerProfileDto dto, CancellationToken ct = default)
+    {
+        var employer = await uow.Repository<Employer>().FindAsync(e => e.Id == employerId && e.OfficeId == officeId, ct: ct);
+        if (employer is null) return ServiceResult<EmployerProfileDto>.NotFound("Employer not found.");
+
+        // Same field set as EmployerProfileService.UpdateMyProfileAsync — deliberately no
+        // RevertApprovalIfNeeded here (this method's own doc comment explains why).
+        employer.BusinessActivity = dto.BusinessActivity?.Trim();
+        employer.Address = dto.Address?.Trim();
+        employer.City = dto.City?.Trim();
+        employer.CompanyEmail = dto.CompanyEmail?.Trim();
+        employer.CompanyPhone = dto.CompanyPhone?.Trim();
+        employer.RepresentativeName = dto.RepresentativeName?.Trim();
+        employer.RepresentativeRole = dto.RepresentativeRole?.Trim();
+
+        uow.Repository<Employer>().Update(employer);
+        await uow.SaveChangesAsync(ct);
+
+        var documents = await uow.Repository<EmployerDocument>().ListAsync(d => d.EmployerId == employer.Id && d.IsActive, ct: ct);
+        var validComplaintCount = await CountValidComplaintsAsync(employer.Id, ct);
+        return ServiceResult<EmployerProfileDto>.Success(employer.ToDto(documents, validComplaintCount));
+    }
+
     private async Task<int> CountValidComplaintsAsync(Guid employerId, CancellationToken ct) =>
         await uow.Repository<Complaint>().CountAsync(
             c => c.SubjectType == ComplaintSubjectType.Employer

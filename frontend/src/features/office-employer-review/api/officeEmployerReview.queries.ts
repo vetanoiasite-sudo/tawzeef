@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { officeEmployerReviewApi } from './officeEmployerReview.api'
 import { officeEmployerReviewKeys } from './officeEmployerReview.keys'
-import type { ReviewQueueFilter } from '../types/officeEmployerReview.types'
+import type { ReviewQueueFilter, UpdateEmployerPayload } from '../types/officeEmployerReview.types'
 
 export function useReviewQueue(filter: ReviewQueueFilter) {
   return useQuery({
@@ -34,6 +34,16 @@ export function useRejectDocument(employerId: string) {
       officeEmployerReviewApi.rejectDocument({ employerId, documentId, reason }),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: officeEmployerReviewKeys.detail(employerId) }),
+  })
+}
+
+export function useUpdateEmployerProfile(employerId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: UpdateEmployerPayload) =>
+      officeEmployerReviewApi.update({ employerId, payload }),
+    onSuccess: (data) =>
+      queryClient.setQueryData(officeEmployerReviewKeys.detail(employerId), data),
   })
 }
 

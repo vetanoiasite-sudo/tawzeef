@@ -12,6 +12,7 @@ export const publicJobsApi = {
       keyword: filter.keyword,
       city: filter.city,
       category: filter.category,
+      employerName: filter.employerName,
       employmentType: filter.employmentType,
       pageIndex: filter.pageIndex,
       pageSize: filter.pageSize,

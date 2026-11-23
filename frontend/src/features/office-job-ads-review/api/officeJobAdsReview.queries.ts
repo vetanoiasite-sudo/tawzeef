@@ -1,7 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { officeJobAdsReviewApi } from './officeJobAdsReview.api'
 import { officeJobAdsReviewKeys } from './officeJobAdsReview.keys'
-import type { ApplicantsFilter, ReviewQueueFilter } from '../types/officeJobAdsReview.types'
+import type {
+  ApplicantsFilter,
+  ReviewQueueFilter,
+  UpdateJobAdPayload,
+} from '../types/officeJobAdsReview.types'
 
 export function useReviewQueue(filter: ReviewQueueFilter) {
   return useQuery({
@@ -15,6 +19,23 @@ export function useOfficeJobAdDetail(id: string) {
     queryKey: officeJobAdsReviewKeys.detail(id),
     queryFn: () => officeJobAdsReviewApi.getById(id),
     enabled: id.length > 0,
+  })
+}
+
+export function useUpdateJobAd(id: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: UpdateJobAdPayload) => officeJobAdsReviewApi.update({ id, payload }),
+    onSuccess: (data) => queryClient.setQueryData(officeJobAdsReviewKeys.detail(id), data),
+  })
+}
+
+export function useAssignCategory(id: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (vars: { existingCategoryId?: string; newCategoryName?: string }) =>
+      officeJobAdsReviewApi.assignCategory({ id, ...vars }),
+    onSuccess: (data) => queryClient.setQueryData(officeJobAdsReviewKeys.detail(id), data),
   })
 }
 

@@ -5,6 +5,7 @@ import type {
   OfficeJobAdDetail,
   OfficeJobAdListItem,
   ReviewQueueFilter,
+  UpdateJobAdPayload,
 } from '../types/officeJobAdsReview.types'
 
 export const officeJobAdsReviewApi = {
@@ -16,6 +17,21 @@ export const officeJobAdsReviewApi = {
     }),
   getById: (id: string) =>
     httpClient.get<OfficeJobAdDetail>(`/api/office/job-advertisements/${id}`),
+  update: ({ id, payload }: { id: string; payload: UpdateJobAdPayload }) =>
+    httpClient.put<OfficeJobAdDetail>(`/api/office/job-advertisements/${id}`, payload),
+  assignCategory: ({
+    id,
+    existingCategoryId,
+    newCategoryName,
+  }: {
+    id: string
+    existingCategoryId?: string
+    newCategoryName?: string
+  }) =>
+    httpClient.post<OfficeJobAdDetail>(`/api/office/job-advertisements/${id}/category`, {
+      existingCategoryId,
+      newCategoryName,
+    }),
   approve: (id: string) =>
     httpClient.post<OfficeJobAdDetail>(`/api/office/job-advertisements/${id}/approve`),
   reject: ({ id, reason }: { id: string; reason: string }) =>

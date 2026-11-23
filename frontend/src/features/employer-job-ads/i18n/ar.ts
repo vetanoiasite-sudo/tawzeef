@@ -28,7 +28,7 @@ export const employerJobAdsAr = {
   backToList: 'عودة للإعلانات',
   titleLabel: 'عنوان الوظيفة',
   descriptionLabel: 'الوصف',
-  categoryLabel: 'التخصص',
+  categoryLabel: 'التخصص المقترح (هيتأكد منه المكتب)',
   cityLabel: 'المدينة',
   employmentTypeLabel: 'نوع العمل',
   employmentType: {

@@ -23,6 +23,20 @@ public class OfficeJobAdvertisementsController(
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
         => Respond(await service.GetByIdAsync(RequireOfficeId(), id, ct));
 
+    /// <summary>Office-side correction — fixes a typo the employer themselves got wrong, no
+    /// re-approval needed (IJobAdvertisementReviewService.UpdateAsync's doc comment).</summary>
+    [HttpPut("{id:guid}")]
+    [RequiresPermission("jobadvertisements.edit")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateJobAdvertisementDto dto, CancellationToken ct)
+        => Respond(await service.UpdateAsync(RequireOfficeId(), id, dto, ct));
+
+    /// <summary>Office-only category assignment — required before Approve will succeed
+    /// (IJobAdvertisementReviewService.AssignCategoryAsync's doc comment).</summary>
+    [HttpPost("{id:guid}/category")]
+    [RequiresPermission("jobadvertisements.approve")]
+    public async Task<IActionResult> AssignCategory(Guid id, [FromBody] AssignJobCategoryDto dto, CancellationToken ct)
+        => Respond(await service.AssignCategoryAsync(RequireOfficeId(), id, dto, ct));
+
     [HttpPost("{id:guid}/approve")]
     [RequiresPermission("jobadvertisements.approve")]
     public async Task<IActionResult> Approve(Guid id, CancellationToken ct)

@@ -55,4 +55,8 @@ export const officeEmployerReviewAr = {
   businessActivityLabel: 'النشاط التجاري',
   complaintThresholdWarning:
     'وصل عدد الشكاوى الصحيحة المؤكدة ضد هذه الشركة إلى {{count}} — راجع إمكانية اتخاذ قرار إداري.',
+  editAction: 'تعديل',
+  editProfileHint: 'عدّل أي بيانات غلط كتبها صاحب العمل — التعديل هنا مش هيرجّع حالة التوثيق للمراجعة.',
+  representativeRoleLabel: 'صفة الممثل',
+  saveChanges: 'حفظ التغييرات',
 }

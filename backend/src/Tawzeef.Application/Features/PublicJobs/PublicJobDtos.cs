@@ -12,6 +12,10 @@ public class JobSearchQueryDto
     public string? City { get; set; }
     public string? Category { get; set; }
     public EmploymentType? EmploymentType { get; set; }
+    /// <summary>Free-text Contains match on the employer's public display name — same convention
+    /// as City/Category above (no lookup table, no exact id match: a job seeker browsing doesn't
+    /// know an employer's id).</summary>
+    public string? EmployerName { get; set; }
     public int PageIndex { get; set; }
     public int PageSize { get; set; } = 20;
 }
@@ -55,7 +59,9 @@ public class JobDetailsDto
     public string? EmploymentType { get; set; }
     public decimal? SalaryMin { get; set; }
     public decimal? SalaryMax { get; set; }
-    public int VacancyCount { get; set; }
+    // No VacancyCount — never shown to a job seeker (only the employer and the office see it),
+    // per explicit product decision. The employer/office DTOs in JobAdvertisementDtos.cs still
+    // carry it.
     public string EmployerDisplayName { get; set; } = string.Empty;
     public string? EmployerLogoUrl { get; set; }
     public DateTime? PublishedAt { get; set; }

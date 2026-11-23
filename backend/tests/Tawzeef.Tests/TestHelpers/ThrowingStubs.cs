@@ -39,6 +39,8 @@ public class ThrowingEmployerReviewServiceStub : IEmployerReviewService
         throw new NotImplementedException();
     public Task<ServiceResult<EmployerProfileDto>> GetByIdAsync(Guid officeId, Guid id, CancellationToken ct = default) =>
         throw new NotImplementedException();
+    public Task<ServiceResult<EmployerProfileDto>> UpdateAsync(Guid officeId, Guid employerId, UpdateEmployerProfileDto dto, CancellationToken ct = default) =>
+        throw new NotImplementedException();
     public Task<ServiceResult<EmployerDocumentFileDto>> GetDocumentFileAsync(Guid officeId, Guid employerId, Guid documentId, CancellationToken ct = default) =>
         throw new NotImplementedException();
     public Task<ServiceResult<EmployerDocumentDto>> ApproveDocumentAsync(Guid officeId, Guid reviewerId, Guid employerId, Guid documentId, CancellationToken ct = default) =>

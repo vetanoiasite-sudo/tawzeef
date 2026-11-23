@@ -65,7 +65,14 @@ public class JobAdvertisementListItemDto
     public Guid Id { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? City { get; set; }
+
+    /// <summary>The employer's own free-text suggestion at creation time — never authoritative.</summary>
     public string? Category { get; set; }
+
+    /// <summary>The office-assigned real category's name, once set — null until the office assigns
+    /// one during review (JobAdvertisement.CategoryId's doc comment).</summary>
+    public string? CategoryName { get; set; }
+
     public string Status { get; set; } = string.Empty;
     public int VacancyCount { get; set; }
     public DateTime? SubmittedAt { get; set; }
@@ -85,7 +92,16 @@ public class JobAdvertisementDto
     public string? ExperienceRequirement { get; set; }
     public string? WorkingHours { get; set; }
     public string? Address { get; set; }
+
+    /// <summary>The employer's own free-text suggestion at creation time — never authoritative.</summary>
     public string? Category { get; set; }
+
+    /// <summary>The office-assigned real category's id/name, once set — null until the office
+    /// assigns one during review. Approval is blocked until this is set
+    /// (JobAdvertisementReviewService.ApproveAsync).</summary>
+    public Guid? CategoryId { get; set; }
+    public string? CategoryName { get; set; }
+
     public string? City { get; set; }
     public string? EmploymentType { get; set; }
     public decimal? SalaryMin { get; set; }
@@ -110,4 +126,21 @@ public class JobAdvertisementQueryDto
     public JobAdvertisementStatus? Status { get; set; }
     public int PageIndex { get; set; }
     public int PageSize { get; set; } = 20;
+}
+
+public class JobCategoryDto
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public int DisplayOrder { get; set; }
+}
+
+/// <summary>Exactly one of the two must be provided — IJobAdvertisementReviewService.AssignCategoryAsync's
+/// doc comment.</summary>
+public class AssignJobCategoryDto
+{
+    public Guid? ExistingCategoryId { get; set; }
+
+    [MaxLength(100)]
+    public string? NewCategoryName { get; set; }
 }

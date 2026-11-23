@@ -27,7 +27,8 @@ export type JobDetails = {
   employmentType: EmploymentTypeCode | null
   salaryMin: number | null
   salaryMax: number | null
-  vacancyCount: number
+  // No vacancyCount — never shown to a job seeker (employer/office only), per explicit product
+  // decision; the backend DTO doesn't carry it at all.
   employerDisplayName: string
   employerLogoUrl: string | null
   publishedAt: string | null
@@ -46,6 +47,7 @@ export type JobSearchFilter = {
   keyword?: string
   city?: string
   category?: string
+  employerName?: string
   employmentType?: EmploymentTypeCode
   pageIndex: number
   pageSize: number
