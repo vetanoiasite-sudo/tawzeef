@@ -60,6 +60,9 @@ export const jobSeekerDetailsSchema = z
   })
 export type JobSeekerDetailsFormValues = z.infer<typeof jobSeekerDetailsSchema>
 
+// Confirmed 2026-11-24: employer registration mirrors job-seeker registration exactly, office
+// choice included — see jobSeekerDetailsSchema's doc comment just above for why there's no Zod
+// .default() on officeIds/allOffices.
 export const employerDetailsSchema = z
   .object({
     representativeName: z
@@ -72,10 +75,16 @@ export const employerDetailsSchema = z
     displayName: z.string().trim().min(2, 'validation:required').max(250, 'validation:tooLong'),
     password: z.string().min(8, 'validation:passwordTooShort'),
     confirmPassword: z.string().min(1, 'validation:required'),
+    officeIds: z.array(z.string()),
+    allOffices: z.boolean(),
   })
   .refine((v) => v.password === v.confirmPassword, {
     message: 'validation:passwordMismatch',
     path: ['confirmPassword'],
+  })
+  .refine((v) => v.allOffices || v.officeIds.length > 0, {
+    message: 'validation:required',
+    path: ['officeIds'],
   })
 export type EmployerDetailsFormValues = z.infer<typeof employerDetailsSchema>
 

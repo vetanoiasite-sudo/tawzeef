@@ -2,9 +2,10 @@ import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
 
 const DEFAULT_STEPS = ['email', 'otp', 'details'] as const
-// Job-seeker registration only (2026-11-24 product request): document upload is its own step
-// inside the wizard, not a separate page reached after the account already exists.
-export const JOB_SEEKER_REGISTRATION_STEPS = ['email', 'otp', 'details', 'documents'] as const
+// Job-seeker AND employer registration (2026-11-24 product request, confirmed for both roles):
+// document upload is its own step inside the wizard, not a separate page reached after the
+// account already exists.
+export const REGISTRATION_STEPS_WITH_DOCUMENTS = ['email', 'otp', 'details', 'documents'] as const
 type Step = 'email' | 'otp' | 'details' | 'documents'
 
 const LABEL_KEY: Record<Step, string> = {

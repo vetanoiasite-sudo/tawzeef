@@ -52,6 +52,9 @@ export type RegisterEmployerPayload = {
   password: string
   legalName: string
   displayName: string
+  /** At least one, or allOffices — confirmed 2026-11-24 (same as RegisterJobSeekerPayload). */
+  officeIds: string[]
+  allOffices: boolean
 }
 
 export type LoginPayload = {

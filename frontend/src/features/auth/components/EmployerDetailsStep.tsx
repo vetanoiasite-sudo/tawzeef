@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { employerDetailsSchema, type EmployerDetailsFormValues } from '../schemas/auth.schemas'
 import { TextInput } from '@/shared/ui/TextInput'
 import { Button } from '@/shared/ui/Button'
+import { OfficeMultiSelect } from '@/shared/ui/OfficeMultiSelect'
 
 export function EmployerDetailsStep({
   email,
@@ -21,6 +22,8 @@ export function EmployerDetailsStep({
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<EmployerDetailsFormValues>({
     resolver: zodResolver(employerDetailsSchema),
@@ -31,8 +34,12 @@ export function EmployerDetailsStep({
       displayName: '',
       password: '',
       confirmPassword: '',
+      officeIds: [],
+      allOffices: false,
     },
   })
+  const officeIds = watch('officeIds')
+  const allOffices = watch('allOffices')
 
   return (
     <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-4">
@@ -99,6 +106,20 @@ export function EmployerDetailsStep({
         error={errors.confirmPassword ? t(errors.confirmPassword.message ?? '') : undefined}
         {...register('confirmPassword')}
       />
+
+      <div className="flex flex-col gap-1.5">
+        <label className="text-[14px] font-bold text-content-primary">
+          {t('auth:officeLabel')}
+        </label>
+        <OfficeMultiSelect
+          value={{ officeIds, allOffices }}
+          onChange={(next) => {
+            setValue('officeIds', next.officeIds, { shouldValidate: true })
+            setValue('allOffices', next.allOffices, { shouldValidate: true })
+          }}
+          error={errors.officeIds ? t(errors.officeIds.message ?? '') : undefined}
+        />
+      </div>
 
       {submitError && <p className="text-sm text-danger">{submitError}</p>}
 

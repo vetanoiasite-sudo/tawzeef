@@ -260,9 +260,14 @@ public class AuthService(
         var phoneNumber = dto.MobileNumber.Trim();
 
         // No OTP verification step here — removed 2026-11-23, temporary (LoginDto's doc comment).
-        // No office lookup either (2026-11-23): the employer applies to one or more offices
-        // afterward, as a separate step (EmployerProfileService.SubmitToOfficesAsync) — see
-        // RegisterEmployerDto's doc comment.
+        // Office choice happens right here at registration, same as RegisterJobSeekerAsync
+        // (confirmed 2026-11-24 — RegisterEmployerDto's doc comment). More offices can still be
+        // added later via EmployersController.SubmitToOffices.
+        var offices = dto.AllOffices
+            ? await uow.Repository<EmploymentOffice>().ListAsync(o => o.Status == OfficeStatus.Active, ct: ct)
+            : await uow.Repository<EmploymentOffice>().ListAsync(o => dto.OfficeIds.Contains(o.Id) && o.Status == OfficeStatus.Active, ct: ct);
+        if (offices.Count == 0) return ServiceResult<AuthResultDto>.Invalid("اختر مكتب توظيف صالح واحدًا على الأقل.");
+
         if (await userManager.FindByNameAsync(phoneNumber) is not null)
             return ServiceResult<AuthResultDto>.Conflict("رقم الهاتف هذا مسجل بالفعل.");
 
@@ -297,6 +302,17 @@ public class AuthService(
             CompanyEmail = email,
         };
         await uow.Repository<Employer>().AddAsync(employer, ct);
+
+        foreach (var office in offices)
+        {
+            await uow.Repository<EmployerOfficeApplication>().AddAsync(new EmployerOfficeApplication
+            {
+                Id = Guid.NewGuid(),
+                EmployerId = employer.Id,
+                OfficeId = office.Id,
+                VerificationStatus = EmployerVerificationStatus.Draft,
+            }, ct);
+        }
 
         await uow.SaveChangesAsync(ct);
 

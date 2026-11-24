@@ -67,8 +67,25 @@ function AppLayoutChrome() {
   ])
   const { isAuthenticated, hasPermission } = useAccess()
   const user = useSessionStore((s) => s.user)
-  const clearSession = useSessionStore((s) => s.clearSession)
   const location = useLocation()
+
+  // Confirmed 2026-11-24 (real bug): clearSession alone left the user on whatever protected page
+  // they were viewing; RequireAuth then redirected to /login?redirect=<that-same-page>, so logging
+  // in again — even with a completely different account/role — landed back on the previous
+  // account's page.
+  //
+  // Neither a plain clearSession() nor clearSession() + SPA navigate('/') actually fixes this
+  // (confirmed by live testing, not just reasoning): calling clearSession() flips isAuthenticated
+  // synchronously, while a client-side navigate — even with replace: true — does not commit the
+  // new location synchronously, so RequireAuth still renders against the OLD location first and
+  // wins with its own /login?redirect=<old page>, reproducing the bug even with navigate('/') in
+  // the handler. A hard redirect with NO clearSession() call sidesteps the whole race: the token
+  // only lives in memory (sessionStore, never localStorage), so the full page unload this triggers
+  // wipes it on its own — nothing flips isAuthenticated while the old page (and its RequireAuth)
+  // is still mounted, so there's no stale instance left to redirect anywhere.
+  function handleLogout() {
+    window.location.href = '/'
+  }
   const scrolled = useScrolled(24)
   const [menuOpen, setMenuOpen] = useState(false)
   // On a hero route (dark image at top) the header starts transparent over the
@@ -350,7 +367,7 @@ function AppLayoutChrome() {
             </div>
 
             <div className="flex shrink-0 flex-col gap-3 border-t border-border-primary px-4 py-3">
-              <Button variant="secondary" size="sm" fullWidth onClick={clearSession}>
+              <Button variant="secondary" size="sm" fullWidth onClick={handleLogout}>
                 {t('common:logout')}
               </Button>
             </div>

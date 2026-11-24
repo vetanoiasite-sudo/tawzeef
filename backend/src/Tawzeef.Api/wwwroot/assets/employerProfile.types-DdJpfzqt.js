@@ -1,0 +1,1 @@
+var e=[`CommercialRegister`,`TaxCard`,`OwnerNationalId`];export{e as t};

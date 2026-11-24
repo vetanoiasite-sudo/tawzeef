@@ -122,14 +122,18 @@ public class RegisterEmployerDto
     [Required, MinLength(8)]
     public string Password { get; set; } = string.Empty;
 
-    /// <summary>No office at registration (2026-11-23 product decision): the employer applies to
-    /// one or more offices afterward, as a separate step, once their company profile exists — see
-    /// EmployerProfileService.SubmitToOfficesAsync.</summary>
     [Required, MaxLength(250)]
     public string LegalName { get; set; } = string.Empty;
 
     [Required, MaxLength(250)]
     public string DisplayName { get; set; } = string.Empty;
+
+    /// <summary>At least one office, or AllOffices — same reasoning as RegisterJobSeekerDto's own
+    /// OfficeIds/AllOffices (confirmed 2026-11-24: employer registration mirrors job-seeker
+    /// registration exactly, office choice included). More offices can still be added later via
+    /// EmployersController's me/offices (EmployerProfileService.SubmitToOfficesAsync).</summary>
+    public List<Guid> OfficeIds { get; set; } = [];
+    public bool AllOffices { get; set; }
 }
 
 /// <summary>The invitee sets their own password here — the inviting OfficeAdmin/SuperAdmin never

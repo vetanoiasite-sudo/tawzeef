@@ -22,7 +22,7 @@ import { AuthScaffold } from '../components/AuthScaffold'
 import { DetailsStep } from '../components/DetailsStep'
 import { EmailStep } from '../components/EmailStep'
 import { OtpStep } from '../components/OtpStep'
-import { JOB_SEEKER_REGISTRATION_STEPS, RegistrationStepper } from '../components/RegistrationStepper'
+import { REGISTRATION_STEPS_WITH_DOCUMENTS, RegistrationStepper } from '../components/RegistrationStepper'
 import type { JobSeekerDetailsFormValues } from '../schemas/auth.schemas'
 import { Button } from '@/shared/ui/Button'
 
@@ -126,7 +126,7 @@ export default function RegisterJobSeekerPage() {
     <AuthScaffold maxWidth={520}>
       <AuthHeader title={t('registerTitle')} />
 
-      <RegistrationStepper current={step} steps={JOB_SEEKER_REGISTRATION_STEPS} />
+      <RegistrationStepper current={step} steps={REGISTRATION_STEPS_WITH_DOCUMENTS} />
 
       {step === 'email' && (
         <>
