@@ -36,29 +36,28 @@ export default function EmployerDashboardPage() {
             <>
               {(() => {
                 const approvedCount = offices.filter((o) => o.verificationStatus === 'Approved').length
-                const hasAny = offices.some((o) => o.verificationStatus !== 'NotSubmitted')
-                return approvedCount > 0 ? (
-                  <StatusTag
-                    domain="employerVerification"
-                    value="Approved"
-                    label={t('employerProfile:approvedAtOfficesCount', {
-                      count: approvedCount,
-                      defaultValue: `معتمد في ${approvedCount} مكتب`,
-                    })}
-                  />
-                ) : hasAny ? (
-                  <StatusTag
-                    domain="employerVerification"
-                    value="UnderReview"
-                    label={t('employerProfile:status.UnderReview')}
-                  />
-                ) : (
-                  <StatusTag
-                    domain="employerVerification"
-                    value="NotSubmitted"
-                    label={t('employerProfile:officeNotSubmitted', { defaultValue: 'لم يتقدم' })}
-                  />
-                )
+                if (approvedCount > 0) {
+                  return (
+                    <StatusTag
+                      domain="employerVerification"
+                      value="Approved"
+                      label={t('employerProfile:approvedAtOfficesCount', {
+                        count: approvedCount,
+                        defaultValue: `معتمد في ${approvedCount} مكتب`,
+                      })}
+                    />
+                  )
+                }
+                // Otherwise show whichever real status is most "active" — Submitted/UnderReview
+                // before Rejected/Suspended before Draft before NotSubmitted — never a fake
+                // hardcoded status that doesn't match what's actually stored.
+                const priority = ['Submitted', 'UnderReview', 'Rejected', 'Suspended', 'Draft', 'NotSubmitted']
+                const best = priority.find((status) => offices.some((o) => o.verificationStatus === status))
+                const label =
+                  best === 'NotSubmitted' || !best
+                    ? t('employerProfile:officeNotSubmitted', { defaultValue: 'لم يتقدم' })
+                    : t(`employerProfile:status.${best}`)
+                return <StatusTag domain="employerVerification" value={best ?? 'NotSubmitted'} label={label} />
               })()}
               <Link to="/company-profile" className="self-start">
                 <Button variant="secondary" size="sm">

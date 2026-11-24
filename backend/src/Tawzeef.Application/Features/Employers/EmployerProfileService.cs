@@ -10,7 +10,7 @@ namespace Tawzeef.Application.Features.Employers;
 public class EmployerProfileService(IUnitOfWork uow, IFileStorage fileStorage, IConfiguration configuration) : IEmployerProfileService
 {
     // Same confirmed decision as the job seeker's documents (RBAC_PERMISSIONS.md §0 item 24):
-    // PDF/JPG/PNG, 2 MB, configurable.
+    // PDF/JPG/PNG, 2 MB, configurable. Excel added 2026-11-23, Word added 2026-11-24.
     private static readonly string[] DefaultAllowedMimeTypes =
     [
         "application/pdf",
@@ -18,6 +18,8 @@ public class EmployerProfileService(IUnitOfWork uow, IFileStorage fileStorage, I
         "image/png",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
         "application/vnd.ms-excel", // .xls
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+        "application/msword", // .doc
     ];
     private const long DefaultMaxFileSizeBytes = 2 * 1024 * 1024;
 

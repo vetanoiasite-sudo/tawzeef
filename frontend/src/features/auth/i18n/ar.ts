@@ -6,6 +6,7 @@ export const authAr = {
   stepEmail: 'البريد الإلكتروني',
   stepOtp: 'تأكيد الرمز',
   stepDetails: 'بيانات الحساب',
+  stepDocuments: 'المستندات',
   phoneLabel: 'رقم الهاتف المحمول',
   phonePlaceholder: 'مثال: ‎+201012345678',
   sendCode: 'إرسال رمز التحقق',
@@ -42,6 +43,12 @@ export const authAr = {
   acceptInviteMobileHint: 'اكتب رقم الهاتف اللي اتبعتلك عليه دعوة الانضمام.',
   acceptInviteSubmit: 'تفعيل الحساب',
   acceptInviteLink: 'عندك دعوة انضمام لمكتب؟ فعّل حسابك هنا',
+
+  // Step 4 of job-seeker registration — document upload inside the wizard itself, not a redirect
+  // to a separate page (confirmed 2026-11-24).
+  documentsStepHint: 'ارفع مستنداتك دلوقتي — تقدر كمان ترفعها بعدين من صفحة ملفك الشخصي.',
+  finishRegistration: 'إنهاء التسجيل',
+  skipDocumentsForNow: 'لو مش معاك كل المستندات دلوقتي، تقدر تضغط "إنهاء التسجيل" وتكملها بعدين من صفحة ملفك الشخصي.',
 
   // Forgot/reset password — any account with an email on file, any role.
   forgotPasswordLink: 'نسيت كلمة المرور؟',

@@ -1,25 +1,35 @@
 import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
 
-const STEPS = ['email', 'otp', 'details'] as const
-type Step = (typeof STEPS)[number]
+const DEFAULT_STEPS = ['email', 'otp', 'details'] as const
+// Job-seeker registration only (2026-11-24 product request): document upload is its own step
+// inside the wizard, not a separate page reached after the account already exists.
+export const JOB_SEEKER_REGISTRATION_STEPS = ['email', 'otp', 'details', 'documents'] as const
+type Step = 'email' | 'otp' | 'details' | 'documents'
 
 const LABEL_KEY: Record<Step, string> = {
   email: 'auth:stepEmail',
   otp: 'auth:stepOtp',
   details: 'auth:stepDetails',
+  documents: 'auth:stepDocuments',
 }
 
 /**
  * Horizontal progress stepper placed at the top of registration cards. Each
  * step is a numbered circle connected by a track; completed steps use the
  * brand color, the current step is highlighted, and upcoming steps are muted.
- * Shared across job-seeker registration, employer registration, and the
- * office-staff accept-invite flow.
+ * Shared across job-seeker registration and employer registration — each
+ * passes its own `steps` list (they don't have the same step count).
  */
-export function RegistrationStepper({ current }: { current: Step }) {
+export function RegistrationStepper({
+  current,
+  steps = DEFAULT_STEPS,
+}: {
+  current: Step
+  steps?: readonly Step[]
+}) {
   const { t } = useTranslation('auth')
-  const currentIndex = STEPS.indexOf(current)
+  const currentIndex = steps.indexOf(current)
 
   return (
     <div className="mb-6">
@@ -27,11 +37,11 @@ export function RegistrationStepper({ current }: { current: Step }) {
         {t('stepProgress', {
           defaultValue: 'الخطوة {{current}} من {{total}}',
           current: currentIndex + 1,
-          total: STEPS.length,
+          total: steps.length,
         })}
       </p>
       <ol className="flex items-start justify-between" aria-label="progress">
-        {STEPS.map((step, index) => {
+        {steps.map((step, index) => {
           const isDone = index < currentIndex
           const isCurrent = index === currentIndex
           return (
@@ -50,7 +60,7 @@ export function RegistrationStepper({ current }: { current: Step }) {
                   )}
                 />
               )}
-              {index < STEPS.length - 1 && (
+              {index < steps.length - 1 && (
                 <span
                   aria-hidden
                   className={clsx(

@@ -10,7 +10,7 @@ namespace Tawzeef.Application.Features.JobSeekers;
 public class JobSeekerProfileService(IUnitOfWork uow, IFileStorage fileStorage, IConfiguration configuration, ICvParser cvParser) : IJobSeekerProfileService
 {
     // BUSINESS_REQUIREMENTS.md §5.1 Step 4 — PDF/JPG/PNG, confirmed 2026-11-18, size limit lowered
-    // to 2 MB 2026-11-23, configurable either way.
+    // to 2 MB 2026-11-23, configurable either way. Excel added 2026-11-23, Word added 2026-11-24.
     private static readonly string[] DefaultAllowedMimeTypes =
     [
         "application/pdf",
@@ -18,6 +18,8 @@ public class JobSeekerProfileService(IUnitOfWork uow, IFileStorage fileStorage, 
         "image/png",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
         "application/vnd.ms-excel", // .xls
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+        "application/msword", // .doc
     ];
     private const long DefaultMaxFileSizeBytes = 2 * 1024 * 1024;
 

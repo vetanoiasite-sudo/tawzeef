@@ -38,29 +38,28 @@ export default function JobSeekerDashboardPage() {
             <>
               {(() => {
                 const approvedCount = offices.filter((o) => o.reviewStatus === 'Approved').length
-                const hasAny = offices.some((o) => o.reviewStatus !== 'NotSubmitted')
-                return approvedCount > 0 ? (
-                  <StatusTag
-                    domain="jobSeekerReview"
-                    value="Approved"
-                    label={t('jobSeekerProfile:approvedAtOfficesCount', {
-                      count: approvedCount,
-                      defaultValue: `معتمد في ${approvedCount} مكتب`,
-                    })}
-                  />
-                ) : hasAny ? (
-                  <StatusTag
-                    domain="jobSeekerReview"
-                    value="UnderReview"
-                    label={t('jobSeekerProfile:status.UnderReview')}
-                  />
-                ) : (
-                  <StatusTag
-                    domain="jobSeekerReview"
-                    value="NotSubmitted"
-                    label={t('jobSeekerProfile:officeNotSubmitted', { defaultValue: 'لم يتقدم' })}
-                  />
-                )
+                if (approvedCount > 0) {
+                  return (
+                    <StatusTag
+                      domain="jobSeekerReview"
+                      value="Approved"
+                      label={t('jobSeekerProfile:approvedAtOfficesCount', {
+                        count: approvedCount,
+                        defaultValue: `معتمد في ${approvedCount} مكتب`,
+                      })}
+                    />
+                  )
+                }
+                // Otherwise show whichever real status is most "active" — Submitted/UnderReview
+                // before Rejected/Suspended before Draft before NotSubmitted — never a fake
+                // hardcoded status that doesn't match what's actually stored.
+                const priority = ['Submitted', 'UnderReview', 'Rejected', 'Suspended', 'Draft', 'NotSubmitted']
+                const best = priority.find((status) => offices.some((o) => o.reviewStatus === status))
+                const label =
+                  best === 'NotSubmitted' || !best
+                    ? t('jobSeekerProfile:officeNotSubmitted', { defaultValue: 'لم يتقدم' })
+                    : t(`jobSeekerProfile:status.${best}`)
+                return <StatusTag domain="jobSeekerReview" value={best ?? 'NotSubmitted'} label={label} />
               })()}
               <Link to="/profile" className="self-start">
                 <Button variant="secondary" size="sm">
