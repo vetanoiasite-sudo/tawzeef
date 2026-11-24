@@ -54,9 +54,10 @@ export function JobAdForm({
   // while nothing has been chosen yet (never overrides an explicit pick or an existing ad's fixed
   // office).
   useEffect(() => {
-    if (ad || approvedOffices.length !== 1) return
+    const onlyOffice = approvedOffices.length === 1 ? approvedOffices[0] : undefined
+    if (ad || !onlyOffice) return
     if (getValues('officeId')) return
-    setValue('officeId', approvedOffices[0].officeId)
+    setValue('officeId', onlyOffice.officeId)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [approvedOffices.length])
 

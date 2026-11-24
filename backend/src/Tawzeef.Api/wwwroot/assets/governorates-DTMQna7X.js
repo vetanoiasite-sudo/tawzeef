@@ -1,0 +1,1 @@
+import{o as e,y as t}from"./clsx-ucJBATip.js";var n={list:()=>e.get(`/api/governorates`)},r={all:[`governorates`],list:()=>[...r.all,`list`]};function i(){return t({queryKey:r.list(),queryFn:n.list,staleTime:6e4})}export{i as t};

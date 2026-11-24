@@ -42,8 +42,13 @@ export const jobSeekerDetailsSchema = z
     mobileNumber: phoneSchema,
     password: z.string().min(8, 'validation:passwordTooShort'),
     confirmPassword: z.string().min(1, 'validation:required'),
-    officeIds: z.array(z.string()).default([]),
-    allOffices: z.boolean().default(false),
+    // No Zod .default() here — RHF's own defaultValues already seeds these as []/false, and a
+    // Zod-level default would make the schema's input/output types diverge (officeIds optional on
+    // input, required on output), which breaks useForm<JobSeekerDetailsFormValues>'s single type
+    // parameter (confirmed 2026-11-24, caught by `tsc -b`, the project's real typecheck command —
+    // bare `tsc --noEmit` on the root tsconfig.json no-ops since it has an empty "files": []).
+    officeIds: z.array(z.string()),
+    allOffices: z.boolean(),
   })
   .refine((v) => v.password === v.confirmPassword, {
     message: 'validation:passwordMismatch',

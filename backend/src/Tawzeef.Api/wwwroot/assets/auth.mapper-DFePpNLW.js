@@ -1,0 +1,1 @@
+function e(e){return{id:e.userId,fullName:e.fullName,officeId:e.officeId,isSuperAdmin:e.role===`SuperAdmin`,role:e.role,permissions:e.permissionCodes}}export{e as t};
