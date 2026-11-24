@@ -1,4 +1,5 @@
 using Tawzeef.Application.Common;
+using Tawzeef.Application.Features.Notifications;
 using Tawzeef.Domain.Contracts;
 using Tawzeef.Domain.Entities.Employers;
 using Tawzeef.Domain.Entities.Interviews;
@@ -9,8 +10,17 @@ using Tawzeef.Domain.Enums;
 
 namespace Tawzeef.Application.Features.Interviews;
 
-public class InterviewService(IUnitOfWork uow) : IInterviewService
+public class InterviewService(IUnitOfWork uow, INotificationService notificationService) : IInterviewService
 {
+    private static string InterviewStatusLabel(InterviewStatus status) => status switch
+    {
+        InterviewStatus.Scheduled => "مجدولة",
+        InterviewStatus.Completed => "تمت",
+        InterviewStatus.Cancelled => "ملغاة",
+        InterviewStatus.NoShow => "لم يحضر المتقدم",
+        _ => status.ToString(),
+    };
+
     public async Task<ServiceResult<InterviewDto>> ScheduleAsync(Guid userId, Guid applicationId, CreateInterviewDto dto, CancellationToken ct = default)
     {
         var (application, error) = await LoadOwnedByEmployerAsync(userId, applicationId, ct);
@@ -28,6 +38,18 @@ public class InterviewService(IUnitOfWork uow) : IInterviewService
             LocationOrMeetingDetails = dto.LocationOrMeetingDetails?.Trim(),
         };
         await uow.Repository<Interview>().AddAsync(interview, ct);
+
+        var jobSeeker = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.Id == application.JobSeekerId, ct: ct);
+        var ad = await uow.Repository<JobAdvertisement>().FindAsync(a => a.Id == application.JobAdvertisementId, ct: ct);
+        if (jobSeeker is not null)
+        {
+            var when = dto.ScheduledAt?.ToString("yyyy-MM-dd HH:mm") ?? "—";
+            await notificationService.CreateAsync(
+                application.OfficeId, jobSeeker.UserId, "Interview.Scheduled",
+                $"تم تحديد موعد مقابلة لك بخصوص وظيفة \"{ad?.Title}\" بتاريخ {when}.",
+                nameof(Interview), interview.Id, ct);
+        }
+
         await uow.SaveChangesAsync(ct);
 
         return ServiceResult<InterviewDto>.Success(interview.ToDto());
@@ -50,6 +72,16 @@ public class InterviewService(IUnitOfWork uow) : IInterviewService
             if (dto.Status.Value == InterviewStatus.Scheduled)
                 return ServiceResult<InterviewDto>.Invalid("Status can only move to Completed, Cancelled, or NoShow.");
             interview.Status = dto.Status.Value;
+
+            var jobSeeker = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.Id == application!.JobSeekerId, ct: ct);
+            var ad = await uow.Repository<JobAdvertisement>().FindAsync(a => a.Id == application!.JobAdvertisementId, ct: ct);
+            if (jobSeeker is not null)
+            {
+                await notificationService.CreateAsync(
+                    application!.OfficeId, jobSeeker.UserId, "Interview.StatusChanged",
+                    $"تحديث على مقابلتك لوظيفة \"{ad?.Title}\": {InterviewStatusLabel(interview.Status)}.",
+                    nameof(Interview), interview.Id, ct);
+            }
         }
 
         if (dto.ScheduledAt.HasValue) interview.ScheduledAt = dto.ScheduledAt;

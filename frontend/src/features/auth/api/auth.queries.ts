@@ -40,3 +40,7 @@ export function useAcceptStaffInvite() {
 export function useLogin() {
   return useMutation({ mutationFn: authApi.login })
 }
+
+export function useResetPassword() {
+  return useMutation({ mutationFn: authApi.resetPassword })
+}

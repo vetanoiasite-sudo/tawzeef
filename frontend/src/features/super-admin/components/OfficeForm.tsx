@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { EGYPT_GOVERNORATES } from '@/shared/constants/governorates'
+import { useGovernorates } from '@/features/governorates'
 import type { CreateOfficePayload, Office, UpdateOfficePayload } from '../types/superAdmin.types'
 import { Card } from '@/shared/ui/Card'
 import { Button } from '@/shared/ui/Button'
@@ -23,6 +23,7 @@ export function OfficeForm({
   onCancel: () => void
 }) {
   const { t } = useTranslation('superAdmin')
+  const { data: governorates } = useGovernorates()
   const [name, setName] = useState(office?.name ?? '')
   const [arName, setArName] = useState(office?.arName ?? '')
   const [code, setCode] = useState(office?.code ?? '')
@@ -86,9 +87,9 @@ export function OfficeForm({
             onChange={(e) => setCity(e.target.value)}
           >
             <option value="">—</option>
-            {EGYPT_GOVERNORATES.map((governorate) => (
-              <option key={governorate} value={governorate}>
-                {governorate}
+            {(governorates ?? []).map((g) => (
+              <option key={g.id} value={g.name}>
+                {g.name}
               </option>
             ))}
           </Select>

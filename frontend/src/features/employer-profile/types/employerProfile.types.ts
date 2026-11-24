@@ -18,9 +18,23 @@ export type EmployerDocument = {
   uploadedAt: string
 }
 
+/** One office's own status for this employer — an employer may now submit to several (confirmed
+ * 2026-11-24). "NotSubmitted" is a pseudo-status: no application row for that office yet. Always
+ * null on EmployerProfile.officeApplication (self-view has no single office) — the full per-office
+ * list is GET /api/employers/me/offices instead (useMyEmployerOffices). */
+export type EmployerOfficeStatus = {
+  officeId: string
+  officeName: string
+  city: string | null
+  verificationStatus: EmployerVerificationStatusCode | 'NotSubmitted'
+  rejectionReason: string | null
+  cooperationStatus: EmployerCooperationStatusCode
+  cooperationStoppedReason: string | null
+  cooperationStoppedAt: string | null
+}
+
 export type EmployerProfile = {
   id: string
-  officeId: string | null
   legalName: string
   displayName: string
   businessActivity: string | null
@@ -31,12 +45,13 @@ export type EmployerProfile = {
   representativeName: string | null
   representativeRole: string | null
   logoUrl: string | null
-  verificationStatus: EmployerVerificationStatusCode
-  rejectionReason: string | null
-  cooperationStatus: EmployerCooperationStatusCode
-  cooperationStoppedReason: string | null
-  cooperationStoppedAt: string | null
+  officeApplication: EmployerOfficeStatus | null
   documents: EmployerDocument[]
+}
+
+export type SubmitEmployerOfficesPayload = {
+  officeIds: string[]
+  allOffices: boolean
 }
 
 export type UpdateEmployerProfilePayload = {

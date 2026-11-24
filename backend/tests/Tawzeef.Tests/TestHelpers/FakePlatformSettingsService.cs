@@ -16,4 +16,7 @@ public class FakePlatformSettingsService : IPlatformSettingsService
 
     public Task<string> GetValueAsync(string key, string fallback, CancellationToken ct = default) =>
         Task.FromResult(fallback);
+
+    public Task<ServiceResult<List<string>>> GetSupportedCurrenciesAsync(CancellationToken ct = default) =>
+        throw new NotImplementedException();
 }

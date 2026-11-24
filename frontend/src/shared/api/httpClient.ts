@@ -72,6 +72,11 @@ async function request<T>(
       headers,
       body: body === undefined ? undefined : isFormData ? body : JSON.stringify(body),
       signal: options?.signal,
+      // A new API route can land on a path the browser previously only ever got the SPA's
+      // index.html for (MapFallbackToFile catches any unmatched path, including a not-yet-added
+      // API route, and that response is cacheable) — without this, a browser that cached that
+      // miss keeps replaying stale HTML for the route forever, even after it starts working.
+      cache: 'no-store',
     })
   } catch {
     throw new ApiError('network', ['تعذر الوصول إلى الخادم. تحقق من اتصالك بالإنترنت.'])
@@ -113,7 +118,7 @@ async function requestPaged<T>(
 
   let response: Response
   try {
-    response = await fetch(buildUrl(path, query), { method: 'GET', headers })
+    response = await fetch(buildUrl(path, query), { method: 'GET', headers, cache: 'no-store' })
   } catch {
     throw new ApiError('network', ['تعذر الوصول إلى الخادم. تحقق من اتصالك بالإنترنت.'])
   }
@@ -149,7 +154,7 @@ async function requestBlob(path: string): Promise<{ blob: Blob; fileName: string
 
   let response: Response
   try {
-    response = await fetch(buildUrl(path), { method: 'GET', headers })
+    response = await fetch(buildUrl(path), { method: 'GET', headers, cache: 'no-store' })
   } catch {
     throw new ApiError('network', ['تعذر الوصول إلى الخادم. تحقق من اتصالك بالإنترنت.'])
   }

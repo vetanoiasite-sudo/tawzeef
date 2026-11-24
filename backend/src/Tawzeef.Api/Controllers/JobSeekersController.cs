@@ -38,6 +38,20 @@ public class JobSeekersController(IJobSeekerProfileService service, ICurrentUser
     public async Task<IActionResult> SubmitForReview(CancellationToken ct)
         => Respond(await service.SubmitForReviewAsync(RequireUserId(), ct));
 
+    /// <summary>Every office, paired with this job seeker's own status there — "NotSubmitted" for
+    /// one never applied to (confirmed 2026-11-24: a job seeker may submit to several offices).</summary>
+    [HttpGet("me/offices")]
+    [RequiresPermission("jobseekers.viewown")]
+    public async Task<IActionResult> GetMyOffices(CancellationToken ct)
+        => Respond(await service.GetMyOfficeApplicationsAsync(RequireUserId(), ct));
+
+    /// <summary>Submit to specific offices, or every currently-active office — repeatable, used
+    /// both right after registration (if some were skipped) and any time later to add more.</summary>
+    [HttpPost("me/offices")]
+    [RequiresPermission("jobseekers.editown")]
+    public async Task<IActionResult> SubmitToOffices([FromBody] SubmitJobSeekerOfficesDto dto, CancellationToken ct)
+        => Respond(await service.SubmitToOfficesAsync(RequireUserId(), dto, ct));
+
     /// <summary>Optional profile photo — no review workflow, unlike UploadDocument. Same
     /// permission as uploading a document: there's no narrower "own photo" code catalogued.</summary>
     [HttpPost("me/photo")]

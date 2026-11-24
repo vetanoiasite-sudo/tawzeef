@@ -39,7 +39,9 @@ export type RegisterJobSeekerPayload = {
   email: string
   otpToken: string
   password: string
-  officeId: string
+  /** At least one, or allOffices — confirmed 2026-11-24 (OfficeMultiSelect's doc comment). */
+  officeIds: string[]
+  allOffices: boolean
 }
 
 export type RegisterEmployerPayload = {
@@ -55,6 +57,14 @@ export type RegisterEmployerPayload = {
 export type LoginPayload = {
   identifier: string
   password: string
+}
+
+/** The forgot-password flow's last step — otpToken comes from VerifyEmailOtpPayload's result,
+ * requested/verified with purpose "PasswordReset" (ResetPasswordDto's doc comment). */
+export type ResetPasswordPayload = {
+  email: string
+  otpToken: string
+  newPassword: string
 }
 
 /** "SuperAdmin" | "OfficeAdmin" | "OfficeStaff" | "JobSeeker" | "Employer" — API_DOCUMENTATION.md §3.1. */

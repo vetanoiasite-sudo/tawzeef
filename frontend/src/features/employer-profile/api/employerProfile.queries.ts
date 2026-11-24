@@ -13,15 +13,26 @@ export function useUpdateMyEmployerProfile() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: employerProfileApi.updateMyProfile,
-    onSuccess: (data) => queryClient.setQueryData(employerProfileKeys.myProfile(), data),
+    onSuccess: (data) => {
+      queryClient.setQueryData(employerProfileKeys.myProfile(), data)
+      // An edit reverts any Approved office application back to UnderReview (shared documents).
+      void queryClient.invalidateQueries({ queryKey: employerProfileKeys.myOffices() })
+    },
   })
 }
 
-export function useSelectEmployerOffice() {
+export function useMyEmployerOffices() {
+  return useQuery({
+    queryKey: employerProfileKeys.myOffices(),
+    queryFn: employerProfileApi.getMyOffices,
+  })
+}
+
+export function useSubmitEmployerOffices() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: employerProfileApi.selectOffice,
-    onSuccess: (data) => queryClient.setQueryData(employerProfileKeys.myProfile(), data),
+    mutationFn: employerProfileApi.submitToOffices,
+    onSuccess: (data) => queryClient.setQueryData(employerProfileKeys.myOffices(), data),
   })
 }
 
@@ -29,7 +40,10 @@ export function useUploadEmployerDocument() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: employerProfileApi.uploadDocument,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: employerProfileKeys.myProfile() }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: employerProfileKeys.myProfile() })
+      void queryClient.invalidateQueries({ queryKey: employerProfileKeys.myOffices() })
+    },
   })
 }
 
@@ -45,6 +59,9 @@ export function useSubmitEmployerProfileForReview() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: employerProfileApi.submitForReview,
-    onSuccess: (data) => queryClient.setQueryData(employerProfileKeys.myProfile(), data),
+    onSuccess: (data) => {
+      queryClient.setQueryData(employerProfileKeys.myProfile(), data)
+      void queryClient.invalidateQueries({ queryKey: employerProfileKeys.myOffices() })
+    },
   })
 }

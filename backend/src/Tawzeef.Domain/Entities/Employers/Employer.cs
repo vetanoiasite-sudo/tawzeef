@@ -10,11 +10,6 @@ public class Employer : IEntity
 {
     public Guid Id { get; set; }
 
-    /// <summary>Null until the employer applies to an office (EmployerProfileService.
-    /// SelectOfficeAsync) — registration no longer collects it (2026-11-23 product decision): the
-    /// employer creates their account and company profile first, then separately applies to the
-    /// office that will review it.</summary>
-    public Guid? OfficeId { get; set; }
     public Guid UserId { get; set; }
 
     public string LegalName { get; set; } = string.Empty;
@@ -37,15 +32,6 @@ public class Employer : IEntity
     public string? LogoStorageKey { get; set; }
     public string? LogoOriginalFileName { get; set; }
     public string? LogoContentType { get; set; }
-
-    public EmployerVerificationStatus VerificationStatus { get; set; } = EmployerVerificationStatus.Draft;
-    public Guid? ApprovedBy { get; set; }
-    public DateTime? ApprovedAt { get; set; }
-    public string? RejectionReason { get; set; }
-
-    public EmployerCooperationStatus CooperationStatus { get; set; } = EmployerCooperationStatus.Active;
-    public string? CooperationStoppedReason { get; set; }
-    public DateTime? CooperationStoppedAt { get; set; }
 
     public Guid? CreatedBy { get; set; }
     public DateTime CreationDate { get; set; } = DateTime.UtcNow;

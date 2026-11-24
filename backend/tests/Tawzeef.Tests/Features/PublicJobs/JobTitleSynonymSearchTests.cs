@@ -39,7 +39,7 @@ public class JobTitleSynonymSearchTests
         await using var context = InMemoryDbContextFactory.Create();
         var uow = new UnitOfWork(context);
         var officeId = Guid.NewGuid();
-        var employer = new Employer { Id = Guid.NewGuid(), OfficeId = officeId, UserId = Guid.NewGuid(), LegalName = "Acme", DisplayName = "Acme" };
+        var employer = new Employer { Id = Guid.NewGuid(), UserId = Guid.NewGuid(), LegalName = "Acme", DisplayName = "Acme" };
         var ad = new JobAdvertisement
         {
             Id = Guid.NewGuid(),
@@ -70,7 +70,7 @@ public class JobTitleSynonymSearchTests
         await using var context = InMemoryDbContextFactory.Create();
         var uow = new UnitOfWork(context);
         var officeId = Guid.NewGuid();
-        var employer = new Employer { Id = Guid.NewGuid(), OfficeId = officeId, UserId = Guid.NewGuid(), LegalName = "Acme", DisplayName = "Acme" };
+        var employer = new Employer { Id = Guid.NewGuid(), UserId = Guid.NewGuid(), LegalName = "Acme", DisplayName = "Acme" };
         var ad = new JobAdvertisement
         {
             Id = Guid.NewGuid(),

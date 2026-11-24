@@ -61,6 +61,9 @@ function AppLayoutChrome() {
     'notifications',
     'auditLog',
     'platformSettings',
+    'publicCourses',
+    'officeCourses',
+    'officeBanners',
   ])
   const { isAuthenticated, hasPermission } = useAccess()
   const user = useSessionStore((s) => s.user)
@@ -99,133 +102,128 @@ function AppLayoutChrome() {
 
   // Parameterized even though only one caller remains below — keeps the ~15-link conditional
   // list itself in one place if a second rendering context ever comes back.
+  // Only ever rendered for a signed-in user now — the drawer itself doesn't exist for an
+  // anonymous visitor (every one of these links duplicates something already on the home page:
+  // jobs via the hero/latest-jobs sections, registration via the bottom CTA cards).
   function renderNavLinks(linkClassName: string) {
     return (
       <>
-        {/* Public tabs — visible to everyone, drive the three main journeys
-         *  the platform supports: browsing open jobs, registering as a
-         *  job seeker, registering as an employer. */}
-        {!isAuthenticated && (
-          <>
-            <Link to="/jobs" className={linkClassName}>
-              تصفّح الوظائف
-            </Link>
-            <Link to="/register/job-seeker" className={linkClassName}>
-              للباحثين عن عمل
-            </Link>
-            <Link to="/register/employer" className={linkClassName}>
-              للشركات
-            </Link>
-          </>
+        {user?.role === 'JobSeeker' && (
+          <Link to="/dashboard" className={linkClassName}>
+            {t('jobSeekerProfile:dashboardNav')}
+          </Link>
         )}
-
-        {isAuthenticated && (
-          <>
-            {user?.role === 'JobSeeker' && (
-              <Link to="/dashboard" className={linkClassName}>
-                {t('jobSeekerProfile:dashboardNav')}
-              </Link>
-            )}
-            {user?.role === 'Employer' && (
-              <Link to="/employer/dashboard" className={linkClassName}>
-                {t('employerProfile:dashboardNav')}
-              </Link>
-            )}
-            {(user?.role === 'OfficeAdmin' || user?.role === 'OfficeStaff') && (
-              <Link to="/office/dashboard" className={linkClassName}>
-                {t('officeDashboard:dashboardNav')}
-              </Link>
-            )}
-            {user?.role === 'SuperAdmin' && (
-              <Link to="/super-admin/dashboard" className={linkClassName}>
-                {t('superAdmin:dashboardNav')}
-              </Link>
-            )}
-            <Link to="/jobs" className={linkClassName}>
-              الوظائف
+        {user?.role === 'Employer' && (
+          <Link to="/employer/dashboard" className={linkClassName}>
+            {t('employerProfile:dashboardNav')}
+          </Link>
+        )}
+        {(user?.role === 'OfficeAdmin' || user?.role === 'OfficeStaff') && (
+          <Link to="/office/dashboard" className={linkClassName}>
+            {t('officeDashboard:dashboardNav')}
+          </Link>
+        )}
+        {user?.role === 'SuperAdmin' && (
+          <Link to="/super-admin/dashboard" className={linkClassName}>
+            {t('superAdmin:dashboardNav')}
+          </Link>
+        )}
+        <Link to="/jobs" className={linkClassName}>
+          الوظائف
+        </Link>
+        <Link to="/courses" className={linkClassName}>
+          {t('publicCourses:pageTitle')}
+        </Link>
+        {user?.role === 'JobSeeker' && (
+          <Link to="/profile" className={linkClassName}>
+            {t('jobSeekerProfile:pageTitle')}
+          </Link>
+        )}
+        {user?.role === 'JobSeeker' && hasPermission('jobapplications.viewown') && (
+          <Link to="/my-applications" className={linkClassName}>
+            {t('jobSeekerApplications:pageTitle')}
+          </Link>
+        )}
+        {user?.role === 'Employer' && (
+          <Link to="/company-profile" className={linkClassName}>
+            {t('employerProfile:pageTitle')}
+          </Link>
+        )}
+        {user?.role === 'Employer' && hasPermission('jobadvertisements.view') && (
+          <Link to="/employer/job-advertisements" className={linkClassName}>
+            {t('employerJobAds:pageTitle')}
+          </Link>
+        )}
+        {hasPermission('jobadvertisements.review') && (
+          <Link to="/office/job-advertisements" className={linkClassName}>
+            {t('officeJobAdsReview:queueTitle')}
+          </Link>
+        )}
+        {/* hiringfollowupreports.view is also granted to Employer (own ads, per-application
+            read — RBAC_PERMISSIONS.md §3), so this office-only queue link needs the role
+            check too, not just the permission: an Employer legitimately has the code but
+            not an OfficeId, and /api/office/hiring-follow-ups/due requires one. */}
+        {user?.role !== 'Employer' &&
+          user?.role !== 'JobSeeker' &&
+          hasPermission('hiringfollowupreports.view') && (
+            <Link to="/office/hiring-follow-ups" className={linkClassName}>
+              {t('interviewsAndReports:dueFollowUpsTitle')}
             </Link>
-            {user?.role === 'JobSeeker' && (
-              <Link to="/profile" className={linkClassName}>
-                {t('jobSeekerProfile:pageTitle')}
-              </Link>
-            )}
-            {user?.role === 'JobSeeker' && hasPermission('jobapplications.viewown') && (
-              <Link to="/my-applications" className={linkClassName}>
-                {t('jobSeekerApplications:pageTitle')}
-              </Link>
-            )}
-            {user?.role === 'Employer' && (
-              <Link to="/company-profile" className={linkClassName}>
-                {t('employerProfile:pageTitle')}
-              </Link>
-            )}
-            {user?.role === 'Employer' && hasPermission('jobadvertisements.view') && (
-              <Link to="/employer/job-advertisements" className={linkClassName}>
-                {t('employerJobAds:pageTitle')}
-              </Link>
-            )}
-            {hasPermission('jobadvertisements.review') && (
-              <Link to="/office/job-advertisements" className={linkClassName}>
-                {t('officeJobAdsReview:queueTitle')}
-              </Link>
-            )}
-            {/* hiringfollowupreports.view is also granted to Employer (own ads, per-application
-                read — RBAC_PERMISSIONS.md §3), so this office-only queue link needs the role
-                check too, not just the permission: an Employer legitimately has the code but
-                not an OfficeId, and /api/office/hiring-follow-ups/due requires one. */}
-            {user?.role !== 'Employer' &&
-              user?.role !== 'JobSeeker' &&
-              hasPermission('hiringfollowupreports.view') && (
-                <Link to="/office/hiring-follow-ups" className={linkClassName}>
-                  {t('interviewsAndReports:dueFollowUpsTitle')}
-                </Link>
-              )}
-            {hasPermission('jobseekers.view') && (
-              <Link to="/office/job-seekers" className={linkClassName}>
-                {t('officeJobSeekerReview:queueTitle')}
-              </Link>
-            )}
-            {hasPermission('employers.view') && (
-              <Link to="/office/employers" className={linkClassName}>
-                {t('officeEmployerReview:queueTitle')}
-              </Link>
-            )}
-            {hasPermission('complaints.viewown') && (
-              <Link to="/complaints" className={linkClassName}>
-                {t('complaints:pageTitle')}
-              </Link>
-            )}
-            {hasPermission('complaints.view') && (
-              <Link to="/office/complaints" className={linkClassName}>
-                {t('officeComplaintReview:queueTitle')}
-              </Link>
-            )}
-            {hasPermission('suggestions.viewown') && (
-              <Link to="/suggestions" className={linkClassName}>
-                {t('suggestions:pageTitle')}
-              </Link>
-            )}
-            {hasPermission('suggestions.view') && (
-              <Link to="/office/suggestions" className={linkClassName}>
-                {t('officeSuggestionsReview:queueTitle')}
-              </Link>
-            )}
-            {hasPermission('officeusers.view') && (
-              <Link to="/office/users" className={linkClassName}>
-                {t('officeUsers:pageTitle')}
-              </Link>
-            )}
-            {hasPermission('auditlogs.view') && (
-              <Link to="/audit-log" className={linkClassName}>
-                {t('auditLog:pageTitle')}
-              </Link>
-            )}
-            {hasPermission('platformsettings.view') && (
-              <Link to="/super-admin/settings" className={linkClassName}>
-                {t('platformSettings:nav')}
-              </Link>
-            )}
-          </>
+          )}
+        {hasPermission('jobseekers.view') && (
+          <Link to="/office/job-seekers" className={linkClassName}>
+            {t('officeJobSeekerReview:queueTitle')}
+          </Link>
+        )}
+        {hasPermission('employers.view') && (
+          <Link to="/office/employers" className={linkClassName}>
+            {t('officeEmployerReview:queueTitle')}
+          </Link>
+        )}
+        {hasPermission('complaints.viewown') && (
+          <Link to="/complaints" className={linkClassName}>
+            {t('complaints:pageTitle')}
+          </Link>
+        )}
+        {hasPermission('complaints.view') && (
+          <Link to="/office/complaints" className={linkClassName}>
+            {t('officeComplaintReview:queueTitle')}
+          </Link>
+        )}
+        {hasPermission('suggestions.viewown') && (
+          <Link to="/suggestions" className={linkClassName}>
+            {t('suggestions:pageTitle')}
+          </Link>
+        )}
+        {hasPermission('suggestions.view') && (
+          <Link to="/office/suggestions" className={linkClassName}>
+            {t('officeSuggestionsReview:queueTitle')}
+          </Link>
+        )}
+        {hasPermission('officeusers.view') && (
+          <Link to="/office/users" className={linkClassName}>
+            {t('officeUsers:pageTitle')}
+          </Link>
+        )}
+        {hasPermission('courses.view') && (
+          <Link to="/office/courses" className={linkClassName}>
+            {t('officeCourses:pageTitle')}
+          </Link>
+        )}
+        {hasPermission('banners.view') && (
+          <Link to="/office/banners" className={linkClassName}>
+            {t('officeBanners:pageTitle')}
+          </Link>
+        )}
+        {hasPermission('auditlogs.view') && (
+          <Link to="/audit-log" className={linkClassName}>
+            {t('auditLog:pageTitle')}
+          </Link>
+        )}
+        {hasPermission('platformsettings.view') && (
+          <Link to="/super-admin/settings" className={linkClassName}>
+            {t('platformSettings:nav')}
+          </Link>
         )}
       </>
     )
@@ -273,91 +271,92 @@ function AppLayoutChrome() {
              *  screen size — the welcome text / logout combo moved into the drawer footer. */}
             {isAuthenticated && <NotificationBell />}
 
-            <button
-              type="button"
-              onClick={() => setMenuOpen((v) => !v)}
-              aria-label={menuOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
-              aria-expanded={menuOpen}
-              className={clsx(
-                'flex size-10 shrink-0 items-center justify-center rounded-200 transition-colors duration-150',
-                overHero
-                  ? 'text-white hover:bg-white/10'
-                  : 'text-content-primary hover:bg-brand-soft',
-              )}
-            >
-              {menuOpen ? <CloseIcon /> : <MenuIcon />}
-            </button>
+            {/* The drawer itself only exists for a signed-in user (see renderNavLinks' own
+             *  comment) — an anonymous visitor gets just the logo and sign-in button above,
+             *  no hamburger at all. */}
+            {isAuthenticated && (
+              <button
+                type="button"
+                onClick={() => setMenuOpen((v) => !v)}
+                aria-label={menuOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
+                aria-expanded={menuOpen}
+                className={clsx(
+                  'flex size-10 shrink-0 items-center justify-center rounded-200 transition-colors duration-150',
+                  overHero
+                    ? 'text-white hover:bg-white/10'
+                    : 'text-content-primary hover:bg-brand-soft',
+                )}
+              >
+                {menuOpen ? <CloseIcon /> : <MenuIcon />}
+              </button>
+            )}
           </div>
         </div>
       </header>
 
-      {/* Nav drawer — slides in from the end edge (the left, in RTL) matching the menu icon
-       *  position, on every screen size (see drawerLinkClasses above). Backdrop click, Escape,
-       *  or a route change all close it. */}
-      <div
-        aria-hidden={!menuOpen}
-        className={clsx(
-          'fixed inset-0 z-40 bg-black/40 transition-opacity duration-300',
-          menuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
-        )}
-        onClick={() => setMenuOpen(false)}
-      />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="القائمة"
-        className={clsx(
-          'fixed inset-y-0 end-0 z-50 flex w-[85%] max-w-[340px] flex-col bg-surface shadow-[0_0_32px_rgba(0,0,0,0.18)]',
-          'transition-transform duration-300 ease-out',
-          menuOpen
-            ? 'translate-x-0'
-            : '-translate-x-full rtl:-translate-x-full ltr:translate-x-full',
-        )}
-      >
-        <div className="flex h-16 shrink-0 items-center justify-between border-b border-border-primary px-4">
-          <Link to="/" className="shrink-0" onClick={() => setMenuOpen(false)}>
-            <TawzeefLogo height={26} color="#1A23C3" accentColor="#FFE343" />
-          </Link>
-          <button
-            type="button"
+      {isAuthenticated && (
+        <>
+          {/* Nav drawer — slides in from the end edge (the left, in RTL) matching the menu icon
+           *  position, on every screen size (see drawerLinkClasses above). Backdrop click, Escape,
+           *  or a route change all close it. */}
+          <div
+            aria-hidden={!menuOpen}
+            className={clsx(
+              'fixed inset-0 z-40 bg-black/40 transition-opacity duration-300',
+              menuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
+            )}
             onClick={() => setMenuOpen(false)}
-            aria-label="إغلاق القائمة"
-            className="flex size-10 shrink-0 items-center justify-center rounded-200 text-content-primary transition-colors duration-150 hover:bg-brand-soft"
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="القائمة"
+            className={clsx(
+              'fixed inset-y-0 end-0 z-50 flex w-[85%] max-w-[340px] flex-col bg-surface shadow-[0_0_32px_rgba(0,0,0,0.18)]',
+              'transition-transform duration-300 ease-out',
+              menuOpen
+                ? 'translate-x-0'
+                : '-translate-x-full rtl:-translate-x-full ltr:translate-x-full',
+            )}
           >
-            <CloseIcon />
-          </button>
-        </div>
+            <div className="flex h-16 shrink-0 items-center justify-between border-b border-border-primary px-4">
+              <Link to="/" className="shrink-0" onClick={() => setMenuOpen(false)}>
+                <TawzeefLogo height={26} color="#1A23C3" accentColor="#FFE343" />
+              </Link>
+              <button
+                type="button"
+                onClick={() => setMenuOpen(false)}
+                aria-label="إغلاق القائمة"
+                className="flex size-10 shrink-0 items-center justify-center rounded-200 text-content-primary transition-colors duration-150 hover:bg-brand-soft"
+              >
+                <CloseIcon />
+              </button>
+            </div>
 
-        {/* Profile header — the account's own photo (job seeker photo / company logo / office
-         *  photo), name and role, always first, with the link list below it. */}
-        {isAuthenticated && user && (
-          <div className="flex shrink-0 items-center gap-3 border-b border-border-primary bg-gradient-to-b from-brand-soft/70 to-transparent px-4 py-5">
-            <DrawerAvatar user={user} />
-            <div className="flex min-w-0 flex-col">
-              <p className="truncate text-[16px] font-bold text-content-primary">{user.fullName}</p>
-              <p className="text-[13px] font-medium text-brand">{ROLE_LABELS[user.role] ?? user.role}</p>
+            {/* Profile header — the account's own photo (job seeker photo / company logo / office
+             *  photo), name and role, always first, with the link list below it. */}
+            {user && (
+              <div className="flex shrink-0 items-center gap-3 border-b border-border-primary bg-gradient-to-b from-brand-soft/70 to-transparent px-4 py-5">
+                <DrawerAvatar user={user} />
+                <div className="flex min-w-0 flex-col">
+                  <p className="truncate text-[16px] font-bold text-content-primary">{user.fullName}</p>
+                  <p className="text-[13px] font-medium text-brand">{ROLE_LABELS[user.role] ?? user.role}</p>
+                </div>
+              </div>
+            )}
+
+            <div className="flex-1 overflow-y-auto px-4 py-3">
+              <nav className="flex flex-col gap-0.5">{renderNavLinks(drawerLinkClasses)}</nav>
+            </div>
+
+            <div className="flex shrink-0 flex-col gap-3 border-t border-border-primary px-4 py-3">
+              <Button variant="secondary" size="sm" fullWidth onClick={clearSession}>
+                {t('common:logout')}
+              </Button>
             </div>
           </div>
-        )}
-
-        <div className="flex-1 overflow-y-auto px-4 py-3">
-          <nav className="flex flex-col gap-0.5">{renderNavLinks(drawerLinkClasses)}</nav>
-        </div>
-
-        <div className="flex shrink-0 flex-col gap-3 border-t border-border-primary px-4 py-3">
-          {isAuthenticated ? (
-            <Button variant="secondary" size="sm" fullWidth onClick={clearSession}>
-              {t('common:logout')}
-            </Button>
-          ) : (
-            <Link to="/login" className="block" onClick={() => setMenuOpen(false)}>
-              <Button variant="primary" size="sm" fullWidth>
-                {t('auth:loginLink')}
-              </Button>
-            </Link>
-          )}
-        </div>
-      </div>
+        </>
+      )}
       {/* `pt-16` offsets the fixed header so page content doesn't hide under it.
        *  Hero sections on HERO_ROUTES use `-mt-16` to extend under it instead. */}
       <main className="flex-1 pt-16">

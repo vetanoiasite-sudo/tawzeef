@@ -25,6 +25,13 @@ public class AuthController(IAuthService service) : ApiControllerBase
     public async Task<IActionResult> VerifyEmailOtp([FromBody] VerifyEmailOtpDto dto, CancellationToken ct)
         => Respond(await service.VerifyEmailOtpAsync(dto, ct));
 
+    /// <summary>Forgot-password: the frontend calls otp/email/request and otp/email/verify above
+    /// (with Purpose: "PasswordReset") to get a VerifiedToken, then this to actually change the
+    /// password — any account with an email on file, any role (ResetPasswordDto's doc comment).</summary>
+    [HttpPost("password/reset")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto, CancellationToken ct)
+        => Respond(await service.ResetPasswordAsync(dto, ct));
+
     [HttpPost("register/job-seeker")]
     public async Task<IActionResult> RegisterJobSeeker([FromBody] RegisterJobSeekerDto dto, CancellationToken ct)
         => Respond(await service.RegisterJobSeekerAsync(dto, ct));

@@ -121,6 +121,41 @@ public class AuthService(
         return ServiceResult<OtpVerifiedDto>.Success(new OtpVerifiedDto { OtpToken = otp.VerifiedToken });
     }
 
+    /// <summary>The forgot-password flow's last step — ResetPasswordDto's doc comment explains why
+    /// request/verify reuse the existing email-OTP endpoints and only this step is new.</summary>
+    public async Task<ServiceResult> ResetPasswordAsync(ResetPasswordDto dto, CancellationToken ct = default)
+    {
+        var email = dto.Email.Trim();
+
+        var otp = await uow.Repository<OtpVerification>().FindAsync(
+            o => o.Email == email
+                && o.Purpose == OtpPurpose.PasswordReset
+                && o.VerifiedToken == dto.OtpToken.Trim()
+                && o.VerifiedTokenUsedAt == null
+                && o.VerifiedTokenExpiresAt > DateTime.UtcNow,
+            ct: ct);
+        if (otp is null) return ServiceResult.Invalid("يجب تأكيد البريد الإلكتروني أولًا.");
+
+        var user = await userManager.FindByEmailAsync(email);
+        if (user is null) return ServiceResult.NotFound("لا يوجد حساب بهذا البريد الإلكتروني.");
+
+        // Not GeneratePasswordResetTokenAsync/ResetPasswordAsync — see ResetPasswordDto's doc
+        // comment. RemovePasswordAsync + AddPasswordAsync needs no token provider.
+        var removeResult = await userManager.RemovePasswordAsync(user);
+        if (!removeResult.Succeeded)
+            return ServiceResult.Invalid(removeResult.Errors.Select(e => e.Description));
+
+        var addResult = await userManager.AddPasswordAsync(user, dto.NewPassword);
+        if (!addResult.Succeeded)
+            return ServiceResult.Invalid(addResult.Errors.Select(e => e.Description));
+
+        otp.VerifiedTokenUsedAt = DateTime.UtcNow;
+        uow.Repository<OtpVerification>().Update(otp);
+        await uow.SaveChangesAsync(ct);
+
+        return ServiceResult.Success();
+    }
+
     /// <summary>Consumes the opaque token from VerifyEmailOtpAsync — RegisterJobSeekerAsync/
     /// RegisterEmployerAsync both call this before creating the account, so an account can't be
     /// created without first proving the email was actually verified for this same email and
@@ -146,9 +181,15 @@ public class AuthService(
         var phoneNumber = dto.MobileNumber.Trim();
 
         // No phone OTP step — removed 2026-11-23 (LoginDto's doc comment). Email OTP is required
-        // instead, added the same day — ConsumeEmailOtpTokenAsync's doc comment.
-        var office = await uow.Repository<EmploymentOffice>().FindAsync(o => o.Id == dto.OfficeId && o.Status == OfficeStatus.Active, ct: ct);
-        if (office is null) return ServiceResult<AuthResultDto>.Invalid("اختر مكتب توظيف صالح.");
+        // instead, added the same day — ConsumeEmailOtpTokenAsync's doc comment. Unlike an
+        // Employer, the job seeker still picks office(s) right here at registration (confirmed
+        // 2026-11-24 — JobSeekerOfficeApplication's doc comment): it's the office(s) that will
+        // review their documents, so there's no "apply later" step to defer it to — though more can
+        // still be added afterward via JobSeekersController.SubmitToOffices.
+        var offices = dto.AllOffices
+            ? await uow.Repository<EmploymentOffice>().ListAsync(o => o.Status == OfficeStatus.Active, ct: ct)
+            : await uow.Repository<EmploymentOffice>().ListAsync(o => dto.OfficeIds.Contains(o.Id) && o.Status == OfficeStatus.Active, ct: ct);
+        if (offices.Count == 0) return ServiceResult<AuthResultDto>.Invalid("اختر مكتب توظيف صالح واحدًا على الأقل.");
 
         if (await userManager.FindByNameAsync(phoneNumber) is not null)
             return ServiceResult<AuthResultDto>.Conflict("رقم الهاتف هذا مسجل بالفعل.");
@@ -181,15 +222,24 @@ public class AuthService(
         var profile = new JobSeekerProfile
         {
             Id = Guid.NewGuid(),
-            OfficeId = office.Id,
             UserId = user.Id,
             FullName = user.FullName,
             NationalId = nationalId,
             MobileNumber = phoneNumber,
             Email = dto.Email,
-            ReviewStatus = JobSeekerReviewStatus.Draft,
         };
         await uow.Repository<JobSeekerProfile>().AddAsync(profile, ct);
+
+        foreach (var office in offices)
+        {
+            await uow.Repository<JobSeekerOfficeApplication>().AddAsync(new JobSeekerOfficeApplication
+            {
+                Id = Guid.NewGuid(),
+                JobSeekerId = profile.Id,
+                OfficeId = office.Id,
+                ReviewStatus = JobSeekerReviewStatus.Draft,
+            }, ct);
+        }
 
         await uow.SaveChangesAsync(ct);
 
@@ -210,9 +260,9 @@ public class AuthService(
         var phoneNumber = dto.MobileNumber.Trim();
 
         // No OTP verification step here — removed 2026-11-23, temporary (LoginDto's doc comment).
-        // No office lookup either (2026-11-23): the employer applies to an office afterward, as a
-        // separate step (EmployerProfileService.SelectOfficeAsync) — see RegisterEmployerDto's doc
-        // comment.
+        // No office lookup either (2026-11-23): the employer applies to one or more offices
+        // afterward, as a separate step (EmployerProfileService.SubmitToOfficesAsync) — see
+        // RegisterEmployerDto's doc comment.
         if (await userManager.FindByNameAsync(phoneNumber) is not null)
             return ServiceResult<AuthResultDto>.Conflict("رقم الهاتف هذا مسجل بالفعل.");
 
@@ -240,14 +290,11 @@ public class AuthService(
         var employer = new Employer
         {
             Id = Guid.NewGuid(),
-            OfficeId = null,
             UserId = user.Id,
             LegalName = dto.LegalName.Trim(),
             DisplayName = dto.DisplayName.Trim(),
             RepresentativeName = user.FullName,
             CompanyEmail = email,
-            VerificationStatus = EmployerVerificationStatus.Draft,
-            CooperationStatus = EmployerCooperationStatus.Active,
         };
         await uow.Repository<Employer>().AddAsync(employer, ct);
 

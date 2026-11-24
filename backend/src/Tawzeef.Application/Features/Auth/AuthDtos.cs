@@ -48,6 +48,25 @@ public class VerifyEmailOtpDto
     public OtpPurpose Purpose { get; set; } = OtpPurpose.Registration;
 }
 
+/// <summary>Final step of the forgot-password flow — the caller already has a VerifiedToken from
+/// POST /api/auth/otp/email/verify (called with Purpose: "PasswordReset"; request/verify reuse
+/// the existing email-OTP endpoints as-is, no dedicated "forgot password" endpoint needed for
+/// those two steps). This endpoint is the only new one: it consumes that token and sets the new
+/// password, same RemovePasswordAsync+AddPasswordAsync mechanism as the CLI reset-password
+/// bootstrap tool (Program.cs) — AddIdentityCore has no token provider registered, so
+/// UserManager's own GeneratePasswordResetTokenAsync/ResetPasswordAsync aren't available.</summary>
+public class ResetPasswordDto
+{
+    [Required, MaxLength(200), EmailAddress]
+    public string Email { get; set; } = string.Empty;
+
+    [Required]
+    public string OtpToken { get; set; } = string.Empty;
+
+    [Required, MinLength(8)]
+    public string NewPassword { get; set; } = string.Empty;
+}
+
 public class RegisterJobSeekerDto
 {
     [Required, MaxLength(200)]
@@ -75,8 +94,13 @@ public class RegisterJobSeekerDto
     [Required, MinLength(8)]
     public string Password { get; set; } = string.Empty;
 
-    [Required]
-    public Guid OfficeId { get; set; }
+    /// <summary>At least one office, or AllOffices — confirmed 2026-11-24: a job seeker may submit
+    /// to several offices (or all of them) to review the same uploaded documents. Unlike Employer,
+    /// still collected right at registration, not deferred (JobSeekerOfficeApplication's doc
+    /// comment): the job seeker needs at least one office lined up before document upload even
+    /// makes sense. More offices can be added later via JobSeekersController.SubmitToOffices.</summary>
+    public List<Guid> OfficeIds { get; set; } = [];
+    public bool AllOffices { get; set; }
 }
 
 public class RegisterEmployerDto
@@ -99,8 +123,8 @@ public class RegisterEmployerDto
     public string Password { get; set; } = string.Empty;
 
     /// <summary>No office at registration (2026-11-23 product decision): the employer applies to
-    /// an office afterward, as a separate step, once their company profile exists — see
-    /// EmployerProfileService.SelectOfficeAsync.</summary>
+    /// one or more offices afterward, as a separate step, once their company profile exists — see
+    /// EmployerProfileService.SubmitToOfficesAsync.</summary>
     [Required, MaxLength(250)]
     public string LegalName { get; set; } = string.Empty;
 

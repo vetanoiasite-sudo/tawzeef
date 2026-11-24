@@ -20,7 +20,8 @@ internal static class JobAdvertisementMapping
         return ad;
     }
 
-    public static JobAdvertisementListItemDto ToListItemDto(this JobAdvertisement ad, string? employerDisplayName = null, string? categoryName = null) => new()
+    public static JobAdvertisementListItemDto ToListItemDto(
+        this JobAdvertisement ad, string? employerDisplayName = null, string? categoryName = null, string? officeName = null) => new()
     {
         Id = ad.Id,
         Title = ad.Title,
@@ -33,9 +34,12 @@ internal static class JobAdvertisementMapping
         PublishedAt = ad.PublishedAt,
         ExpiresAt = ad.ExpiresAt,
         EmployerDisplayName = employerDisplayName,
+        OfficeId = ad.OfficeId,
+        OfficeName = officeName,
     };
 
-    public static JobAdvertisementDto ToDto(this JobAdvertisement ad, AdvertisementPayment? payment = null, string? employerDisplayName = null, string? categoryName = null) => new()
+    public static JobAdvertisementDto ToDto(
+        this JobAdvertisement ad, AdvertisementPayment? payment = null, string? employerDisplayName = null, string? categoryName = null, string? officeName = null) => new()
     {
         Id = ad.Id,
         Title = ad.Title,
@@ -60,6 +64,8 @@ internal static class JobAdvertisementMapping
         ClosedAt = ad.ClosedAt,
         RenewedFromAdvertisementId = ad.RenewedFromAdvertisementId,
         EmployerDisplayName = employerDisplayName,
+        OfficeId = ad.OfficeId,
+        OfficeName = officeName,
         Payment = payment?.ToDto(),
     };
 

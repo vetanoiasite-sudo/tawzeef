@@ -19,20 +19,27 @@ public class ComplaintService(IUnitOfWork uow) : IComplaintService
 
         Guid officeId;
         string subjectName;
+        // Routed to whichever office the subject applied to first — a subject may now be linked to
+        // several (confirmed 2026-11-24), but a complaint still only goes to one.
         if (dto.SubjectType == ComplaintSubjectType.JobSeeker)
         {
             var subject = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.Id == dto.SubjectId, ct: ct);
             if (subject is null) return ServiceResult<ComplaintDto>.Invalid("الباحث عن عمل موضوع هذه الشكوى غير موجود.");
-            officeId = subject.OfficeId;
+            var subjectOfficeId = (await uow.Repository<JobSeekerOfficeApplication>().ListAsync(a => a.JobSeekerId == subject.Id, ct: ct))
+                .OrderBy(a => a.CreationDate).Select(a => (Guid?)a.OfficeId).FirstOrDefault();
+            if (subjectOfficeId is null) return ServiceResult<ComplaintDto>.Invalid("الباحث عن عمل موضوع هذه الشكوى لم يتقدم لأي مكتب توظيف بعد.");
+            officeId = subjectOfficeId.Value;
             subjectName = subject.FullName;
         }
         else
         {
             var subject = await uow.Repository<Employer>().FindAsync(e => e.Id == dto.SubjectId, ct: ct);
             if (subject is null) return ServiceResult<ComplaintDto>.Invalid("صاحب العمل موضوع هذه الشكوى غير موجود.");
+            var subjectOfficeId = (await uow.Repository<EmployerOfficeApplication>().ListAsync(a => a.EmployerId == subject.Id, ct: ct))
+                .OrderBy(a => a.CreationDate).Select(a => (Guid?)a.OfficeId).FirstOrDefault();
             // Not yet applied to an office — no office to route the complaint to either.
-            if (subject.OfficeId is null) return ServiceResult<ComplaintDto>.Invalid("صاحب العمل موضوع هذه الشكوى لم يتقدم لأي مكتب توظيف بعد.");
-            officeId = subject.OfficeId.Value;
+            if (subjectOfficeId is null) return ServiceResult<ComplaintDto>.Invalid("صاحب العمل موضوع هذه الشكوى لم يتقدم لأي مكتب توظيف بعد.");
+            officeId = subjectOfficeId.Value;
             subjectName = subject.DisplayName;
         }
 

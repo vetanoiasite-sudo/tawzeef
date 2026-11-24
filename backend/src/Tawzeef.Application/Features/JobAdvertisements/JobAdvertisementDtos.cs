@@ -5,6 +5,13 @@ namespace Tawzeef.Application.Features.JobAdvertisements;
 
 public class CreateJobAdvertisementDto
 {
+    /// <summary>Which of the employer's own Approved offices this ad posts through — required
+    /// since an employer may now be approved at several offices (confirmed 2026-11-24,
+    /// EmployerOfficeApplication's doc comment); a single-office employer still has to pass their
+    /// one office's id, the frontend just doesn't need to show a picker for it.</summary>
+    [Required]
+    public Guid OfficeId { get; set; }
+
     [Required, MaxLength(200)]
     public string Title { get; set; } = string.Empty;
 
@@ -82,6 +89,11 @@ public class JobAdvertisementListItemDto
     /// <summary>Only populated on the office review queue — the employer's own list already knows
     /// whose ads they are.</summary>
     public string? EmployerDisplayName { get; set; }
+
+    /// <summary>Which of the employer's offices this ad posts through — shown on the employer's own
+    /// list now that an employer may post through several (confirmed 2026-11-24).</summary>
+    public Guid OfficeId { get; set; }
+    public string? OfficeName { get; set; }
 }
 
 public class JobAdvertisementDto
@@ -114,6 +126,11 @@ public class JobAdvertisementDto
     public string? RejectionReason { get; set; }
     public DateTime? PublishedAt { get; set; }
     public DateTime? ExpiresAt { get; set; }
+
+    /// <summary>Which of the employer's offices this ad posts through — shown now that an employer
+    /// may post through several (confirmed 2026-11-24).</summary>
+    public Guid OfficeId { get; set; }
+    public string? OfficeName { get; set; }
     public DateTime? ClosedAt { get; set; }
     public Guid? RenewedFromAdvertisementId { get; set; }
 

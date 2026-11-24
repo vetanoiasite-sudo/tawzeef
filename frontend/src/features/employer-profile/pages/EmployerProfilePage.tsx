@@ -1,13 +1,12 @@
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ApiError } from '@/shared/api/types'
-import { usePublicOffices } from '@/features/auth'
 import { EmployerDocumentUploadCard } from '../components/EmployerDocumentUploadCard'
 import { EmployerProfileCompletionForm } from '../components/EmployerProfileCompletionForm'
 import { LogoUploadCard } from '../components/LogoUploadCard'
+import { MyOfficesCard } from '../components/MyOfficesCard'
 import {
+  useMyEmployerOffices,
   useMyEmployerProfile,
-  useSelectEmployerOffice,
   useSubmitEmployerProfileForReview,
   useUpdateMyEmployerProfile,
   useUploadEmployerDocument,
@@ -21,59 +20,16 @@ import {
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Card } from '@/shared/ui/Card'
 import { Button } from '@/shared/ui/Button'
-import { Select } from '@/shared/ui/Select'
-import { StatusTag } from '@/shared/ui/StatusTag'
 import { LoadingState } from '@/shared/ui/LoadingState'
 
 function errorMessage(error: unknown): string | undefined {
   return error instanceof ApiError ? error.messages[0] : undefined
 }
 
-function SelectOfficeCard() {
-  const { t } = useTranslation('employerProfile')
-  const { data: offices, isLoading: officesLoading } = usePublicOffices()
-  const [officeId, setOfficeId] = useState('')
-  const selectOffice = useSelectEmployerOffice()
-
-  return (
-    <Card className="flex flex-col gap-3">
-      <div>
-        <p className="font-bold text-content-primary">{t('selectOfficeTitle')}</p>
-        <p className="text-sm text-content-tertiary">{t('selectOfficeHint')}</p>
-      </div>
-      <Select
-        id="applyOfficeId"
-        disabled={officesLoading}
-        value={officeId}
-        label={t('officeLabel')}
-        onChange={(e) => setOfficeId(e.target.value)}
-      >
-        <option value="" disabled>
-          {t('officePlaceholder')}
-        </option>
-        {offices?.map((office) => (
-          <option key={office.id} value={office.id}>
-            {office.city ? `${office.name} — ${office.city}` : office.name}
-          </option>
-        ))}
-      </Select>
-      {errorMessage(selectOffice.error) && (
-        <p className="text-sm text-danger">{errorMessage(selectOffice.error)}</p>
-      )}
-      <Button
-        className="self-start"
-        disabled={!officeId || selectOffice.isPending}
-        onClick={() => selectOffice.mutate(officeId)}
-      >
-        {t('applyToOfficeAction')}
-      </Button>
-    </Card>
-  )
-}
-
 export default function EmployerProfilePage() {
   const { t } = useTranslation('employerProfile')
   const { data: profile, isLoading } = useMyEmployerProfile()
+  const { data: offices } = useMyEmployerOffices()
   const updateProfile = useUpdateMyEmployerProfile()
   const uploadDocument = useUploadEmployerDocument()
   const uploadLogo = useUploadEmployerLogo()
@@ -81,17 +37,6 @@ export default function EmployerProfilePage() {
 
   if (isLoading || !profile) {
     return <LoadingState />
-  }
-
-  // Step 2 of registration: apply to an office before anything else becomes available — matches
-  // the backend gate in EmployerProfileService.UploadDocumentAsync/SubmitForReviewAsync.
-  if (!profile.officeId) {
-    return (
-      <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8 sm:px-6">
-        <PageHeader title={t('pageTitle')} />
-        <SelectOfficeCard />
-      </div>
-    )
   }
 
   function handleSaveProfile(values: EmployerProfileFormValues) {
@@ -112,42 +57,16 @@ export default function EmployerProfilePage() {
 
   const presentTypes = new Set(profile.documents.map((d) => d.documentType))
   const allDocumentsPresent = REQUIRED_DOCUMENT_TYPES.every((type) => presentTypes.has(type))
-  const canSubmit =
-    (profile.verificationStatus === 'Draft' || profile.verificationStatus === 'Rejected') &&
-    allDocumentsPresent
+  const hasPendingOffice = (offices ?? []).some(
+    (o) => o.verificationStatus === 'Draft' || o.verificationStatus === 'Rejected',
+  )
+  const canSubmit = hasPendingOffice && allDocumentsPresent
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8 sm:px-6">
       <PageHeader title={t('pageTitle')} />
 
-      <Card className="flex flex-col gap-2">
-        <div className="flex items-center gap-2 text-sm text-text-muted">
-          {t('statusLabel')}:
-          <StatusTag
-            domain="employerVerification"
-            value={profile.verificationStatus}
-            label={t(`status.${profile.verificationStatus}`)}
-          />
-        </div>
-        <div className="flex items-center gap-2 text-sm text-text-muted">
-          {t('cooperationStatusLabel')}:
-          <StatusTag
-            domain="employerCooperation"
-            value={profile.cooperationStatus}
-            label={t(`cooperationStatus.${profile.cooperationStatus}`)}
-          />
-        </div>
-        {profile.rejectionReason && (
-          <p className="text-sm text-danger">
-            {t('rejectionReasonLabel')}: {profile.rejectionReason}
-          </p>
-        )}
-        {profile.cooperationStoppedReason && (
-          <p className="text-sm text-danger">
-            {t('cooperationStoppedReasonLabel')}: {profile.cooperationStoppedReason}
-          </p>
-        )}
-      </Card>
+      <MyOfficesCard />
 
       <LogoUploadCard
         logoUrl={profile.logoUrl}
@@ -189,7 +108,7 @@ export default function EmployerProfilePage() {
         ))}
       </section>
 
-      {(profile.verificationStatus === 'Draft' || profile.verificationStatus === 'Rejected') && (
+      {hasPendingOffice && (
         <div className="flex flex-col items-start gap-2">
           <Button
             disabled={!canSubmit || submitForReview.isPending}

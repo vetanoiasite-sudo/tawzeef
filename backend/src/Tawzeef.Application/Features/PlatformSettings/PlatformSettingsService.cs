@@ -1,4 +1,5 @@
 using Tawzeef.Application.Common;
+using Tawzeef.Domain.Common;
 using Tawzeef.Domain.Contracts;
 using Tawzeef.Domain.Entities.Platform;
 
@@ -33,6 +34,13 @@ public class PlatformSettingsService(IUnitOfWork uow) : IPlatformSettingsService
     {
         var setting = await uow.Repository<PlatformSetting>().FindAsync(s => s.Key == key, ct: ct);
         return setting?.Value ?? fallback;
+    }
+
+    public async Task<ServiceResult<List<string>>> GetSupportedCurrenciesAsync(CancellationToken ct = default)
+    {
+        var value = await GetValueAsync(PlatformSettingKeys.SupportedCurrencies, "EGP", ct);
+        var codes = value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+        return ServiceResult<List<string>>.Success(codes);
     }
 
     private static PlatformSettingDto ToDto(PlatformSetting s) => new()

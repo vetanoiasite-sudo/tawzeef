@@ -31,7 +31,7 @@ public class AdvertisementExpiryTests
         await using var context = InMemoryDbContextFactory.Create();
         var uow = new UnitOfWork(context);
         var officeId = Guid.NewGuid();
-        var employer = new Employer { Id = Guid.NewGuid(), OfficeId = officeId, UserId = Guid.NewGuid(), LegalName = "Acme", DisplayName = "Acme" };
+        var employer = new Employer { Id = Guid.NewGuid(), UserId = Guid.NewGuid(), LegalName = "Acme", DisplayName = "Acme" };
         var expiredAd = MakeAd(officeId, employer.Id, JobAdvertisementStatus.Published, DateTime.UtcNow.AddDays(-1));
 
         await uow.Repository<Employer>().AddAsync(employer);
@@ -52,7 +52,7 @@ public class AdvertisementExpiryTests
         await using var context = InMemoryDbContextFactory.Create();
         var uow = new UnitOfWork(context);
         var officeId = Guid.NewGuid();
-        var employer = new Employer { Id = Guid.NewGuid(), OfficeId = officeId, UserId = Guid.NewGuid(), LegalName = "Acme", DisplayName = "Acme" };
+        var employer = new Employer { Id = Guid.NewGuid(), UserId = Guid.NewGuid(), LegalName = "Acme", DisplayName = "Acme" };
         var liveAd = MakeAd(officeId, employer.Id, JobAdvertisementStatus.Published, DateTime.UtcNow.AddDays(5));
 
         await uow.Repository<Employer>().AddAsync(employer);
@@ -73,7 +73,7 @@ public class AdvertisementExpiryTests
         await using var context = InMemoryDbContextFactory.Create();
         var uow = new UnitOfWork(context);
         var officeId = Guid.NewGuid();
-        var employer = new Employer { Id = Guid.NewGuid(), OfficeId = officeId, UserId = Guid.NewGuid(), LegalName = "Acme", DisplayName = "Acme" };
+        var employer = new Employer { Id = Guid.NewGuid(), UserId = Guid.NewGuid(), LegalName = "Acme", DisplayName = "Acme" };
         var expiredAd = MakeAd(officeId, employer.Id, JobAdvertisementStatus.Published, DateTime.UtcNow.AddHours(-1));
 
         await uow.Repository<Employer>().AddAsync(employer);
@@ -98,7 +98,7 @@ public class AdvertisementExpiryTests
         await using var context = InMemoryDbContextFactory.Create();
         var uow = new UnitOfWork(context);
         var officeId = Guid.NewGuid();
-        var employer = new Employer { Id = Guid.NewGuid(), OfficeId = officeId, UserId = Guid.NewGuid(), LegalName = "Acme", DisplayName = "Acme" };
+        var employer = new Employer { Id = Guid.NewGuid(), UserId = Guid.NewGuid(), LegalName = "Acme", DisplayName = "Acme" };
         var alreadyExpiredAd = MakeAd(officeId, employer.Id, JobAdvertisementStatus.Expired, DateTime.UtcNow.AddDays(-1));
 
         await uow.Repository<Employer>().AddAsync(employer);

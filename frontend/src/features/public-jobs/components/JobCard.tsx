@@ -49,6 +49,10 @@ export function JobCard({ job }: { job: JobListItem }) {
             </span>
           )}
         </div>
+        <p className="text-xs font-medium text-brand">
+          {t('officeLabel', { defaultValue: 'مكتب التوظيف' })}: {job.officeName}
+        </p>
+
         {job.publishedAt && (
           <p className="text-xs text-text-muted">
             {t('postedOn')} {new Date(job.publishedAt).toLocaleDateString('ar')}

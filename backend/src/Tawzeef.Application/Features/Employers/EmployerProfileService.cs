@@ -44,28 +44,11 @@ public class EmployerProfileService(IUnitOfWork uow, IFileStorage fileStorage, I
         employer.RepresentativeRole = dto.RepresentativeRole?.Trim();
 
         // WORKFLOWS_AND_STATE_MACHINES.md §3: editing an Approved company profile automatically
-        // reverts it to UnderReview — same rule as §1 for the job seeker.
-        RevertApprovalIfNeeded(employer);
+        // reverts it to UnderReview — same rule as §1 for the job seeker. Documents are shared
+        // across every office applied to (confirmed 2026-11-24), so this reverts every one of this
+        // employer's Approved office applications, not just one.
+        await RevertApprovalIfNeededAsync(employer.Id, ct);
 
-        uow.Repository<Employer>().Update(employer);
-        await uow.SaveChangesAsync(ct);
-
-        var documents = await uow.Repository<EmployerDocument>().ListAsync(d => d.EmployerId == employer.Id && d.IsActive, ct: ct);
-        return ServiceResult<EmployerProfileDto>.Success(employer.ToDto(documents));
-    }
-
-    public async Task<ServiceResult<EmployerProfileDto>> SelectOfficeAsync(Guid userId, Guid officeId, CancellationToken ct = default)
-    {
-        var employer = await uow.Repository<Employer>().FindAsync(e => e.UserId == userId, ct: ct);
-        if (employer is null) return ServiceResult<EmployerProfileDto>.NotFound("لا يوجد حساب صاحب عمل لهذا المستخدم.");
-
-        if (employer.OfficeId is not null)
-            return ServiceResult<EmployerProfileDto>.Conflict("تم اختيار مكتب التوظيف بالفعل.");
-
-        var office = await uow.Repository<EmploymentOffice>().FindAsync(o => o.Id == officeId && o.Status == OfficeStatus.Active, ct: ct);
-        if (office is null) return ServiceResult<EmployerProfileDto>.Invalid("اختر مكتب توظيف صالح.");
-
-        employer.OfficeId = office.Id;
         uow.Repository<Employer>().Update(employer);
         await uow.SaveChangesAsync(ct);
 
@@ -84,8 +67,6 @@ public class EmployerProfileService(IUnitOfWork uow, IFileStorage fileStorage, I
     {
         var employer = await uow.Repository<Employer>().FindAsync(e => e.UserId == userId, ct: ct);
         if (employer is null) return ServiceResult<EmployerDocumentDto>.NotFound("لا يوجد حساب صاحب عمل لهذا المستخدم.");
-        if (employer.OfficeId is null)
-            return ServiceResult<EmployerDocumentDto>.Invalid("اختر مكتب التوظيف الذي ستتقدم إليه أولًا.");
 
         var allowedMimeTypes = configuration.GetSection("Uploads:AllowedMimeTypes").Get<string[]>() ?? DefaultAllowedMimeTypes;
         if (!allowedMimeTypes.Contains(contentType, StringComparer.OrdinalIgnoreCase))
@@ -107,7 +88,6 @@ public class EmployerProfileService(IUnitOfWork uow, IFileStorage fileStorage, I
         var document = new EmployerDocument
         {
             Id = Guid.NewGuid(),
-            OfficeId = employer.OfficeId.Value,
             EmployerId = employer.Id,
             DocumentType = documentType,
             SecureFileReference = storageKey,
@@ -119,8 +99,7 @@ public class EmployerProfileService(IUnitOfWork uow, IFileStorage fileStorage, I
         await uow.Repository<EmployerDocument>().AddAsync(document, ct);
 
         // Same automatic revert as a profile edit (WORKFLOWS_AND_STATE_MACHINES.md §3).
-        RevertApprovalIfNeeded(employer);
-        uow.Repository<Employer>().Update(employer);
+        await RevertApprovalIfNeededAsync(employer.Id, ct);
 
         await uow.SaveChangesAsync(ct);
 
@@ -132,24 +111,49 @@ public class EmployerProfileService(IUnitOfWork uow, IFileStorage fileStorage, I
         var employer = await uow.Repository<Employer>().FindAsync(e => e.UserId == userId, ct: ct);
         if (employer is null) return ServiceResult<EmployerProfileDto>.NotFound("لا يوجد حساب صاحب عمل لهذا المستخدم.");
 
-        if (employer.OfficeId is null)
-            return ServiceResult<EmployerProfileDto>.Invalid("اختر مكتب التوظيف الذي ستتقدم إليه أولًا.");
-
-        if (employer.VerificationStatus != EmployerVerificationStatus.Draft && employer.VerificationStatus != EmployerVerificationStatus.Rejected)
-            return ServiceResult<EmployerProfileDto>.Conflict("لا يمكن تقديم ملف الشركة من حالته الحالية.");
-
         var activeDocuments = await uow.Repository<EmployerDocument>().ListAsync(d => d.EmployerId == employer.Id && d.IsActive, ct: ct);
         var presentTypes = activeDocuments.Select(d => d.DocumentType).ToHashSet();
         var missing = Enum.GetValues<EmployerDocumentType>().Where(t => !presentTypes.Contains(t)).ToList();
         if (missing.Count > 0)
             return ServiceResult<EmployerProfileDto>.Invalid($"ارفع كل المستندات المطلوبة أولًا — الناقص: {string.Join(", ", missing)}.");
 
-        employer.VerificationStatus = EmployerVerificationStatus.Submitted;
-        employer.RejectionReason = null; // Rejected -> Submitted clears the reason, same as §1.
-        uow.Repository<Employer>().Update(employer);
+        // Confirmed 2026-11-24: documents are shared, so this one action pushes every office this
+        // employer is still Draft/Rejected at into Submitted, instead of a single VerificationStatus
+        // field. Also covers "no office chosen yet" (nothing Draft to push forward).
+        var pending = await uow.Repository<EmployerOfficeApplication>().ListAsync(
+            a => a.EmployerId == employer.Id && (a.VerificationStatus == EmployerVerificationStatus.Draft || a.VerificationStatus == EmployerVerificationStatus.Rejected), ct: ct);
+        if (pending.Count == 0)
+            return ServiceResult<EmployerProfileDto>.Invalid("اختر مكتب التوظيف الذي ستتقدم إليه أولًا.");
+
+        foreach (var application in pending)
+        {
+            application.VerificationStatus = EmployerVerificationStatus.Submitted;
+            application.RejectionReason = null; // Rejected -> Submitted clears the reason, same as §1.
+            uow.Repository<EmployerOfficeApplication>().Update(application);
+        }
         await uow.SaveChangesAsync(ct);
 
         return ServiceResult<EmployerProfileDto>.Success(employer.ToDto(activeDocuments));
+    }
+
+    public async Task<ServiceResult<List<EmployerOfficeStatusDto>>> GetMyOfficeApplicationsAsync(Guid userId, CancellationToken ct = default)
+    {
+        var employer = await uow.Repository<Employer>().FindAsync(e => e.UserId == userId, ct: ct);
+        if (employer is null) return ServiceResult<List<EmployerOfficeStatusDto>>.NotFound("لا يوجد حساب صاحب عمل لهذا المستخدم.");
+
+        return ServiceResult<List<EmployerOfficeStatusDto>>.Success(await BuildOfficeStatusListAsync(employer.Id, ct));
+    }
+
+    public async Task<ServiceResult<List<EmployerOfficeStatusDto>>> SubmitToOfficesAsync(Guid userId, SubmitEmployerOfficesDto dto, CancellationToken ct = default)
+    {
+        var employer = await uow.Repository<Employer>().FindAsync(e => e.UserId == userId, ct: ct);
+        if (employer is null) return ServiceResult<List<EmployerOfficeStatusDto>>.NotFound("لا يوجد حساب صاحب عمل لهذا المستخدم.");
+
+        var error = await AddOfficeApplicationsAsync(employer.Id, dto.OfficeIds, dto.AllOffices, ct);
+        if (error is not null) return ServiceResult<List<EmployerOfficeStatusDto>>.Invalid(error);
+
+        await uow.SaveChangesAsync(ct);
+        return ServiceResult<List<EmployerOfficeStatusDto>>.Success(await BuildOfficeStatusListAsync(employer.Id, ct));
     }
 
     private static readonly string[] LogoAllowedMimeTypes = ["image/jpeg", "image/png"];
@@ -198,9 +202,65 @@ public class EmployerProfileService(IUnitOfWork uow, IFileStorage fileStorage, I
         };
     }
 
-    private static void RevertApprovalIfNeeded(Employer employer)
+    /// <summary>Shared by SubmitToOfficesAsync — the employer's old one-time SelectOfficeAsync, now
+    /// repeatable. Silently skips any office already applied to.</summary>
+    private async Task<string?> AddOfficeApplicationsAsync(Guid employerId, List<Guid> officeIds, bool allOffices, CancellationToken ct)
     {
-        if (employer.VerificationStatus == EmployerVerificationStatus.Approved)
-            employer.VerificationStatus = EmployerVerificationStatus.UnderReview;
+        var offices = allOffices
+            ? await uow.Repository<EmploymentOffice>().ListAsync(o => o.Status == OfficeStatus.Active, ct: ct)
+            : await uow.Repository<EmploymentOffice>().ListAsync(o => officeIds.Contains(o.Id) && o.Status == OfficeStatus.Active, ct: ct);
+        if (offices.Count == 0) return "اختر مكتب توظيف صالح واحدًا على الأقل.";
+
+        var existingOfficeIds = (await uow.Repository<EmployerOfficeApplication>().ListAsync(a => a.EmployerId == employerId, ct: ct))
+            .Select(a => a.OfficeId).ToHashSet();
+        var readyForReview = await IsReadyForReviewAsync(employerId, ct);
+
+        foreach (var office in offices)
+        {
+            if (existingOfficeIds.Contains(office.Id)) continue;
+            await uow.Repository<EmployerOfficeApplication>().AddAsync(new EmployerOfficeApplication
+            {
+                Id = Guid.NewGuid(),
+                EmployerId = employerId,
+                OfficeId = office.Id,
+                VerificationStatus = readyForReview ? EmployerVerificationStatus.Submitted : EmployerVerificationStatus.Draft,
+            }, ct);
+        }
+        return null;
+    }
+
+    private async Task<bool> IsReadyForReviewAsync(Guid employerId, CancellationToken ct)
+    {
+        var presentTypes = (await uow.Repository<EmployerDocument>().ListAsync(d => d.EmployerId == employerId && d.IsActive, ct: ct))
+            .Select(d => d.DocumentType).ToHashSet();
+        return Enum.GetValues<EmployerDocumentType>().All(presentTypes.Contains);
+    }
+
+    private async Task<List<EmployerOfficeStatusDto>> BuildOfficeStatusListAsync(Guid employerId, CancellationToken ct)
+    {
+        var applications = await uow.Repository<EmployerOfficeApplication>().ListAsync(a => a.EmployerId == employerId, ct: ct);
+        var appliedOfficeIds = applications.Select(a => a.OfficeId).ToHashSet();
+
+        var offices = await uow.Repository<EmploymentOffice>().ListAsync(
+            o => o.Status == OfficeStatus.Active || appliedOfficeIds.Contains(o.Id), ct: ct);
+        var applicationsByOffice = applications.ToDictionary(a => a.OfficeId);
+
+        return offices
+            .Select(o => applicationsByOffice.TryGetValue(o.Id, out var a)
+                ? a.ToDto(o)
+                : new EmployerOfficeStatusDto { OfficeId = o.Id, OfficeName = o.ArName ?? o.Name, City = o.City, VerificationStatus = "NotSubmitted" })
+            .OrderBy(x => x.OfficeName)
+            .ToList();
+    }
+
+    private async Task RevertApprovalIfNeededAsync(Guid employerId, CancellationToken ct)
+    {
+        var approved = await uow.Repository<EmployerOfficeApplication>().ListAsync(
+            a => a.EmployerId == employerId && a.VerificationStatus == EmployerVerificationStatus.Approved, ct: ct);
+        foreach (var application in approved)
+        {
+            application.VerificationStatus = EmployerVerificationStatus.UnderReview;
+            uow.Repository<EmployerOfficeApplication>().Update(application);
+        }
     }
 }

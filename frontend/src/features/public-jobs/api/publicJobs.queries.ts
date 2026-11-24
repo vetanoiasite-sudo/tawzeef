@@ -25,3 +25,11 @@ export function usePublicPlatformStats() {
     staleTime: 60_000,
   })
 }
+
+export function usePublicCities() {
+  return useQuery({
+    queryKey: publicJobsKeys.cities(),
+    queryFn: publicJobsApi.getCities,
+    staleTime: 60_000,
+  })
+}

@@ -5,7 +5,7 @@ import { Card } from '@/shared/ui/Card'
 import { Button } from '@/shared/ui/Button'
 import { TextInput } from '@/shared/ui/TextInput'
 import { Select } from '@/shared/ui/Select'
-import { EGYPT_GOVERNORATES } from '@/shared/constants/governorates'
+import { useGovernorates } from '@/features/governorates'
 
 /** Office-side correction of a company profile's own fields — a quick-fix tool for a typo the
  * employer got wrong, plain useState like OfficeJobAdEditForm.tsx's sibling pattern. */
@@ -23,6 +23,7 @@ export function OfficeEmployerEditForm({
   onCancel: () => void
 }) {
   const { t } = useTranslation('officeEmployerReview')
+  const { data: governorates } = useGovernorates()
   const [businessActivity, setBusinessActivity] = useState(employer.businessActivity ?? '')
   const [address, setAddress] = useState(employer.address ?? '')
   const [city, setCity] = useState(employer.city ?? '')
@@ -66,9 +67,9 @@ export function OfficeEmployerEditForm({
 
           <Select id="editCity" label={t('cityLabel')} value={city} onChange={(e) => setCity(e.target.value)}>
             <option value="">—</option>
-            {EGYPT_GOVERNORATES.map((g) => (
-              <option key={g} value={g}>
-                {g}
+            {(governorates ?? []).map((g) => (
+              <option key={g.id} value={g.name}>
+                {g.name}
               </option>
             ))}
           </Select>

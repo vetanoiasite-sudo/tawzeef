@@ -10,7 +10,7 @@ import type { JobSeekerProfile } from '../types/jobSeekerProfile.types'
 import { TextInput, TextArea } from '@/shared/ui/TextInput'
 import { Select } from '@/shared/ui/Select'
 import { Button } from '@/shared/ui/Button'
-import { EGYPT_GOVERNORATES } from '@/shared/constants/governorates'
+import { useGovernorates } from '@/features/governorates'
 
 export function ProfileCompletionForm({
   profile,
@@ -29,6 +29,7 @@ export function ProfileCompletionForm({
   onSubmit: (values: JobSeekerProfileFormValues) => void
 }) {
   const { t } = useTranslation(['jobSeekerProfile', 'validation'])
+  const { data: governorates } = useGovernorates()
   const {
     register,
     handleSubmit,
@@ -88,9 +89,9 @@ export function ProfileCompletionForm({
           {...register('city')}
         >
           <option value="">—</option>
-          {EGYPT_GOVERNORATES.map((g) => (
-            <option key={g} value={g}>
-              {g}
+          {(governorates ?? []).map((g) => (
+            <option key={g.id} value={g.name}>
+              {g.name}
             </option>
           ))}
         </Select>

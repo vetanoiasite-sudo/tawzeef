@@ -159,7 +159,7 @@ public class ComplaintReviewService(
             {
                 SubjectId = result.Data!.Id,
                 SubjectName = result.Data.FullName,
-                Status = result.Data.ReviewStatus,
+                Status = result.Data.OfficeApplication?.ReviewStatus ?? string.Empty,
             });
         }
         else
@@ -175,7 +175,7 @@ public class ComplaintReviewService(
             {
                 SubjectId = result.Data!.Id,
                 SubjectName = result.Data.DisplayName,
-                Status = result.Data.CooperationStatus,
+                Status = result.Data.OfficeApplication?.CooperationStatus ?? string.Empty,
             });
         }
     }

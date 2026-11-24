@@ -33,26 +33,45 @@ const nationalIdSchema = z
   .regex(/^\d{14}$/, 'validation:nationalIdFormat')
 
 // Email is collected and verified by the earlier email-OTP step (EmailStep/OtpStep), not here.
-export const jobSeekerDetailsSchema = z.object({
-  fullName: z.string().trim().min(2, 'validation:required').max(200, 'validation:tooLong'),
-  nationalId: nationalIdSchema,
-  mobileNumber: phoneSchema,
-  password: z.string().min(8, 'validation:passwordTooShort'),
-  officeId: z.string().min(1, 'validation:required'),
-})
+// Confirmed 2026-11-24: a job seeker may submit to several offices (or all of them) at
+// registration, not just one — see OfficeMultiSelect.
+export const jobSeekerDetailsSchema = z
+  .object({
+    fullName: z.string().trim().min(2, 'validation:required').max(200, 'validation:tooLong'),
+    nationalId: nationalIdSchema,
+    mobileNumber: phoneSchema,
+    password: z.string().min(8, 'validation:passwordTooShort'),
+    confirmPassword: z.string().min(1, 'validation:required'),
+    officeIds: z.array(z.string()).default([]),
+    allOffices: z.boolean().default(false),
+  })
+  .refine((v) => v.password === v.confirmPassword, {
+    message: 'validation:passwordMismatch',
+    path: ['confirmPassword'],
+  })
+  .refine((v) => v.allOffices || v.officeIds.length > 0, {
+    message: 'validation:required',
+    path: ['officeIds'],
+  })
 export type JobSeekerDetailsFormValues = z.infer<typeof jobSeekerDetailsSchema>
 
-export const employerDetailsSchema = z.object({
-  representativeName: z
-    .string()
-    .trim()
-    .min(2, 'validation:required')
-    .max(200, 'validation:tooLong'),
-  mobileNumber: phoneSchema,
-  legalName: z.string().trim().min(2, 'validation:required').max(250, 'validation:tooLong'),
-  displayName: z.string().trim().min(2, 'validation:required').max(250, 'validation:tooLong'),
-  password: z.string().min(8, 'validation:passwordTooShort'),
-})
+export const employerDetailsSchema = z
+  .object({
+    representativeName: z
+      .string()
+      .trim()
+      .min(2, 'validation:required')
+      .max(200, 'validation:tooLong'),
+    mobileNumber: phoneSchema,
+    legalName: z.string().trim().min(2, 'validation:required').max(250, 'validation:tooLong'),
+    displayName: z.string().trim().min(2, 'validation:required').max(250, 'validation:tooLong'),
+    password: z.string().min(8, 'validation:passwordTooShort'),
+    confirmPassword: z.string().min(1, 'validation:required'),
+  })
+  .refine((v) => v.password === v.confirmPassword, {
+    message: 'validation:passwordMismatch',
+    path: ['confirmPassword'],
+  })
 export type EmployerDetailsFormValues = z.infer<typeof employerDetailsSchema>
 
 export const acceptInvitePasswordSchema = z.object({
@@ -69,3 +88,16 @@ export const loginSchema = z.object({
   password: z.string().min(1, 'validation:required'),
 })
 export type LoginFormValues = z.infer<typeof loginSchema>
+
+// Forgot-password flow — step 1 (request a code) reuses requestEmailOtpSchema above, and step 2
+// (verify it) reuses verifyOtpSchema; this is just the final new-password step.
+export const resetPasswordSchema = z
+  .object({
+    newPassword: z.string().min(8, 'validation:passwordTooShort'),
+    confirmPassword: z.string().min(1, 'validation:required'),
+  })
+  .refine((v) => v.newPassword === v.confirmPassword, {
+    message: 'validation:passwordMismatch',
+    path: ['confirmPassword'],
+  })
+export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>

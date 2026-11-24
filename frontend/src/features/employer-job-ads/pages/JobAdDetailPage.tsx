@@ -94,6 +94,12 @@ export default function JobAdDetailPage() {
               </div>
             )}
             <div>
+              <p className="text-text-muted">
+                {t('officeLabel', { defaultValue: 'مكتب التوظيف' })}
+              </p>
+              <p className="text-text">{ad.officeName ?? '—'}</p>
+            </div>
+            <div>
               <p className="text-text-muted">{t('cityLabel')}</p>
               <p className="text-text">{ad.city ?? '—'}</p>
             </div>

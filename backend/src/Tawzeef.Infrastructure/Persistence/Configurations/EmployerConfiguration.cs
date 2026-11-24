@@ -20,13 +20,10 @@ public class EmployerConfiguration : IEntityTypeConfiguration<Employer>
         b.Property(x => x.CompanyPhone).HasMaxLength(30);
         b.Property(x => x.RepresentativeName).HasMaxLength(200);
         b.Property(x => x.RepresentativeRole).HasMaxLength(100);
-        b.Property(x => x.RejectionReason).HasMaxLength(500);
-        b.Property(x => x.CooperationStoppedReason).HasMaxLength(500);
         b.Property(x => x.LogoStorageKey).HasMaxLength(500);
         b.Property(x => x.LogoOriginalFileName).HasMaxLength(260);
         b.Property(x => x.LogoContentType).HasMaxLength(100);
 
         b.HasIndex(x => x.UserId).IsUnique();
-        b.HasIndex(x => new { x.OfficeId, x.VerificationStatus });
     }
 }

@@ -47,5 +47,20 @@ public class DbInitializer(AppDbContext context) : IDbInitializer
         }
 
         await context.SaveChangesAsync(ct);
+
+        var existingGovernorateNames = await context.Governorates.Select(g => g.Name).ToListAsync(ct);
+        var missingGovernorates = EgyptGovernorateSeed.Names.Where(n => !existingGovernorateNames.Contains(n)).ToList();
+
+        foreach (var name in missingGovernorates)
+        {
+            context.Governorates.Add(new Governorate
+            {
+                Id = Guid.NewGuid(),
+                Name = name,
+                DisplayOrder = EgyptGovernorateSeed.Names.ToList().IndexOf(name),
+            });
+        }
+
+        await context.SaveChangesAsync(ct);
     }
 }

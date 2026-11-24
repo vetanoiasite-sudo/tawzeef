@@ -20,6 +20,20 @@ export type JobSeekerDocument = {
   suggestedYearsOfExperience?: number | null
 }
 
+/** One office's own status for this job seeker — a job seeker may now submit to several
+ * (confirmed 2026-11-24). "NotSubmitted" is a pseudo-status: no application row for that office
+ * yet. Always null on JobSeekerProfile.officeApplication (self-view has no single office) — the
+ * full per-office list is GET /api/jobseekers/me/offices instead (useMyJobSeekerOffices). */
+export type JobSeekerOfficeStatus = {
+  officeId: string
+  officeName: string
+  city: string | null
+  reviewStatus: JobSeekerReviewStatusCode | 'NotSubmitted'
+  rejectionReason: string | null
+  suspendedAt: string | null
+  suspensionReason: string | null
+}
+
 export type JobSeekerProfile = {
   id: string
   fullName: string
@@ -36,9 +50,13 @@ export type JobSeekerProfile = {
   /** No raw URL — the photo is private, fetched through the authenticated
    * GET /api/jobseekers/me/photo (see photoApi). */
   hasPhoto: boolean
-  reviewStatus: JobSeekerReviewStatusCode
-  rejectionReason: string | null
+  officeApplication: JobSeekerOfficeStatus | null
   documents: JobSeekerDocument[]
+}
+
+export type SubmitJobSeekerOfficesPayload = {
+  officeIds: string[]
+  allOffices: boolean
 }
 
 export type UpdateJobSeekerProfilePayload = {

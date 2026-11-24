@@ -3,6 +3,7 @@ using Tawzeef.Domain.Common;
 using Tawzeef.Domain.Contracts;
 using Tawzeef.Domain.Entities.Employers;
 using Tawzeef.Domain.Entities.JobAdvertisements;
+using Tawzeef.Domain.Entities.Offices;
 using Tawzeef.Domain.Enums;
 
 namespace Tawzeef.Application.Features.JobAdvertisements;
@@ -26,9 +27,17 @@ public class JobAdvertisementService(IUnitOfWork uow) : IJobAdvertisementService
             descending: true,
             ct: ct);
 
+        // Shown now that an employer may post through several offices (confirmed 2026-11-24) —
+        // their own list no longer implies just one.
+        var officeIds = page.Items.Select(a => a.OfficeId).Distinct().ToList();
+        var officeNamesById = officeIds.Count == 0
+            ? new Dictionary<Guid, string>()
+            : (await uow.Repository<EmploymentOffice>().ListAsync(o => officeIds.Contains(o.Id), ct: ct))
+                .ToDictionary(o => o.Id, o => o.ArName ?? o.Name);
+
         return ServiceResult<PagedResult<JobAdvertisementListItemDto>>.Success(new PagedResult<JobAdvertisementListItemDto>
         {
-            Items = page.Items.Select(a => a.ToListItemDto()).ToList(),
+            Items = page.Items.Select(a => a.ToListItemDto(officeName: officeNamesById.GetValueOrDefault(a.OfficeId))).ToList(),
             PageIndex = page.PageIndex,
             PageSize = page.PageSize,
             TotalCount = page.TotalCount,
@@ -41,7 +50,8 @@ public class JobAdvertisementService(IUnitOfWork uow) : IJobAdvertisementService
         if (error is not null) return ServiceResult<JobAdvertisementDto>.NotFound(error);
 
         var payment = await uow.Repository<AdvertisementPayment>().FindAsync(p => p.JobAdvertisementId == ad!.Id, ct: ct);
-        return ServiceResult<JobAdvertisementDto>.Success(ad!.ToDto(payment));
+        var office = await uow.Repository<EmploymentOffice>().FindAsync(o => o.Id == ad!.OfficeId, ct: ct);
+        return ServiceResult<JobAdvertisementDto>.Success(ad!.ToDto(payment, officeName: office?.ArName ?? office?.Name));
     }
 
     public async Task<ServiceResult<JobAdvertisementDto>> CreateAsync(Guid userId, CreateJobAdvertisementDto dto, CancellationToken ct = default)
@@ -49,15 +59,17 @@ public class JobAdvertisementService(IUnitOfWork uow) : IJobAdvertisementService
         var employer = await uow.Repository<Employer>().FindAsync(e => e.UserId == userId, ct: ct);
         if (employer is null) return ServiceResult<JobAdvertisementDto>.NotFound("No employer account for this user.");
 
-        // Can't even start a draft ad until the company profile is complete (filled in and
-        // submitted) — SubmitForReviewAsync still separately requires VerificationStatus.Approved
-        // before the ad itself can go to the office's review queue; this is the earlier gate.
-        if (employer.VerificationStatus == EmployerVerificationStatus.Draft)
-            return ServiceResult<JobAdvertisementDto>.Forbidden("أكمل ملف الشركة وقدّمه للمراجعة قبل نشر إعلانات وظائف.");
+        // Can't even start a draft ad until the employer has at least applied to the specific
+        // office it would post through (confirmed 2026-11-24: an employer may be approved at
+        // several offices, and picks which one per ad) — SubmitForReviewAsync still separately
+        // requires that office's VerificationStatus.Approved before the ad can go to its review
+        // queue; this is the earlier gate.
+        var officeApplication = await uow.Repository<EmployerOfficeApplication>().FindAsync(
+            a => a.EmployerId == employer.Id && a.OfficeId == dto.OfficeId, ct: ct);
+        if (officeApplication is null)
+            return ServiceResult<JobAdvertisementDto>.Forbidden("أكمل ملف الشركة وتقدّم لهذا المكتب قبل نشر إعلانات وظائف من خلاله.");
 
-        // Guaranteed set: VerificationStatus only leaves Draft once SubmitForReviewAsync has
-        // confirmed an office is chosen (EmployerProfileService.SubmitForReviewAsync).
-        var ad = new JobAdvertisement { Id = Guid.NewGuid(), OfficeId = employer.OfficeId!.Value, EmployerId = employer.Id }.ApplyFrom(dto);
+        var ad = new JobAdvertisement { Id = Guid.NewGuid(), OfficeId = dto.OfficeId, EmployerId = employer.Id }.ApplyFrom(dto);
         await uow.Repository<JobAdvertisement>().AddAsync(ad, ct);
         await uow.SaveChangesAsync(ct);
 
@@ -105,8 +117,14 @@ public class JobAdvertisementService(IUnitOfWork uow) : IJobAdvertisementService
         if (ad.Status != JobAdvertisementStatus.Draft)
             return ServiceResult<JobAdvertisementDto>.Conflict("Only a draft advertisement can be submitted.");
 
-        // WORKFLOWS_AND_STATE_MACHINES.md §5 transition table row 1.
-        if (employer.VerificationStatus != EmployerVerificationStatus.Approved || employer.CooperationStatus != EmployerCooperationStatus.Active)
+        // WORKFLOWS_AND_STATE_MACHINES.md §5 transition table row 1 — checked against this specific
+        // ad's own office (confirmed 2026-11-24: an employer may be Approved at one office and not
+        // another), not a single employer-wide status.
+        var officeApplication = await uow.Repository<EmployerOfficeApplication>().FindAsync(
+            a => a.EmployerId == employer.Id && a.OfficeId == ad.OfficeId, ct: ct);
+        if (officeApplication is null
+            || officeApplication.VerificationStatus != EmployerVerificationStatus.Approved
+            || officeApplication.CooperationStatus != EmployerCooperationStatus.Active)
             return ServiceResult<JobAdvertisementDto>.Forbidden("Your company must be approved and cooperation must be active before posting advertisements.");
 
         ad.Status = JobAdvertisementStatus.SubmittedForReview;

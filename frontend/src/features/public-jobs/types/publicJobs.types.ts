@@ -7,6 +7,9 @@ export type JobListItem = {
   title: string
   employerDisplayName: string
   employerLogoUrl: string | null
+  /** Which office this ad belongs to — confirmed 2026-11-24: every job ad must show its office. */
+  officeId: string
+  officeName: string
   city: string | null
   category: string | null
   employmentType: EmploymentTypeCode | null
@@ -31,6 +34,8 @@ export type JobDetails = {
   // decision; the backend DTO doesn't carry it at all.
   employerDisplayName: string
   employerLogoUrl: string | null
+  officeId: string
+  officeName: string
   publishedAt: string | null
   expiresAt: string | null
   contactNote: string
@@ -41,6 +46,13 @@ export type PublicPlatformStats = {
   activeJobsCount: number
   approvedEmployersCount: number
   approvedJobSeekersCount: number
+}
+
+/** A city actually carried by a live ad, with how many — drives the home page "browse by
+ * city" section instead of a static governorate list. */
+export type PublicCity = {
+  city: string
+  jobCount: number
 }
 
 export type JobSearchFilter = {

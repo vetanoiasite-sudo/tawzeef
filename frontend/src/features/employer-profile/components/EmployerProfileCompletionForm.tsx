@@ -9,7 +9,7 @@ import type { EmployerProfile } from '../types/employerProfile.types'
 import { TextInput } from '@/shared/ui/TextInput'
 import { Select } from '@/shared/ui/Select'
 import { Button } from '@/shared/ui/Button'
-import { EGYPT_GOVERNORATES } from '@/shared/constants/governorates'
+import { useGovernorates } from '@/features/governorates'
 
 export function EmployerProfileCompletionForm({
   profile,
@@ -23,6 +23,7 @@ export function EmployerProfileCompletionForm({
   onSubmit: (values: EmployerProfileFormValues) => void
 }) {
   const { t } = useTranslation(['employerProfile', 'validation'])
+  const { data: governorates } = useGovernorates()
   const {
     register,
     handleSubmit,
@@ -79,9 +80,9 @@ export function EmployerProfileCompletionForm({
           {...register('city')}
         >
           <option value="">—</option>
-          {EGYPT_GOVERNORATES.map((g) => (
-            <option key={g} value={g}>
-              {g}
+          {(governorates ?? []).map((g) => (
+            <option key={g.id} value={g.name}>
+              {g.name}
             </option>
           ))}
         </Select>

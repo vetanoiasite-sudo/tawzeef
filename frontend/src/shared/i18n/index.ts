@@ -28,6 +28,7 @@ void i18n.use(initReactI18next).init({
         otpCodeFormat: 'أدخل الرمز المكوّن من 6 أرقام',
         emailFormat: 'البريد الإلكتروني غير صالح',
         passwordTooShort: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل',
+        passwordMismatch: 'كلمتا المرور غير متطابقتين',
         tooLong: 'هذا النص طويل جدًا',
         invalidNumber: 'أدخل رقمًا صحيحًا',
       },

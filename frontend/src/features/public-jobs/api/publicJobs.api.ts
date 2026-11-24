@@ -3,6 +3,7 @@ import type {
   JobDetails,
   JobListItem,
   JobSearchFilter,
+  PublicCity,
   PublicPlatformStats,
 } from '../types/publicJobs.types'
 
@@ -19,4 +20,5 @@ export const publicJobsApi = {
     }),
   getById: (id: string) => httpClient.get<JobDetails>(`/api/jobs/${id}`),
   getStats: () => httpClient.get<PublicPlatformStats>('/api/jobs/stats'),
+  getCities: () => httpClient.get<PublicCity[]>('/api/jobs/cities'),
 }

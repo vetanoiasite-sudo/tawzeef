@@ -31,6 +31,8 @@ public static class PermissionCatalogue
         ("auditlogs", ["view"]),
         ("dashboards", ["view"]),
         ("platformsettings", ["view", "edit"]),
+        ("courses", ["view", "create", "edit", "pause"]),
+        ("banners", ["view", "create", "pause"]),
     ];
 
     public static IReadOnlyList<PermissionSeed> All { get; } =
@@ -45,5 +47,9 @@ public static class PermissionCatalogue
         "complaints.decide",
         "jobseekers.suspend", "jobseekers.reinstate",
         "employers.suspend", "employers.reinstate",
+        // Courses and banners (2026-11-24): explicitly OfficeAdmin-only, never a StaffPermissionGrant
+        // — the office owner publishes these personally, same reasoning as officeusers.*.
+        "courses.view", "courses.create", "courses.edit", "courses.pause",
+        "banners.view", "banners.create", "banners.pause",
     ];
 }

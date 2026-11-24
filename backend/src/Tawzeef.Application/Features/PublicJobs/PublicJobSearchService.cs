@@ -5,6 +5,7 @@ using Tawzeef.Domain.Contracts;
 using Tawzeef.Domain.Entities.Employers;
 using Tawzeef.Domain.Entities.JobAdvertisements;
 using Tawzeef.Domain.Entities.JobSeekers;
+using Tawzeef.Domain.Entities.Offices;
 using Tawzeef.Domain.Enums;
 
 namespace Tawzeef.Application.Features.PublicJobs;
@@ -89,6 +90,12 @@ public class PublicJobSearchService(IUnitOfWork uow) : IPublicJobSearchService
             ? new Dictionary<Guid, string>()
             : (await uow.Repository<JobCategory>().ListAsync(c => categoryIds.Contains(c.Id), ct: ct)).ToDictionary(c => c.Id, c => c.Name);
 
+        var officeIds = page.Items.Select(a => a.OfficeId).Distinct().ToList();
+        var officeNamesById = officeIds.Count == 0
+            ? new Dictionary<Guid, string>()
+            : (await uow.Repository<EmploymentOffice>().ListAsync(o => officeIds.Contains(o.Id), ct: ct))
+                .ToDictionary(o => o.Id, o => o.ArName ?? o.Name);
+
         return ServiceResult<PagedResult<JobListItemDto>>.Success(new PagedResult<JobListItemDto>
         {
             Items = page.Items.Select(a => new JobListItemDto
@@ -97,6 +104,8 @@ public class PublicJobSearchService(IUnitOfWork uow) : IPublicJobSearchService
                 Title = a.Title,
                 EmployerDisplayName = namesByEmployer.GetValueOrDefault(a.EmployerId, string.Empty),
                 EmployerLogoUrl = logoUrlsByEmployer.GetValueOrDefault(a.EmployerId),
+                OfficeId = a.OfficeId,
+                OfficeName = officeNamesById.GetValueOrDefault(a.OfficeId, string.Empty),
                 City = a.City,
                 Category = a.CategoryId.HasValue ? categoryNamesById.GetValueOrDefault(a.CategoryId.Value) : null,
                 EmploymentType = a.EmploymentType?.ToString(),
@@ -115,10 +124,14 @@ public class PublicJobSearchService(IUnitOfWork uow) : IPublicJobSearchService
         var now = DateTime.UtcNow;
         var activeJobs = await uow.Repository<JobAdvertisement>().CountAsync(
             a => a.Status == JobAdvertisementStatus.Published && (a.ExpiresAt == null || a.ExpiresAt > now), ct);
-        var approvedEmployers = await uow.Repository<Employer>().CountAsync(
-            e => e.VerificationStatus == EmployerVerificationStatus.Approved, ct);
-        var approvedJobSeekers = await uow.Repository<JobSeekerProfile>().CountAsync(
-            p => p.ReviewStatus == JobSeekerReviewStatus.Approved, ct);
+        // Approved at ANY office counts once each here — a platform-wide headline stat, not scoped
+        // to one office (confirmed 2026-11-24: an employer/job seeker may be approved at several).
+        var approvedEmployers = (await uow.Repository<EmployerOfficeApplication>().ListAsync(
+            a => a.VerificationStatus == EmployerVerificationStatus.Approved, ct: ct))
+            .Select(a => a.EmployerId).Distinct().Count();
+        var approvedJobSeekers = (await uow.Repository<JobSeekerOfficeApplication>().ListAsync(
+            a => a.ReviewStatus == JobSeekerReviewStatus.Approved, ct: ct))
+            .Select(a => a.JobSeekerId).Distinct().Count();
 
         return ServiceResult<PublicPlatformStatsDto>.Success(new PublicPlatformStatsDto
         {
@@ -126,6 +139,26 @@ public class PublicJobSearchService(IUnitOfWork uow) : IPublicJobSearchService
             ApprovedEmployersCount = approvedEmployers,
             ApprovedJobSeekersCount = approvedJobSeekers,
         });
+    }
+
+    /// <summary>Distinct cities actually carried by a live ad, with how many — drives the home
+    /// page "browse by city" section instead of a static governorate list.</summary>
+    public async Task<ServiceResult<List<CityCountDto>>> GetCitiesAsync(CancellationToken ct = default)
+    {
+        var now = DateTime.UtcNow;
+        var liveAds = await uow.Repository<JobAdvertisement>().ListAsync(
+            a => a.Status == JobAdvertisementStatus.Published
+                && (a.ExpiresAt == null || a.ExpiresAt > now)
+                && a.City != null && a.City != string.Empty,
+            ct: ct);
+
+        var cities = liveAds
+            .GroupBy(a => a.City!)
+            .Select(g => new CityCountDto { City = g.Key, JobCount = g.Count() })
+            .OrderByDescending(c => c.JobCount)
+            .ToList();
+
+        return ServiceResult<List<CityCountDto>>.Success(cities);
     }
 
     public async Task<ServiceResult<JobDetailsDto>> GetByIdAsync(Guid id, CancellationToken ct = default)
@@ -141,6 +174,7 @@ public class PublicJobSearchService(IUnitOfWork uow) : IPublicJobSearchService
         var category = ad.CategoryId.HasValue
             ? await uow.Repository<JobCategory>().FindAsync(c => c.Id == ad.CategoryId.Value, ct: ct)
             : null;
+        var office = await uow.Repository<EmploymentOffice>().FindAsync(o => o.Id == ad.OfficeId, ct: ct);
 
         return ServiceResult<JobDetailsDto>.Success(new JobDetailsDto
         {
@@ -157,6 +191,8 @@ public class PublicJobSearchService(IUnitOfWork uow) : IPublicJobSearchService
             SalaryMax = ad.SalaryMax,
             EmployerDisplayName = employer?.DisplayName ?? string.Empty,
             EmployerLogoUrl = employer?.LogoStorageKey is null ? null : $"/api/employers/{employer.Id}/logo",
+            OfficeId = ad.OfficeId,
+            OfficeName = office?.ArName ?? office?.Name ?? string.Empty,
             PublishedAt = ad.PublishedAt,
             ExpiresAt = ad.ExpiresAt,
         });

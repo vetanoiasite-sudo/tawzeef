@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useSessionStore } from '@/shared/auth/sessionStore'
-import { useMyJobSeekerProfile } from '../api/jobSeekerProfile.queries'
+import { useMyJobSeekerOffices } from '../api/jobSeekerProfile.queries'
 import { useMyApplications } from '@/features/job-seeker-applications/api/jobSeekerApplications.queries'
 import { useJobSearch } from '@/features/public-jobs/api/publicJobs.queries'
 import { JobCard } from '@/features/public-jobs/components/JobCard'
@@ -19,7 +19,7 @@ export default function JobSeekerDashboardPage() {
   const { t } = useTranslation(['jobSeekerProfile', 'jobSeekerApplications'])
   const user = useSessionStore((s) => s.user)
 
-  const { data: profile, isLoading: profileLoading } = useMyJobSeekerProfile()
+  const { data: offices, isLoading: officesLoading } = useMyJobSeekerOffices()
   const { data: applications } = useMyApplications({ pageIndex: 0, pageSize: 1 })
   const { data: jobs, isLoading: jobsLoading } = useJobSearch({ pageIndex: 0, pageSize: 6 })
 
@@ -32,18 +32,39 @@ export default function JobSeekerDashboardPage() {
           <p className="text-sm font-bold text-content-secondary">
             {t('jobSeekerProfile:profileStatusCard')}
           </p>
-          {profileLoading || !profile ? (
+          {officesLoading || !offices ? (
             <LoadingState />
           ) : (
             <>
-              <StatusTag
-                domain="jobSeekerReview"
-                value={profile.reviewStatus}
-                label={t(`jobSeekerProfile:status.${profile.reviewStatus}`)}
-              />
+              {(() => {
+                const approvedCount = offices.filter((o) => o.reviewStatus === 'Approved').length
+                const hasAny = offices.some((o) => o.reviewStatus !== 'NotSubmitted')
+                return approvedCount > 0 ? (
+                  <StatusTag
+                    domain="jobSeekerReview"
+                    value="Approved"
+                    label={t('jobSeekerProfile:approvedAtOfficesCount', {
+                      count: approvedCount,
+                      defaultValue: `معتمد في ${approvedCount} مكتب`,
+                    })}
+                  />
+                ) : hasAny ? (
+                  <StatusTag
+                    domain="jobSeekerReview"
+                    value="UnderReview"
+                    label={t('jobSeekerProfile:status.UnderReview')}
+                  />
+                ) : (
+                  <StatusTag
+                    domain="jobSeekerReview"
+                    value="NotSubmitted"
+                    label={t('jobSeekerProfile:officeNotSubmitted', { defaultValue: 'لم يتقدم' })}
+                  />
+                )
+              })()}
               <Link to="/profile" className="self-start">
                 <Button variant="secondary" size="sm">
-                  {profile.reviewStatus === 'Draft'
+                  {offices.every((o) => o.reviewStatus === 'NotSubmitted')
                     ? t('jobSeekerProfile:completeProfileAction')
                     : t('jobSeekerProfile:viewProfileAction')}
                 </Button>

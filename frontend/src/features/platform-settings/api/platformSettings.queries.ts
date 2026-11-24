@@ -9,6 +9,14 @@ export function usePlatformSettings() {
   })
 }
 
+export function useSupportedCurrencies() {
+  return useQuery({
+    queryKey: platformSettingsKeys.currencies(),
+    queryFn: platformSettingsApi.getCurrencies,
+    staleTime: 60_000,
+  })
+}
+
 export function useUpdatePlatformSetting() {
   const queryClient = useQueryClient()
   return useMutation({

@@ -9,11 +9,6 @@ public interface IEmployerProfileService
 
     Task<ServiceResult<EmployerProfileDto>> UpdateMyProfileAsync(Guid userId, UpdateEmployerProfileDto dto, CancellationToken ct = default);
 
-    /// <summary>The employer's one-time choice of which office will review their profile —
-    /// registration no longer collects this (RegisterEmployerDto's doc comment). Fails once
-    /// already set; an office can't be changed through self-service after that.</summary>
-    Task<ServiceResult<EmployerProfileDto>> SelectOfficeAsync(Guid userId, Guid officeId, CancellationToken ct = default);
-
     Task<ServiceResult<EmployerDocumentDto>> UploadDocumentAsync(
         Guid userId,
         EmployerDocumentType documentType,
@@ -23,7 +18,21 @@ public interface IEmployerProfileService
         long fileSizeBytes,
         CancellationToken ct = default);
 
+    /// <summary>Requires every required document type to already be uploaded, and at least one
+    /// office chosen (SubmitToOfficesAsync) — advances every one of this employer's currently
+    /// Draft/Rejected office applications to Submitted at once, same shared-documents design as
+    /// JobSeekerProfileService.SubmitForReviewAsync.</summary>
     Task<ServiceResult<EmployerProfileDto>> SubmitForReviewAsync(Guid userId, CancellationToken ct = default);
+
+    /// <summary>Every office (active or not), each paired with this employer's own status there —
+    /// "NotSubmitted" when no application row exists yet for that office.</summary>
+    Task<ServiceResult<List<EmployerOfficeStatusDto>>> GetMyOfficeApplicationsAsync(Guid userId, CancellationToken ct = default);
+
+    /// <summary>The employer's old one-time SelectOfficeAsync, now repeatable and multi-office —
+    /// submits to specific offices, or every currently-active office, skipping any already applied
+    /// to. A new row starts Submitted instead of Draft when the required documents are already all
+    /// uploaded (SubmitForReviewAsync's own gate already satisfied).</summary>
+    Task<ServiceResult<List<EmployerOfficeStatusDto>>> SubmitToOfficesAsync(Guid userId, SubmitEmployerOfficesDto dto, CancellationToken ct = default);
 
     Task<ServiceResult<EmployerProfileDto>> UploadLogoAsync(
         Guid userId, Stream content, string originalFileName, string contentType, long fileSizeBytes, CancellationToken ct = default);

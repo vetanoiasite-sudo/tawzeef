@@ -25,10 +25,6 @@ public class EmployerProfileDto
 {
     public Guid Id { get; set; }
 
-    /// <summary>Null until SelectOfficeAsync is called — the frontend uses this to decide whether
-    /// to show the "apply to an office" step or the normal "complete your profile" one.</summary>
-    public Guid? OfficeId { get; set; }
-
     public string LegalName { get; set; } = string.Empty;
     public string DisplayName { get; set; } = string.Empty;
     public string? BusinessActivity { get; set; }
@@ -43,26 +39,17 @@ public class EmployerProfileDto
     /// null when no logo has been uploaded yet. The endpoint it points to is [AllowAnonymous].</summary>
     public string? LogoUrl { get; set; }
 
-    public string VerificationStatus { get; set; } = string.Empty;
-    public string? RejectionReason { get; set; }
-
-    public string CooperationStatus { get; set; } = string.Empty;
-    public string? CooperationStoppedReason { get; set; }
-    public DateTime? CooperationStoppedAt { get; set; }
-
     /// <summary>Same idea as JobSeekerProfileDto.ValidComplaintCount — always 0 on the self-service
     /// GET /api/employers/me response, which reuses this same DTO.</summary>
     public int ValidComplaintCount { get; set; }
 
-    public List<EmployerDocumentDto> Documents { get; set; } = [];
-}
+    /// <summary>Populated only when a specific office is reviewing this employer
+    /// (EmployerReviewService.GetByIdAsync) — that office's own status. Null on the self-service
+    /// GET /api/employers/me response, which reuses this same DTO; the employer's own statuses
+    /// across every office are GET /api/employers/me/offices instead (EmployerOfficeStatusDto).</summary>
+    public EmployerOfficeStatusDto? OfficeApplication { get; set; }
 
-/// <summary>The employer's one-time "apply to this office" action — see
-/// EmployerProfileService.SelectOfficeAsync.</summary>
-public class SelectEmployerOfficeDto
-{
-    [Required]
-    public Guid OfficeId { get; set; }
+    public List<EmployerDocumentDto> Documents { get; set; } = [];
 }
 
 /// <summary>Only the "complete company profile" fields — LegalName/DisplayName come from

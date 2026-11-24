@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useSessionStore } from '@/shared/auth/sessionStore'
-import { useMyEmployerProfile } from '../api/employerProfile.queries'
+import { useMyEmployerOffices } from '../api/employerProfile.queries'
 import { useMyJobAds } from '@/features/employer-job-ads/api/employerJobAds.queries'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Card } from '@/shared/ui/Card'
@@ -17,7 +17,7 @@ export default function EmployerDashboardPage() {
   const { t } = useTranslation(['employerProfile', 'employerJobAds'])
   const user = useSessionStore((s) => s.user)
 
-  const { data: profile, isLoading: profileLoading } = useMyEmployerProfile()
+  const { data: offices, isLoading: officesLoading } = useMyEmployerOffices()
   const { data: ads, isLoading: adsLoading } = useMyJobAds({ pageIndex: 0, pageSize: 5 })
   const { data: publishedAds } = useMyJobAds({ status: 'Published', pageIndex: 0, pageSize: 1 })
 
@@ -30,18 +30,39 @@ export default function EmployerDashboardPage() {
           <p className="text-sm font-bold text-content-secondary">
             {t('employerProfile:profileStatusCard')}
           </p>
-          {profileLoading || !profile ? (
+          {officesLoading || !offices ? (
             <LoadingState />
           ) : (
             <>
-              <StatusTag
-                domain="employerVerification"
-                value={profile.verificationStatus}
-                label={t(`employerProfile:status.${profile.verificationStatus}`)}
-              />
+              {(() => {
+                const approvedCount = offices.filter((o) => o.verificationStatus === 'Approved').length
+                const hasAny = offices.some((o) => o.verificationStatus !== 'NotSubmitted')
+                return approvedCount > 0 ? (
+                  <StatusTag
+                    domain="employerVerification"
+                    value="Approved"
+                    label={t('employerProfile:approvedAtOfficesCount', {
+                      count: approvedCount,
+                      defaultValue: `معتمد في ${approvedCount} مكتب`,
+                    })}
+                  />
+                ) : hasAny ? (
+                  <StatusTag
+                    domain="employerVerification"
+                    value="UnderReview"
+                    label={t('employerProfile:status.UnderReview')}
+                  />
+                ) : (
+                  <StatusTag
+                    domain="employerVerification"
+                    value="NotSubmitted"
+                    label={t('employerProfile:officeNotSubmitted', { defaultValue: 'لم يتقدم' })}
+                  />
+                )
+              })()}
               <Link to="/company-profile" className="self-start">
                 <Button variant="secondary" size="sm">
-                  {profile.verificationStatus === 'Draft'
+                  {offices.every((o) => o.verificationStatus === 'NotSubmitted')
                     ? t('employerProfile:completeProfileAction')
                     : t('employerProfile:viewProfileAction')}
                 </Button>

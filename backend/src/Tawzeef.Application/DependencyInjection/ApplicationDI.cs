@@ -2,7 +2,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Tawzeef.Application.Features.AuditLog;
 using Tawzeef.Application.Features.Auth;
 using Tawzeef.Application.Features.Complaints;
+using Tawzeef.Application.Features.Courses;
 using Tawzeef.Application.Features.Employers;
+using Tawzeef.Application.Features.Governorates;
 using Tawzeef.Application.Features.Interviews;
 using Tawzeef.Application.Features.JobAdvertisements;
 using Tawzeef.Application.Features.JobApplications;
@@ -42,6 +44,9 @@ public static class ApplicationDI
         services.AddScoped<ISuggestionReviewService, SuggestionReviewService>();
         services.AddScoped<IAuditLogService, AuditLogService>();
         services.AddScoped<IPlatformSettingsService, PlatformSettingsService>();
+        services.AddScoped<IGovernorateService, GovernorateService>();
+        services.AddScoped<ICourseService, CourseService>();
+        services.AddScoped<IBannerService, BannerService>();
         return services;
     }
 }

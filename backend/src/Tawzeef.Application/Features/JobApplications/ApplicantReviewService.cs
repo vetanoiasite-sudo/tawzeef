@@ -1,4 +1,5 @@
 using Tawzeef.Application.Common;
+using Tawzeef.Application.Features.Notifications;
 using Tawzeef.Domain.Common;
 using Tawzeef.Domain.Contracts;
 using Tawzeef.Domain.Entities.Employers;
@@ -9,7 +10,7 @@ using Tawzeef.Domain.Enums;
 
 namespace Tawzeef.Application.Features.JobApplications;
 
-public class ApplicantReviewService(IUnitOfWork uow, IFileStorage fileStorage) : IApplicantReviewService
+public class ApplicantReviewService(IUnitOfWork uow, IFileStorage fileStorage, INotificationService notificationService) : IApplicantReviewService
 {
     /// <summary>WORKFLOWS_AND_STATE_MACHINES.md §7's mapping table. NoResponseAfterContact maps
     /// to the same seeker-facing bucket as a refusal — BUSINESS_REQUIREMENTS.md §24.E.37 leaves
@@ -21,6 +22,14 @@ public class ApplicantReviewService(IUnitOfWork uow, IFileStorage fileStorage) :
         EmployerApplicationOutcome.ContactedRefused => JobSeekerApplicationStatus.ContactedNotSuitable,
         EmployerApplicationOutcome.NoResponseAfterContact => JobSeekerApplicationStatus.ContactedNotSuitable,
         _ => JobSeekerApplicationStatus.NotContacted,
+    };
+
+    private static string SeekerStatusLabel(JobSeekerApplicationStatus status) => status switch
+    {
+        JobSeekerApplicationStatus.NotContacted => "لم يتم التواصل بعد",
+        JobSeekerApplicationStatus.ContactedNotSuitable => "تم التواصل — غير مناسب",
+        JobSeekerApplicationStatus.ContactedInterviewScheduled => "تم التواصل — مقابلة مجدولة",
+        _ => status.ToString(),
     };
 
     public async Task<ServiceResult<PagedResult<ApplicantListItemDto>>> ListForEmployerAsync(
@@ -128,6 +137,16 @@ public class ApplicantReviewService(IUnitOfWork uow, IFileStorage fileStorage) :
                 ChangedBy = userId,
                 ActorRole = ApplicationActorRole.Employer,
             }, ct);
+
+            var jobSeeker = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.Id == application.JobSeekerId, ct: ct);
+            var ad = await uow.Repository<JobAdvertisement>().FindAsync(a => a.Id == application.JobAdvertisementId, ct: ct);
+            if (jobSeeker is not null)
+            {
+                await notificationService.CreateAsync(
+                    application.OfficeId, jobSeeker.UserId, "JobApplication.StatusChanged",
+                    $"تحديث على طلبك لوظيفة \"{ad?.Title}\": {SeekerStatusLabel(newSeekerStatus)}.",
+                    nameof(JobApplication), application.Id, ct);
+            }
         }
 
         await uow.SaveChangesAsync(ct);

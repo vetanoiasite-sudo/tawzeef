@@ -74,6 +74,13 @@ export default function LoginPage() {
           {...register('password')}
         />
 
+        <Link
+          to="/forgot-password"
+          className="-mt-2 self-end text-[13px] font-bold text-brand hover:text-brand-hover hover:underline"
+        >
+          {t('auth:forgotPasswordLink')}
+        </Link>
+
         {submitError && (
           <div
             role="alert"

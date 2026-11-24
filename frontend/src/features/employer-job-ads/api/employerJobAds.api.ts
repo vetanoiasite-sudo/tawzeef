@@ -10,6 +10,7 @@ import type {
 
 function toRequestDto(values: JobAdFormValues) {
   return {
+    officeId: values.officeId,
     title: values.title,
     description: values.description || null,
     experienceRequirement: values.experienceRequirement || null,

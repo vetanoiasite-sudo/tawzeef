@@ -8,7 +8,9 @@ import { interviewsAndReportsRoutes } from '@/features/interviews-and-reports'
 import { jobSeekerApplicationsRoutes } from '@/features/job-seeker-applications'
 import { jobSeekerProfileRoutes } from '@/features/jobseeker-profile'
 import { notificationsRoutes } from '@/features/notifications'
+import { officeBannersRoutes } from '@/features/office-banners'
 import { officeComplaintsReviewRoutes } from '@/features/office-complaints-review'
+import { officeCoursesRoutes } from '@/features/office-courses'
 import { officeDashboardRoutes } from '@/features/office-dashboard'
 import { officeEmployerReviewRoutes } from '@/features/office-employer-review'
 import { officeJobAdsReviewRoutes } from '@/features/office-job-ads-review'
@@ -16,6 +18,7 @@ import { officeJobSeekerReviewRoutes } from '@/features/office-jobseeker-review'
 import { officeSuggestionsReviewRoutes } from '@/features/office-suggestions-review'
 import { officeUsersRoutes } from '@/features/office-users'
 import { platformSettingsRoutes } from '@/features/platform-settings'
+import { publicCoursesRoutes } from '@/features/public-courses'
 import { publicJobsRoutes } from '@/features/public-jobs'
 import { suggestionsRoutes } from '@/features/suggestions'
 import { superAdminRoutes } from '@/features/super-admin'
@@ -48,4 +51,7 @@ export const routeRegistry: AppRouteDef[] = [
   ...notificationsRoutes,
   ...auditLogRoutes,
   ...platformSettingsRoutes,
+  ...publicCoursesRoutes,
+  ...officeCoursesRoutes,
+  ...officeBannersRoutes,
 ]

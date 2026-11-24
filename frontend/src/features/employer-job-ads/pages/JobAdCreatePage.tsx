@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ApiError } from '@/shared/api/types'
 import { JobAdForm } from '../components/JobAdForm'
 import { useCreateJobAd } from '../api/employerJobAds.queries'
-import { useMyEmployerProfile } from '@/features/employer-profile/api/employerProfile.queries'
+import { useMyEmployerOffices } from '@/features/employer-profile/api/employerProfile.queries'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Card } from '@/shared/ui/Card'
 import { Button } from '@/shared/ui/Button'
@@ -13,9 +13,11 @@ export default function JobAdCreatePage() {
   const { t } = useTranslation('employerJobAds')
   const navigate = useNavigate()
   const create = useCreateJobAd()
-  const { data: profile, isLoading: profileLoading } = useMyEmployerProfile()
+  const { data: offices, isLoading: officesLoading } = useMyEmployerOffices()
 
-  const profileIncomplete = profile?.verificationStatus === 'Draft'
+  // Needs at least one Approved office to pick from (confirmed 2026-11-24: an employer may post
+  // through any office it's Approved at, chosen per ad — JobAdForm's own office picker).
+  const hasApprovedOffice = (offices ?? []).some((o) => o.verificationStatus === 'Approved')
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8 sm:px-6">
@@ -27,9 +29,9 @@ export default function JobAdCreatePage() {
       </Link>
       <PageHeader title={t('createAction')} />
 
-      {profileLoading && <LoadingState />}
+      {officesLoading && <LoadingState />}
 
-      {!profileLoading && profileIncomplete && (
+      {!officesLoading && !hasApprovedOffice && (
         <Card className="flex flex-col gap-3 border-danger/30 bg-danger/5">
           <p className="text-sm font-medium text-danger">{t('profileIncompleteWarning')}</p>
           <Link to="/company-profile" className="self-start">
@@ -38,7 +40,7 @@ export default function JobAdCreatePage() {
         </Card>
       )}
 
-      {!profileLoading && !profileIncomplete && (
+      {!officesLoading && hasApprovedOffice && (
         <Card>
           <JobAdForm
             isSubmitting={create.isPending}

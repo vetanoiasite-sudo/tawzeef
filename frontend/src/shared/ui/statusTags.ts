@@ -23,6 +23,7 @@ export type StatusDomain =
 
 const TABLES: Record<StatusDomain, Record<string, StatusTone>> = {
   jobSeekerReview: {
+    NotSubmitted: 'neutral',
     Draft: 'neutral',
     Submitted: 'warning',
     UnderReview: 'warning',
@@ -31,6 +32,7 @@ const TABLES: Record<StatusDomain, Record<string, StatusTone>> = {
     Suspended: 'danger',
   },
   employerVerification: {
+    NotSubmitted: 'neutral',
     Draft: 'neutral',
     Submitted: 'warning',
     UnderReview: 'warning',

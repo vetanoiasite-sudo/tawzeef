@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSearchParams } from 'react-router-dom'
 import { JobCard } from '../components/JobCard'
 import { useJobSearch } from '../api/publicJobs.queries'
 import type { EmploymentTypeCode } from '../types/publicJobs.types'
 import { useJobCategories } from '@/features/job-categories'
+import { useGovernorates } from '@/features/governorates'
 import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { TextInput } from '@/shared/ui/TextInput'
@@ -13,16 +15,18 @@ import { SearchIcon } from '@/shared/ui/icons'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { LoadingState } from '@/shared/ui/LoadingState'
 import { Pagination } from '@/shared/ui/Pagination'
-import { EGYPT_GOVERNORATES } from '@/shared/constants/governorates'
 
 const PAGE_SIZE = 20
 const EMPLOYMENT_TYPES: EmploymentTypeCode[] = ['FullTime', 'PartTime', 'Contract']
 
 export default function JobListPage() {
   const { t } = useTranslation('publicJobs')
-  const [keyword, setKeyword] = useState('')
-  const [city, setCity] = useState('')
-  const [category, setCategory] = useState('')
+  // Pre-filled from the URL (e.g. a "browse by category/city" tile on the home page linking to
+  // /jobs?category=... or /jobs?city=...) — read once on mount, same as every other filter here.
+  const [searchParams] = useSearchParams()
+  const [keyword, setKeyword] = useState(searchParams.get('keyword') ?? '')
+  const [city, setCity] = useState(searchParams.get('city') ?? '')
+  const [category, setCategory] = useState(searchParams.get('category') ?? '')
   const [employerName, setEmployerName] = useState('')
   const [employmentType, setEmploymentType] = useState<EmploymentTypeCode | ''>('')
   const [pageIndex, setPageIndex] = useState(0)
@@ -34,6 +38,7 @@ export default function JobListPage() {
   const debouncedEmployerName = useDebouncedValue(employerName, 400)
 
   const { data: categories } = useJobCategories()
+  const { data: governorates } = useGovernorates()
 
   const { data, isLoading } = useJobSearch({
     keyword: debouncedKeyword.trim() || undefined,
@@ -65,8 +70,8 @@ export default function JobListPage() {
             startIcon={<SearchIcon />}
             className="border-brand/30 bg-brand-soft/40 focus:border-brand"
           />
-          {/* Governorates come from a fixed list, not free text — there's no City lookup
-           *  table yet, so a dropdown is the only way to keep the value matchable. */}
+          {/* Governorates come from the real Governorates table (api/governorates), not free
+           *  text — a dropdown is the only way to keep the value matchable. */}
           <Select
             label={t('cityPlaceholder')}
             value={city}
@@ -76,9 +81,9 @@ export default function JobListPage() {
             }}
           >
             <option value="">{t('cityAll')}</option>
-            {EGYPT_GOVERNORATES.map((g) => (
-              <option key={g} value={g}>
-                {g}
+            {(governorates ?? []).map((g) => (
+              <option key={g.id} value={g.name}>
+                {g.name}
               </option>
             ))}
           </Select>

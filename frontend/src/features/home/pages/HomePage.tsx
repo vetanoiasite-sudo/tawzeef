@@ -2,23 +2,25 @@ import clsx from 'clsx'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
-import { useJobSearch } from '@/features/public-jobs/api/publicJobs.queries'
-import type { JobListItem } from '@/features/public-jobs/types/publicJobs.types'
+import { useJobSearch, usePublicCities } from '@/features/public-jobs'
+import type { JobListItem } from '@/features/public-jobs'
 import { useJobCategories } from '@/features/job-categories'
+import { useGovernorates } from '@/features/governorates'
+import { useCourseSearch, CourseCard } from '@/features/public-courses'
 import { useSessionStore } from '@/shared/auth/sessionStore'
 import { Button } from '@/shared/ui/Button'
 import { Reveal } from '@/shared/ui/Reveal'
-import { EGYPT_GOVERNORATES } from '@/shared/constants/governorates'
-
-/** Governorates shown in the "Browse by governorate" quick-access grid — capped at 8, with a
- * "see all" link to the full search page for the rest. */
-const TOP_CITIES = EGYPT_GOVERNORATES.slice(0, 8)
+import { BannerSlider } from '../components/BannerSlider'
 
 export default function HomePage() {
   return (
     <div className="flex flex-col">
       <HeroSearch />
       <LatestJobs />
+      <BrowseByCourses />
+      {/* Office-authored promotional banners — a plain in-page block between sections, never a
+       *  popup, so a visitor scrolling past it is never interrupted (renders nothing if empty). */}
+      <BannerSlider />
       <BrowseByCategory />
       <BrowseByCity />
       <JoinTawzeefCTA />
@@ -147,10 +149,10 @@ function CityAutocomplete({ value, onChange }: { value: string; onChange: (v: st
   const [highlight, setHighlight] = useState(0)
   const rootRef = useRef<HTMLDivElement | null>(null)
 
+  const { data: governorates } = useGovernorates()
+  const names = (governorates ?? []).map((g) => g.name)
   const query = value.trim()
-  const suggestions = query
-    ? EGYPT_GOVERNORATES.filter((g) => g.includes(query)).slice(0, 8)
-    : EGYPT_GOVERNORATES.slice(0, 8)
+  const suggestions = query ? names.filter((g) => g.includes(query)).slice(0, 8) : names.slice(0, 8)
 
   // Close on outside click.
   useEffect(() => {
@@ -304,6 +306,51 @@ function JobCard({ job }: { job: JobListItem }) {
   )
 }
 
+/* -------------------------------------------------------------------------- */
+/* Courses                                                                    */
+/* -------------------------------------------------------------------------- */
+
+/** Mirrors LatestJobs exactly — a visitor who isn't signed in has nowhere else to discover
+ * courses from now (AppLayout's drawer only exists for a signed-in user), so this section is
+ * the one place that gets them to /courses. Renders nothing while every office's courses are
+ * paused (no "section" with an empty grid underneath it). */
+function BrowseByCourses() {
+  const { data, isLoading, isError } = useCourseSearch({ pageIndex: 0, pageSize: 8 })
+  const courses = data?.items ?? []
+
+  if (!isLoading && !isError && courses.length === 0) return null
+
+  return (
+    <section className="w-full px-4 py-16 sm:px-8 xl:px-16 2xl:px-24">
+      <Reveal>
+        <SectionHeader
+          title="الكورسات"
+          action={
+            <Link
+              to="/courses"
+              className="text-[14px] font-bold text-brand underline underline-offset-4 decoration-2 hover:text-brand-hover hover:decoration-brand-hover"
+            >
+              عرض كل الكورسات
+            </Link>
+          }
+        />
+      </Reveal>
+
+      {isLoading && <GridSkeleton />}
+      {isError && (
+        <p className="text-[14px] text-danger">تعذّر تحميل الكورسات. جرّب مرة أخرى بعد قليل.</p>
+      )}
+      {!isLoading && courses.length > 0 && (
+        <Reveal delayMs={100} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {courses.map((course) => (
+            <CourseCard key={course.id} course={course} />
+          ))}
+        </Reveal>
+      )}
+    </section>
+  )
+}
+
 function employmentTypeLabel(t: JobListItem['employmentType']) {
   switch (t) {
     case 'FullTime':
@@ -342,37 +389,49 @@ function GridSkeleton() {
 /* Browse by category / city                                                  */
 /* -------------------------------------------------------------------------- */
 
-/** "عرض الكل" — same link styling as LatestJobs' own section-header action, reused here so both
- * sections get the same affordance (there was no way to see anything past the first 8 tiles
- * before this). */
-function ViewAllLink() {
+/** "عرض الكل" — expands the section in place to show every item instead of navigating away
+ * (a visitor asking to see all categories/cities wants more tiles, not the job list). Toggles
+ * back to "عرض أقل" once expanded. */
+function ExpandToggle({ expanded, onToggle }: { expanded: boolean; onToggle: () => void }) {
   return (
-    <Link
-      to="/jobs"
+    <button
+      type="button"
+      onClick={onToggle}
       className="text-[14px] font-bold text-brand underline underline-offset-4 decoration-2 hover:text-brand-hover hover:decoration-brand-hover"
     >
-      عرض الكل
-    </Link>
+      {expanded ? 'عرض أقل' : 'عرض الكل'}
+    </button>
   )
 }
+
+const COLLAPSED_COUNT = 8
 
 function BrowseByCategory() {
   // Real, office-managed categories now (job-categories feature) — not a hardcoded list that
   // could drift from what ads are actually tagged with. A ad's category only exists once an
   // office assigns one during review, so this section is empty until at least one has been.
   const { data: categories } = useJobCategories()
-  const topCategories = (categories ?? []).slice(0, 8)
+  const [expanded, setExpanded] = useState(false)
+  const all = categories ?? []
 
-  if (topCategories.length === 0) return null
+  if (all.length === 0) return null
+  const shown = expanded ? all : all.slice(0, COLLAPSED_COUNT)
 
   return (
     <section className="bg-brand-soft">
       <div className="w-full px-4 py-16 sm:px-8 xl:px-16 2xl:px-24">
         <Reveal>
-          <SectionHeader title="تصفّح حسب الفئة" action={<ViewAllLink />} />
+          <SectionHeader
+            title="تصفّح حسب الفئة"
+            action={
+              all.length > COLLAPSED_COUNT && (
+                <ExpandToggle expanded={expanded} onToggle={() => setExpanded((e) => !e)} />
+              )
+            }
+          />
         </Reveal>
         <Reveal delayMs={100} className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {topCategories.map((c) => (
+          {shown.map((c) => (
             <Link
               key={c.id}
               to={`/jobs?category=${encodeURIComponent(c.name)}`}
@@ -393,19 +452,35 @@ function BrowseByCategory() {
 }
 
 function BrowseByCity() {
+  // Real cities carried by a live ad (public-jobs feature's /api/jobs/cities) — not a static
+  // governorate list, so this reflects where jobs actually are, ordered by how many.
+  const { data: cities } = usePublicCities()
+  const [expanded, setExpanded] = useState(false)
+  const all = cities ?? []
+
+  if (all.length === 0) return null
+  const shown = expanded ? all : all.slice(0, COLLAPSED_COUNT)
+
   return (
     <section className="w-full px-4 py-16 sm:px-8 xl:px-16 2xl:px-24">
       <Reveal>
-        <SectionHeader title="تصفّح حسب المحافظة" action={<ViewAllLink />} />
+        <SectionHeader
+          title="تصفّح حسب المحافظة"
+          action={
+            all.length > COLLAPSED_COUNT && (
+              <ExpandToggle expanded={expanded} onToggle={() => setExpanded((e) => !e)} />
+            )
+          }
+        />
       </Reveal>
       <Reveal delayMs={100} className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
-        {TOP_CITIES.map((city) => (
+        {shown.map((c) => (
           <Link
-            key={city}
-            to={`/jobs?city=${encodeURIComponent(city)}`}
+            key={c.city}
+            to={`/jobs?city=${encodeURIComponent(c.city)}`}
             className="flex h-16 items-center justify-center rounded-200 border border-border-primary bg-surface px-3 text-[14px] font-bold text-content-primary transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-brand hover:text-brand hover:shadow-100"
           >
-            {city}
+            {c.city}
           </Link>
         ))}
       </Reveal>

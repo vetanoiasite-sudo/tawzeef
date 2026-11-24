@@ -1,10 +1,16 @@
 using Tawzeef.Domain.Entities.JobSeekers;
+using Tawzeef.Domain.Entities.Offices;
 
 namespace Tawzeef.Application.Features.JobSeekers;
 
 internal static class JobSeekerProfileMapping
 {
-    public static JobSeekerProfileDto ToDto(this JobSeekerProfile p, IEnumerable<JobSeekerDocument> documents, int validComplaintCount = 0) => new()
+    public static JobSeekerProfileDto ToDto(
+        this JobSeekerProfile p,
+        IEnumerable<JobSeekerDocument> documents,
+        int validComplaintCount = 0,
+        JobSeekerOfficeApplication? officeApplication = null,
+        EmploymentOffice? office = null) => new()
     {
         Id = p.Id,
         FullName = p.FullName,
@@ -20,11 +26,8 @@ internal static class JobSeekerProfileMapping
         CareerSummary = p.CareerSummary,
         JobTitle = p.JobTitle,
         HasPhoto = p.PhotoStorageKey != null,
-        ReviewStatus = p.ReviewStatus.ToString(),
-        RejectionReason = p.RejectionReason,
-        SuspensionReason = p.SuspensionReason,
-        SuspendedAt = p.SuspendedAt,
         ValidComplaintCount = validComplaintCount,
+        OfficeApplication = officeApplication?.ToDto(office),
         Documents = documents.Select(d => d.ToDto()).ToList(),
     };
 
@@ -36,5 +39,16 @@ internal static class JobSeekerProfileMapping
         ReviewStatus = d.ReviewStatus.ToString(),
         RejectionReason = d.RejectionReason,
         UploadedAt = d.UploadedAt,
+    };
+
+    public static JobSeekerOfficeStatusDto ToDto(this JobSeekerOfficeApplication a, EmploymentOffice? office = null) => new()
+    {
+        OfficeId = a.OfficeId,
+        OfficeName = office?.ArName ?? office?.Name ?? string.Empty,
+        City = office?.City,
+        ReviewStatus = a.ReviewStatus.ToString(),
+        RejectionReason = a.RejectionReason,
+        SuspendedAt = a.SuspendedAt,
+        SuspensionReason = a.SuspensionReason,
     };
 }

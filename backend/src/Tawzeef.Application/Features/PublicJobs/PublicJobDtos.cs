@@ -27,6 +27,9 @@ public class JobListItemDto
     public string Title { get; set; } = string.Empty;
     public string EmployerDisplayName { get; set; } = string.Empty;
     public string? EmployerLogoUrl { get; set; }
+    /// <summary>Confirmed 2026-11-24: every job ad must show which office it belongs to.</summary>
+    public Guid OfficeId { get; set; }
+    public string OfficeName { get; set; } = string.Empty;
     public string? City { get; set; }
     public string? Category { get; set; }
     public string? EmploymentType { get; set; }
@@ -42,6 +45,15 @@ public class PublicPlatformStatsDto
     public int ActiveJobsCount { get; set; }
     public int ApprovedEmployersCount { get; set; }
     public int ApprovedJobSeekersCount { get; set; }
+}
+
+/// <summary>A city actually carried by at least one live ad — DISTINCT-over-free-text, same
+/// documented fallback as City/Category filtering (this file's own JobSearchQueryDto doc
+/// comment), used for the home page "browse by city" section instead of a static list.</summary>
+public class CityCountDto
+{
+    public string City { get; set; } = string.Empty;
+    public int JobCount { get; set; }
 }
 
 /// <summary>No employerEmail/employerPhone field at all — not a null one — API_DOCUMENTATION.md
@@ -64,6 +76,9 @@ public class JobDetailsDto
     // carry it.
     public string EmployerDisplayName { get; set; } = string.Empty;
     public string? EmployerLogoUrl { get; set; }
+    /// <summary>Confirmed 2026-11-24: every job ad must show which office it belongs to.</summary>
+    public Guid OfficeId { get; set; }
+    public string OfficeName { get; set; } = string.Empty;
     public DateTime? PublishedAt { get; set; }
     public DateTime? ExpiresAt { get; set; }
     public string ContactNote { get; set; } = "التواصل يتم من خلال مكتب التوظيف فقط.";

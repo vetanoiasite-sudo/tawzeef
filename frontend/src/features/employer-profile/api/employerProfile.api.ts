@@ -2,7 +2,9 @@ import { httpClient } from '@/shared/api/httpClient'
 import type {
   EmployerDocument,
   EmployerDocumentTypeCode,
+  EmployerOfficeStatus,
   EmployerProfile,
+  SubmitEmployerOfficesPayload,
   UpdateEmployerProfilePayload,
 } from '../types/employerProfile.types'
 
@@ -10,8 +12,9 @@ export const employerProfileApi = {
   getMyProfile: () => httpClient.get<EmployerProfile>('/api/employers/me'),
   updateMyProfile: (payload: UpdateEmployerProfilePayload) =>
     httpClient.put<EmployerProfile>('/api/employers/me', payload),
-  selectOffice: (officeId: string) =>
-    httpClient.post<EmployerProfile>('/api/employers/me/office', { officeId }),
+  getMyOffices: () => httpClient.get<EmployerOfficeStatus[]>('/api/employers/me/offices'),
+  submitToOffices: (payload: SubmitEmployerOfficesPayload) =>
+    httpClient.post<EmployerOfficeStatus[]>('/api/employers/me/offices', payload),
   uploadDocument: ({
     documentType,
     file,

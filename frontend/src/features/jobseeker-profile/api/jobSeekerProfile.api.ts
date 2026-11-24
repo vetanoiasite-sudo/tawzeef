@@ -2,7 +2,9 @@ import { httpClient } from '@/shared/api/httpClient'
 import type {
   JobSeekerDocument,
   JobSeekerDocumentTypeCode,
+  JobSeekerOfficeStatus,
   JobSeekerProfile,
+  SubmitJobSeekerOfficesPayload,
   UpdateJobSeekerProfilePayload,
 } from '../types/jobSeekerProfile.types'
 
@@ -23,6 +25,9 @@ export const jobSeekerProfileApi = {
     return httpClient.post<JobSeekerDocument>('/api/jobseekers/me/documents', form)
   },
   submitForReview: () => httpClient.post<JobSeekerProfile>('/api/jobseekers/me/submit'),
+  getMyOffices: () => httpClient.get<JobSeekerOfficeStatus[]>('/api/jobseekers/me/offices'),
+  submitToOffices: (payload: SubmitJobSeekerOfficesPayload) =>
+    httpClient.post<JobSeekerOfficeStatus[]>('/api/jobseekers/me/offices', payload),
   uploadPhoto: (file: File) => {
     const form = new FormData()
     form.append('File', file)

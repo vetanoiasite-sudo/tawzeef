@@ -36,6 +36,10 @@ export type JobAdListItem = {
   publishedAt: string | null
   expiresAt: string | null
   employerDisplayName: string | null
+  /** Which office this ad posts through — shown now that an employer may post through several
+   * (confirmed 2026-11-24). */
+  officeId: string
+  officeName: string | null
 }
 
 export type JobAdDetail = {
@@ -60,6 +64,8 @@ export type JobAdDetail = {
   closedAt: string | null
   renewedFromAdvertisementId: string | null
   employerDisplayName: string | null
+  officeId: string
+  officeName: string | null
   payment: AdvertisementPayment | null
 }
 

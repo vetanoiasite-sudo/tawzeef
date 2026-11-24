@@ -5,7 +5,7 @@ import { Card } from '@/shared/ui/Card'
 import { Button } from '@/shared/ui/Button'
 import { TextInput, TextArea } from '@/shared/ui/TextInput'
 import { Select } from '@/shared/ui/Select'
-import { EGYPT_GOVERNORATES } from '@/shared/constants/governorates'
+import { useGovernorates } from '@/features/governorates'
 
 /** Office-side correction of a job ad's fields — the employer's own JobAdForm (a different
  * feature folder) isn't reused here to avoid coupling the two features' types together; this is
@@ -25,6 +25,7 @@ export function OfficeJobAdEditForm({
   onCancel: () => void
 }) {
   const { t } = useTranslation('officeJobAdsReview')
+  const { data: governorates } = useGovernorates()
   const [title, setTitle] = useState(ad.title)
   const [description, setDescription] = useState(ad.description ?? '')
   const [experienceRequirement, setExperienceRequirement] = useState(ad.experienceRequirement ?? '')
@@ -79,9 +80,9 @@ export function OfficeJobAdEditForm({
 
           <Select id="editCity" label={t('columnCity')} value={city} onChange={(e) => setCity(e.target.value)}>
             <option value="">—</option>
-            {EGYPT_GOVERNORATES.map((g) => (
-              <option key={g} value={g}>
-                {g}
+            {(governorates ?? []).map((g) => (
+              <option key={g.id} value={g.name}>
+                {g.name}
               </option>
             ))}
           </Select>

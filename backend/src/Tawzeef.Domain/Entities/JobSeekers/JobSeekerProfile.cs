@@ -9,7 +9,6 @@ public class JobSeekerProfile : IEntity
 {
     public Guid Id { get; set; }
 
-    public Guid OfficeId { get; set; }
     public Guid UserId { get; set; }
 
     public string FullName { get; set; } = string.Empty;
@@ -33,13 +32,6 @@ public class JobSeekerProfile : IEntity
     public string? PhotoStorageKey { get; set; }
     public string? PhotoOriginalFileName { get; set; }
     public string? PhotoContentType { get; set; }
-
-    public JobSeekerReviewStatus ReviewStatus { get; set; } = JobSeekerReviewStatus.Draft;
-    public Guid? ApprovedBy { get; set; }
-    public DateTime? ApprovedAt { get; set; }
-    public string? RejectionReason { get; set; }
-    public DateTime? SuspendedAt { get; set; }
-    public string? SuspensionReason { get; set; }
 
     public Guid? CreatedBy { get; set; }
     public DateTime CreationDate { get; set; } = DateTime.UtcNow;

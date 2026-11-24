@@ -9,7 +9,6 @@ public class JobSeekerDocument : IEntity
 {
     public Guid Id { get; set; }
 
-    public Guid OfficeId { get; set; }
     public Guid JobSeekerId { get; set; }
 
     public JobSeekerDocumentType DocumentType { get; set; }

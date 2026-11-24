@@ -51,6 +51,9 @@ export default function JobDetailPage() {
           <div className="flex flex-col gap-1">
             <h1 className="text-xl font-bold text-text">{job.title}</h1>
             <p className="text-sm text-text-muted">{job.employerDisplayName}</p>
+            <p className="text-sm font-medium text-brand">
+              {t('officeLabel', { defaultValue: 'مكتب التوظيف' })}: {job.officeName}
+            </p>
           </div>
         </div>
 

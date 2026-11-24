@@ -47,13 +47,13 @@ export default function ReviewDetailPage() {
   }
 
   const canEdit = hasPermission('employers.review')
-  const canDecideProfile = employer.verificationStatus === 'UnderReview'
+  const canDecideProfile = employer.officeApplication.verificationStatus === 'UnderReview'
   // API_DOCUMENTATION.md §3.5: stop/resume-cooperation is gated by complaints.decide, not
   // employers.suspend — OfficeAdmin only (RBAC_PERMISSIONS.md footnote 5).
   const canStopCooperation =
-    employer.cooperationStatus === 'Active' && hasPermission('complaints.decide')
+    employer.officeApplication.cooperationStatus === 'Active' && hasPermission('complaints.decide')
   const canResumeCooperation =
-    employer.cooperationStatus === 'Stopped' && hasPermission('complaints.decide')
+    employer.officeApplication.cooperationStatus === 'Stopped' && hasPermission('complaints.decide')
   const overComplaintThreshold = employer.validComplaintCount >= 3
 
   return (
@@ -77,29 +77,32 @@ export default function ReviewDetailPage() {
 
       <Card className="flex flex-col gap-2">
         <div className="flex items-center gap-2 text-sm text-text-muted">
+          {t('officeLabel', { defaultValue: 'المكتب' })}: {employer.officeApplication.officeName}
+        </div>
+        <div className="flex items-center gap-2 text-sm text-text-muted">
           {t('columnStatus')}:
           <StatusTag
             domain="employerVerification"
-            value={employer.verificationStatus}
-            label={t(`status.${employer.verificationStatus}`)}
+            value={employer.officeApplication.verificationStatus}
+            label={t(`status.${employer.officeApplication.verificationStatus}`)}
           />
         </div>
         <div className="flex items-center gap-2 text-sm text-text-muted">
           {t('columnCooperation')}:
           <StatusTag
             domain="employerCooperation"
-            value={employer.cooperationStatus}
-            label={t(`cooperationStatus.${employer.cooperationStatus}`)}
+            value={employer.officeApplication.cooperationStatus}
+            label={t(`cooperationStatus.${employer.officeApplication.cooperationStatus}`)}
           />
         </div>
-        {employer.rejectionReason && (
+        {employer.officeApplication.rejectionReason && (
           <p className="text-sm text-danger">
-            {t('rejectionReasonLabel')}: {employer.rejectionReason}
+            {t('rejectionReasonLabel')}: {employer.officeApplication.rejectionReason}
           </p>
         )}
-        {employer.cooperationStoppedReason && (
+        {employer.officeApplication.cooperationStoppedReason && (
           <p className="text-sm text-danger">
-            {t('cooperationStoppedReasonLabel')}: {employer.cooperationStoppedReason}
+            {t('cooperationStoppedReasonLabel')}: {employer.officeApplication.cooperationStoppedReason}
           </p>
         )}
       </Card>

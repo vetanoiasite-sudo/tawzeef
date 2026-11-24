@@ -21,11 +21,9 @@ public class PaymentGatingTests
         var employer = new Employer
         {
             Id = Guid.NewGuid(),
-            OfficeId = officeId,
             UserId = employerUserId,
             LegalName = "Acme",
             DisplayName = "Acme",
-            VerificationStatus = EmployerVerificationStatus.Approved,
         };
         var ad = new JobAdvertisement
         {
@@ -38,7 +36,6 @@ public class PaymentGatingTests
         var jobSeeker = new JobSeekerProfile
         {
             Id = Guid.NewGuid(),
-            OfficeId = officeId,
             UserId = Guid.NewGuid(),
             FullName = "Ali",
             MobileNumber = "01000000003",
@@ -53,7 +50,6 @@ public class PaymentGatingTests
         var cv = new JobSeekerDocument
         {
             Id = Guid.NewGuid(),
-            OfficeId = officeId,
             JobSeekerId = jobSeeker.Id,
             DocumentType = JobSeekerDocumentType.Cv,
             SecureFileReference = "cv-key",
@@ -80,7 +76,7 @@ public class PaymentGatingTests
         await uow.SaveChangesAsync();
         // No AdvertisementPayment row at all — unpaid.
 
-        var service = new ApplicantReviewService(uow, new FakeFileStorage());
+        var service = new ApplicantReviewService(uow, new FakeFileStorage(), new FakeNotificationService());
 
         var result = await service.GetCvAsync(employer.UserId, application.Id);
 
@@ -113,7 +109,7 @@ public class PaymentGatingTests
         });
         await uow.SaveChangesAsync();
 
-        var service = new ApplicantReviewService(uow, new FakeFileStorage());
+        var service = new ApplicantReviewService(uow, new FakeFileStorage(), new FakeNotificationService());
 
         var result = await service.GetCvAsync(employer.UserId, application.Id);
 
@@ -147,7 +143,7 @@ public class PaymentGatingTests
         });
         await uow.SaveChangesAsync();
 
-        var service = new ApplicantReviewService(uow, new FakeFileStorage());
+        var service = new ApplicantReviewService(uow, new FakeFileStorage(), new FakeNotificationService());
 
         var result = await service.GetCvAsync(employer.UserId, application.Id);
 
@@ -170,7 +166,7 @@ public class PaymentGatingTests
         await uow.Repository<JobSeekerDocument>().AddAsync(cv);
         await uow.SaveChangesAsync();
 
-        var service = new ApplicantReviewService(uow, new FakeFileStorage());
+        var service = new ApplicantReviewService(uow, new FakeFileStorage(), new FakeNotificationService());
 
         var result = await service.ListForEmployerAsync(employer.UserId, ad.Id, new JobApplicationQueryDto { PageIndex = 0, PageSize = 20 });
 
@@ -207,7 +203,7 @@ public class PaymentGatingTests
         });
         await uow.SaveChangesAsync();
 
-        var service = new ApplicantReviewService(uow, new FakeFileStorage());
+        var service = new ApplicantReviewService(uow, new FakeFileStorage(), new FakeNotificationService());
 
         var result = await service.ListForEmployerAsync(employer.UserId, ad.Id, new JobApplicationQueryDto { PageIndex = 0, PageSize = 20 });
 
@@ -232,7 +228,7 @@ public class PaymentGatingTests
         await uow.SaveChangesAsync();
         // Still no payment at all.
 
-        var service = new ApplicantReviewService(uow, new FakeFileStorage());
+        var service = new ApplicantReviewService(uow, new FakeFileStorage(), new FakeNotificationService());
 
         // RBAC_PERMISSIONS.md §3 footnote: office staff reviewing applications is never gated by
         // the employer's own payment status.

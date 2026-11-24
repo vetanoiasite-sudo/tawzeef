@@ -39,7 +39,8 @@ export default function MyJobAdsPage() {
               <div className="flex flex-col gap-1">
                 <p className="font-semibold text-text">{row.title}</p>
                 <p className="text-xs text-text-muted">
-                  {row.city ?? '—'} · {t('columnVacancies')}: {row.vacancyCount}
+                  {row.officeName ?? '—'} · {row.city ?? '—'} · {t('columnVacancies')}:{' '}
+                  {row.vacancyCount}
                 </p>
               </div>
               <div className="flex items-center gap-3">

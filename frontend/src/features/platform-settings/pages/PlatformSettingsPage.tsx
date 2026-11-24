@@ -7,22 +7,24 @@ import { TextInput } from '@/shared/ui/TextInput'
 import { Select } from '@/shared/ui/Select'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { LoadingState } from '@/shared/ui/LoadingState'
-import { usePlatformSettings, useUpdatePlatformSetting } from '../api/platformSettings.queries'
+import { usePlatformSettings, useSupportedCurrencies, useUpdatePlatformSetting } from '../api/platformSettings.queries'
 import type { PlatformSetting } from '../types/platformSettings.types'
 
 // These two settings hold plain numbers (days / an amount).
 // Backend/src/Tawzeef.Domain/Common/PlatformSettingKeys.cs is the source of truth for the keys.
 const NUMERIC_SETTING_KEYS = new Set(['advertisement.duration_days', 'advertisement.default_fee_amount'])
 
-// The currency setting must be one of a known set, not whatever an admin types by hand.
+// The currency setting must be one of a known set, not whatever an admin types by hand — the
+// known set itself is the platform.supported_currencies setting (useSupportedCurrencies), not a
+// value baked into this file.
 const CURRENCY_SETTING_KEY = 'advertisement.default_fee_currency'
-const SUPPORTED_CURRENCIES = ['EGP'] as const
 
 function SettingRow({ setting }: { setting: PlatformSetting }) {
   const { t } = useTranslation('platformSettings')
   const [editing, setEditing] = useState(false)
   const [value, setValue] = useState(setting.value)
   const update = useUpdatePlatformSetting()
+  const { data: currencies } = useSupportedCurrencies()
 
   const label = t(`settingLabel.${setting.key}`, { defaultValue: setting.key })
 
@@ -56,7 +58,7 @@ function SettingRow({ setting }: { setting: PlatformSetting }) {
           <div className="min-w-[200px] flex-1">
             {setting.key === CURRENCY_SETTING_KEY ? (
               <Select value={value} onChange={(e) => setValue(e.target.value)}>
-                {SUPPORTED_CURRENCIES.map((code) => (
+                {(currencies ?? []).map((code) => (
                   <option key={code} value={code}>
                     {code}
                   </option>

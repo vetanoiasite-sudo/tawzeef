@@ -24,11 +24,8 @@ public class JobSeekerProfileConfiguration : IEntityTypeConfiguration<JobSeekerP
         b.Property(x => x.PhotoStorageKey).HasMaxLength(500);
         b.Property(x => x.PhotoOriginalFileName).HasMaxLength(260);
         b.Property(x => x.PhotoContentType).HasMaxLength(100);
-        b.Property(x => x.RejectionReason).HasMaxLength(500);
-        b.Property(x => x.SuspensionReason).HasMaxLength(500);
 
         b.HasIndex(x => x.UserId).IsUnique();
         b.HasIndex(x => x.NationalId).IsUnique();
-        b.HasIndex(x => new { x.OfficeId, x.ReviewStatus });
     }
 }

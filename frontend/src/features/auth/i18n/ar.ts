@@ -25,6 +25,7 @@ export const authAr = {
   representativeNameLabel: 'اسم ممثل الشركة',
   emailLabel: 'البريد الإلكتروني',
   passwordLabel: 'كلمة المرور',
+  confirmPasswordLabel: 'تأكيد كلمة المرور',
   officeLabel: 'مكتب التوظيف',
   officePlaceholder: 'اختر مكتب التوظيف',
   createAccount: 'إنشاء الحساب',
@@ -41,4 +42,13 @@ export const authAr = {
   acceptInviteMobileHint: 'اكتب رقم الهاتف اللي اتبعتلك عليه دعوة الانضمام.',
   acceptInviteSubmit: 'تفعيل الحساب',
   acceptInviteLink: 'عندك دعوة انضمام لمكتب؟ فعّل حسابك هنا',
+
+  // Forgot/reset password — any account with an email on file, any role.
+  forgotPasswordLink: 'نسيت كلمة المرور؟',
+  forgotPasswordTitle: 'استعادة كلمة المرور',
+  forgotPasswordHint: 'اكتب بريدك الإلكتروني وهنبعتلك رمز تأكيد لإعادة تعيين كلمة المرور.',
+  newPasswordLabel: 'كلمة المرور الجديدة',
+  resetPasswordSubmit: 'إعادة تعيين كلمة المرور',
+  resetPasswordSuccess: 'تم تغيير كلمة المرور بنجاح — سجّل الدخول بكلمة المرور الجديدة.',
+  backToLogin: 'الرجوع لتسجيل الدخول',
 }

@@ -29,6 +29,19 @@ export type OfficeEmployerDocument = {
   uploadedAt: string
 }
 
+/** This office's own application row for the employer being viewed — never null for an employer
+ * the office review queue can even reach (the access check itself requires one to exist). */
+export type OfficeEmployerApplication = {
+  officeId: string
+  officeName: string
+  city: string | null
+  verificationStatus: EmployerVerificationStatusCode
+  rejectionReason: string | null
+  cooperationStatus: EmployerCooperationStatusCode
+  cooperationStoppedReason: string | null
+  cooperationStoppedAt: string | null
+}
+
 export type OfficeEmployerDetail = {
   id: string
   legalName: string
@@ -40,12 +53,8 @@ export type OfficeEmployerDetail = {
   companyPhone: string | null
   representativeName: string | null
   representativeRole: string | null
-  verificationStatus: EmployerVerificationStatusCode
-  rejectionReason: string | null
-  cooperationStatus: EmployerCooperationStatusCode
-  cooperationStoppedReason: string | null
-  cooperationStoppedAt: string | null
   validComplaintCount: number
+  officeApplication: OfficeEmployerApplication
   documents: OfficeEmployerDocument[]
 }
 

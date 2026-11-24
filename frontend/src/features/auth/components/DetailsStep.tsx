@@ -1,11 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { usePublicOffices } from '../api/auth.queries'
 import { jobSeekerDetailsSchema, type JobSeekerDetailsFormValues } from '../schemas/auth.schemas'
 import { TextInput } from '@/shared/ui/TextInput'
-import { Select } from '@/shared/ui/Select'
 import { Button } from '@/shared/ui/Button'
+import { OfficeMultiSelect } from '@/shared/ui/OfficeMultiSelect'
 
 export function DetailsStep({
   email,
@@ -20,10 +19,11 @@ export function DetailsStep({
   onSubmit: (values: JobSeekerDetailsFormValues) => void
 }) {
   const { t } = useTranslation(['auth', 'validation'])
-  const { data: offices, isLoading: officesLoading } = usePublicOffices()
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<JobSeekerDetailsFormValues>({
     resolver: zodResolver(jobSeekerDetailsSchema),
@@ -32,9 +32,13 @@ export function DetailsStep({
       nationalId: '',
       mobileNumber: '',
       password: '',
-      officeId: '',
+      confirmPassword: '',
+      officeIds: [],
+      allOffices: false,
     },
   })
+  const officeIds = watch('officeIds')
+  const allOffices = watch('allOffices')
 
   return (
     <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-4">
@@ -90,26 +94,27 @@ export function DetailsStep({
         {...register('password')}
       />
 
+      <TextInput
+        id="confirmPassword"
+        type="password"
+        autoComplete="new-password"
+        label={t('auth:confirmPasswordLabel')}
+        error={errors.confirmPassword ? t(errors.confirmPassword.message ?? '') : undefined}
+        {...register('confirmPassword')}
+      />
+
       <div className="flex flex-col gap-1.5">
-        <Select
-          id="officeId"
-          disabled={officesLoading}
-          defaultValue=""
-          label={t('auth:officeLabel')}
-          {...register('officeId')}
-        >
-          <option value="" disabled>
-            {t('auth:officePlaceholder')}
-          </option>
-          {offices?.map((office) => (
-            <option key={office.id} value={office.id}>
-              {office.city ? `${office.name} — ${office.city}` : office.name}
-            </option>
-          ))}
-        </Select>
-        {errors.officeId && (
-          <p className="text-sm text-danger">{t(errors.officeId.message ?? '')}</p>
-        )}
+        <label className="text-[14px] font-bold text-content-primary">
+          {t('auth:officeLabel')}
+        </label>
+        <OfficeMultiSelect
+          value={{ officeIds, allOffices }}
+          onChange={(next) => {
+            setValue('officeIds', next.officeIds, { shouldValidate: true })
+            setValue('allOffices', next.allOffices, { shouldValidate: true })
+          }}
+          error={errors.officeIds ? t(errors.officeIds.message ?? '') : undefined}
+        />
       </div>
 
       {submitError && <p className="text-sm text-danger">{submitError}</p>}

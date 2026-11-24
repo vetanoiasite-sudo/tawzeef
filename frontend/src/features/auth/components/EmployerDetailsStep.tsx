@@ -30,6 +30,7 @@ export function EmployerDetailsStep({
       legalName: '',
       displayName: '',
       password: '',
+      confirmPassword: '',
     },
   })
 
@@ -88,6 +89,15 @@ export function EmployerDetailsStep({
         label={t('auth:passwordLabel')}
         error={errors.password ? t(errors.password.message ?? '') : undefined}
         {...register('password')}
+      />
+
+      <TextInput
+        id="confirmPassword"
+        type="password"
+        autoComplete="new-password"
+        label={t('auth:confirmPasswordLabel')}
+        error={errors.confirmPassword ? t(errors.confirmPassword.message ?? '') : undefined}
+        {...register('confirmPassword')}
       />
 
       {submitError && <p className="text-sm text-danger">{submitError}</p>}

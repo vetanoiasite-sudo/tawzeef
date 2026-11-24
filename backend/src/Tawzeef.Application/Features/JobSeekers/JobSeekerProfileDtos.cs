@@ -50,16 +50,17 @@ public class JobSeekerProfileDto
     /// GET /api/jobseekers/me/photo (or the office's GET /api/office/job-seekers/{id}/photo).</summary>
     public bool HasPhoto { get; set; }
 
-    public string ReviewStatus { get; set; } = string.Empty;
-    public string? RejectionReason { get; set; }
-    public string? SuspensionReason { get; set; }
-    public DateTime? SuspendedAt { get; set; }
-
     /// <summary>WORKFLOWS_AND_STATE_MACHINES.md §10.3 — count of complaints against this profile
     /// the office has confirmed Valid (RBAC_PERMISSIONS.md §0 item 5: only Valid ones count,
     /// cumulative, no time window). Office-review visibility only: always 0 on the self-service
     /// GET /api/jobseekers/me response, which reuses this same DTO.</summary>
     public int ValidComplaintCount { get; set; }
+
+    /// <summary>Populated only when a specific office is reviewing this profile
+    /// (JobSeekerReviewService.GetByIdAsync) — that office's own status. Null on the self-service
+    /// GET /api/jobseekers/me response, which reuses this same DTO; the job seeker's own statuses
+    /// across every office are GET /api/jobseekers/me/offices instead (JobSeekerOfficeStatusDto).</summary>
+    public JobSeekerOfficeStatusDto? OfficeApplication { get; set; }
 
     public List<JobSeekerDocumentDto> Documents { get; set; } = [];
 }

@@ -62,9 +62,11 @@ export default function ReviewDetailPage() {
     return <LoadingState />
   }
 
-  const canDecideProfile = profile.reviewStatus === 'UnderReview'
-  const canSuspend = profile.reviewStatus === 'Approved' && hasPermission('jobseekers.suspend')
-  const canReinstate = profile.reviewStatus === 'Suspended' && hasPermission('jobseekers.reinstate')
+  const canDecideProfile = profile.officeApplication.reviewStatus === 'UnderReview'
+  const canSuspend =
+    profile.officeApplication.reviewStatus === 'Approved' && hasPermission('jobseekers.suspend')
+  const canReinstate =
+    profile.officeApplication.reviewStatus === 'Suspended' && hasPermission('jobseekers.reinstate')
   const overComplaintThreshold = profile.validComplaintCount >= 3
 
   return (
@@ -100,21 +102,24 @@ export default function ReviewDetailPage() {
 
       <Card className="flex flex-col gap-2">
         <div className="flex items-center gap-2 text-sm text-text-muted">
+          {t('officeLabel', { defaultValue: 'المكتب' })}: {profile.officeApplication.officeName}
+        </div>
+        <div className="flex items-center gap-2 text-sm text-text-muted">
           {t('columnStatus')}:
           <StatusTag
             domain="jobSeekerReview"
-            value={profile.reviewStatus}
-            label={t(`status.${profile.reviewStatus}`)}
+            value={profile.officeApplication.reviewStatus}
+            label={t(`status.${profile.officeApplication.reviewStatus}`)}
           />
         </div>
-        {profile.rejectionReason && (
+        {profile.officeApplication.rejectionReason && (
           <p className="text-sm text-danger">
-            {t('rejectionReasonLabel')}: {profile.rejectionReason}
+            {t('rejectionReasonLabel')}: {profile.officeApplication.rejectionReason}
           </p>
         )}
-        {profile.suspensionReason && (
+        {profile.officeApplication.suspensionReason && (
           <p className="text-sm text-danger">
-            {t('suspensionReasonLabel')}: {profile.suspensionReason}
+            {t('suspensionReasonLabel')}: {profile.officeApplication.suspensionReason}
           </p>
         )}
       </Card>

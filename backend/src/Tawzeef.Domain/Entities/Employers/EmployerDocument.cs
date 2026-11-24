@@ -10,7 +10,6 @@ public class EmployerDocument : IEntity
 {
     public Guid Id { get; set; }
 
-    public Guid OfficeId { get; set; }
     public Guid EmployerId { get; set; }
 
     public EmployerDocumentType DocumentType { get; set; }

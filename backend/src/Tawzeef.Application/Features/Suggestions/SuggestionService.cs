@@ -18,9 +18,14 @@ public class SuggestionService(IUnitOfWork uow, INotificationService notificatio
         if (jobSeeker is null && employer is null)
             return ServiceResult<SuggestionDto>.Forbidden("يجب أن يكون المرسل حساب باحث عن عمل أو صاحب عمل لتقديم اقتراح.");
 
-        // An employer can submit a suggestion only once they've applied to an office — before
-        // that there's no office to route it to (Employer.OfficeId's doc comment).
-        var officeId = jobSeeker?.OfficeId ?? employer?.OfficeId;
+        // Routed to whichever office they applied to first — an account may now be linked to
+        // several (confirmed 2026-11-24), but a suggestion still only goes to one. An employer
+        // with no office applications yet has nowhere to route it to either.
+        var officeId = jobSeeker is not null
+            ? (await uow.Repository<JobSeekerOfficeApplication>().ListAsync(a => a.JobSeekerId == jobSeeker.Id, ct: ct))
+                .OrderBy(a => a.CreationDate).Select(a => (Guid?)a.OfficeId).FirstOrDefault()
+            : (await uow.Repository<EmployerOfficeApplication>().ListAsync(a => a.EmployerId == employer!.Id, ct: ct))
+                .OrderBy(a => a.CreationDate).Select(a => (Guid?)a.OfficeId).FirstOrDefault();
         if (officeId is null)
             return ServiceResult<SuggestionDto>.Invalid("اختر مكتب التوظيف الذي ستتقدم إليه أولًا.");
 

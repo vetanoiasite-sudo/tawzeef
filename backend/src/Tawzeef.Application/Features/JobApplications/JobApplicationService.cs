@@ -1,4 +1,5 @@
 using Tawzeef.Application.Common;
+using Tawzeef.Application.Features.Notifications;
 using Tawzeef.Domain.Common;
 using Tawzeef.Domain.Contracts;
 using Tawzeef.Domain.Entities.Employers;
@@ -9,28 +10,32 @@ using Tawzeef.Domain.Enums;
 
 namespace Tawzeef.Application.Features.JobApplications;
 
-public class JobApplicationService(IUnitOfWork uow) : IJobApplicationService
+public class JobApplicationService(IUnitOfWork uow, INotificationService notificationService) : IJobApplicationService
 {
     public async Task<ServiceResult<JobApplicationIdDto>> CreateAsync(Guid userId, CreateJobApplicationDto dto, CancellationToken ct = default)
     {
         var profile = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.UserId == userId, ct: ct);
         if (profile is null) return ServiceResult<JobApplicationIdDto>.NotFound("No job seeker profile for this user.");
 
-        // API_DOCUMENTATION.md §3.8, confirmed §0 item 13: must already be Approved to apply.
-        if (profile.ReviewStatus != JobSeekerReviewStatus.Approved)
-            return ServiceResult<JobApplicationIdDto>.Forbidden("Your profile must be approved before you can apply.");
-
         var ad = await uow.Repository<JobAdvertisement>().FindAsync(a => a.Id == dto.JobAdvertisementId, ct: ct);
         if (ad is null || ad.Status != JobAdvertisementStatus.Published)
             return ServiceResult<JobApplicationIdDto>.NotFound("This advertisement is not available.");
+
+        // API_DOCUMENTATION.md §3.8, confirmed §0 item 13, tightened 2026-11-24: a job seeker may
+        // only apply through an office that has approved them specifically — no longer "approved
+        // anywhere, apply anywhere" (JobSeekerOfficeApplication's doc comment).
+        var officeApplication = await uow.Repository<JobSeekerOfficeApplication>().FindAsync(
+            a => a.JobSeekerId == profile.Id && a.OfficeId == ad.OfficeId, ct: ct);
+        if (officeApplication is null || officeApplication.ReviewStatus != JobSeekerReviewStatus.Approved)
+            return ServiceResult<JobApplicationIdDto>.Forbidden("Your profile must be approved by this advertisement's office before you can apply.");
 
         var hasActiveApplication = await uow.Repository<JobApplication>().AnyAsync(
             a => a.JobAdvertisementId == ad.Id && a.JobSeekerId == profile.Id && a.WithdrawnAt == null, ct);
         if (hasActiveApplication)
             return ServiceResult<JobApplicationIdDto>.Conflict("You have already applied to this advertisement.");
 
-        // The ad's own office administers this application — DATABASE_DOCUMENTATION.md §6; a Job
-        // Seeker may apply to a published ad from any office, not only their registering office.
+        // The ad's own office administers this application — DATABASE_DOCUMENTATION.md §6. Always
+        // the same office that just approved this job seeker above (tightened 2026-11-24).
         var application = new JobApplication
         {
             Id = Guid.NewGuid(),
@@ -39,6 +44,16 @@ public class JobApplicationService(IUnitOfWork uow) : IJobApplicationService
             JobSeekerId = profile.Id,
         };
         await uow.Repository<JobApplication>().AddAsync(application, ct);
+
+        var employer = await uow.Repository<Employer>().FindAsync(e => e.Id == ad.EmployerId, ct: ct);
+        if (employer is not null)
+        {
+            await notificationService.CreateAsync(
+                ad.OfficeId, employer.UserId, "JobApplication.Submitted",
+                $"تقدم مرشح جديد على إعلان \"{ad.Title}\".",
+                nameof(JobAdvertisement), ad.Id, ct);
+        }
+
         await uow.SaveChangesAsync(ct);
 
         return ServiceResult<JobApplicationIdDto>.Success(new JobApplicationIdDto { Id = application.Id });

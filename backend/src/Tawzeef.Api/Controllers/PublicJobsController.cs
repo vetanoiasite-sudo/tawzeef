@@ -23,6 +23,12 @@ public class PublicJobsController(IPublicJobSearchService service, IJobAdvertise
     public async Task<IActionResult> GetCategories(CancellationToken ct)
         => Respond(await jobAdvertisementService.ListCategoriesAsync(ct));
 
+    /// <summary>Distinct cities actually carried by a live ad, for the home page "browse by
+    /// city" section — a real DISTINCT query, not a static governorate list.</summary>
+    [HttpGet("cities")]
+    public async Task<IActionResult> GetCities(CancellationToken ct)
+        => Respond(await service.GetCitiesAsync(ct));
+
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
         => Respond(await service.GetByIdAsync(id, ct));

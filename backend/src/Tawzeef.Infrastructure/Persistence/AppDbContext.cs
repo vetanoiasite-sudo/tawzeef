@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Tawzeef.Domain.Entities.Auth;
 using Tawzeef.Domain.Entities.Complaints;
+using Tawzeef.Domain.Entities.Courses;
 using Tawzeef.Domain.Entities.Employers;
 using Tawzeef.Domain.Entities.Interviews;
 using Tawzeef.Domain.Entities.JobAdvertisements;
@@ -30,8 +31,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityUser
     public DbSet<OtpVerification> OtpVerifications => Set<OtpVerification>();
     public DbSet<JobSeekerProfile> JobSeekerProfiles => Set<JobSeekerProfile>();
     public DbSet<JobSeekerDocument> JobSeekerDocuments => Set<JobSeekerDocument>();
+    public DbSet<JobSeekerOfficeApplication> JobSeekerOfficeApplications => Set<JobSeekerOfficeApplication>();
     public DbSet<Employer> Employers => Set<Employer>();
     public DbSet<EmployerDocument> EmployerDocuments => Set<EmployerDocument>();
+    public DbSet<EmployerOfficeApplication> EmployerOfficeApplications => Set<EmployerOfficeApplication>();
     public DbSet<OfficeDecision> OfficeDecisions => Set<OfficeDecision>();
     public DbSet<Complaint> Complaints => Set<Complaint>();
     public DbSet<OfficeStaffInvite> OfficeStaffInvites => Set<OfficeStaffInvite>();
@@ -47,6 +50,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityUser
     public DbSet<Suggestion> Suggestions => Set<Suggestion>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<PlatformSetting> PlatformSettings => Set<PlatformSetting>();
+    public DbSet<Governorate> Governorates => Set<Governorate>();
+    public DbSet<Course> Courses => Set<Course>();
+    public DbSet<OfficeBanner> OfficeBanners => Set<OfficeBanner>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

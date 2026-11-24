@@ -26,6 +26,18 @@ export type OfficeJobSeekerDocument = {
   uploadedAt: string
 }
 
+/** This office's own application row for the profile being viewed — never null for a profile the
+ * office review queue can even reach (the access check itself requires one to exist). */
+export type OfficeJobSeekerApplication = {
+  officeId: string
+  officeName: string
+  city: string | null
+  reviewStatus: JobSeekerReviewStatusCode
+  rejectionReason: string | null
+  suspendedAt: string | null
+  suspensionReason: string | null
+}
+
 export type OfficeJobSeekerDetail = {
   id: string
   fullName: string
@@ -40,11 +52,8 @@ export type OfficeJobSeekerDetail = {
   skills: string | null
   careerSummary: string | null
   hasPhoto: boolean
-  reviewStatus: JobSeekerReviewStatusCode
-  rejectionReason: string | null
-  suspensionReason: string | null
-  suspendedAt: string | null
   validComplaintCount: number
+  officeApplication: OfficeJobSeekerApplication
   documents: OfficeJobSeekerDocument[]
 }
 

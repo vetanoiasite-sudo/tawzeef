@@ -70,7 +70,8 @@ export default function RegisterJobSeekerPage() {
         email,
         otpToken,
         password: values.password,
-        officeId: values.officeId,
+        officeIds: values.officeIds,
+        allOffices: values.allOffices,
       },
       {
         onSuccess: (result) => {

@@ -22,12 +22,20 @@ public class EmployersController(IEmployerProfileService service, ICurrentUser c
     public async Task<IActionResult> UpdateMyProfile([FromBody] UpdateEmployerProfileDto dto, CancellationToken ct)
         => Respond(await service.UpdateMyProfileAsync(RequireUserId(), dto, ct));
 
-    /// <summary>The employer's one-time choice of which office will review their profile —
-    /// registration no longer collects it (RegisterEmployerDto's doc comment).</summary>
-    [HttpPost("me/office")]
+    /// <summary>Every office, paired with this employer's own status there — "NotSubmitted" for
+    /// one never applied to (confirmed 2026-11-24: an employer may submit to several offices).</summary>
+    [HttpGet("me/offices")]
+    [RequiresPermission("employers.viewown")]
+    public async Task<IActionResult> GetMyOffices(CancellationToken ct)
+        => Respond(await service.GetMyOfficeApplicationsAsync(RequireUserId(), ct));
+
+    /// <summary>Submit to specific offices, or every currently-active office — repeatable, the old
+    /// one-time SelectOfficeAsync's replacement (registration still collects none, per
+    /// RegisterEmployerDto's doc comment — always a post-registration action).</summary>
+    [HttpPost("me/offices")]
     [RequiresPermission("employers.editown")]
-    public async Task<IActionResult> SelectOffice([FromBody] SelectEmployerOfficeDto dto, CancellationToken ct)
-        => Respond(await service.SelectOfficeAsync(RequireUserId(), dto.OfficeId, ct));
+    public async Task<IActionResult> SubmitToOffices([FromBody] SubmitEmployerOfficesDto dto, CancellationToken ct)
+        => Respond(await service.SubmitToOfficesAsync(RequireUserId(), dto, ct));
 
     [HttpPost("me/documents")]
     [RequiresPermission("employers.uploaddocuments")]

@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ApiError } from '@/shared/api/types'
 import { DocumentUploadCard } from '../components/DocumentUploadCard'
+import { MyOfficesCard } from '../components/MyOfficesCard'
 import { PhotoUploadCard } from '../components/PhotoUploadCard'
 import { ProfileCompletionForm } from '../components/ProfileCompletionForm'
 import {
+  useMyJobSeekerOffices,
   useMyJobSeekerProfile,
   useSubmitJobSeekerProfileForReview,
   useUpdateMyJobSeekerProfile,
@@ -19,7 +21,6 @@ import {
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Card } from '@/shared/ui/Card'
 import { Button } from '@/shared/ui/Button'
-import { StatusTag } from '@/shared/ui/StatusTag'
 import { LoadingState } from '@/shared/ui/LoadingState'
 
 function errorMessage(error: unknown): string | undefined {
@@ -29,6 +30,7 @@ function errorMessage(error: unknown): string | undefined {
 export default function JobSeekerProfilePage() {
   const { t } = useTranslation('jobSeekerProfile')
   const { data: profile, isLoading } = useMyJobSeekerProfile()
+  const { data: offices } = useMyJobSeekerOffices()
   const updateProfile = useUpdateMyJobSeekerProfile()
   const uploadDocument = useUploadJobSeekerDocument()
   const uploadPhoto = useUploadJobSeekerPhoto()
@@ -76,28 +78,16 @@ export default function JobSeekerProfilePage() {
 
   const presentTypes = new Set(profile.documents.map((d) => d.documentType))
   const allDocumentsPresent = REQUIRED_DOCUMENT_TYPES.every((type) => presentTypes.has(type))
-  const canSubmit =
-    (profile.reviewStatus === 'Draft' || profile.reviewStatus === 'Rejected') && allDocumentsPresent
+  const hasPendingOffice = (offices ?? []).some(
+    (o) => o.reviewStatus === 'Draft' || o.reviewStatus === 'Rejected',
+  )
+  const canSubmit = hasPendingOffice && allDocumentsPresent
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8 sm:px-6">
       <PageHeader title={t('pageTitle')} />
 
-      <Card className="flex flex-col gap-1.5">
-        <div className="flex items-center gap-2 text-sm text-text-muted">
-          {t('statusLabel')}:
-          <StatusTag
-            domain="jobSeekerReview"
-            value={profile.reviewStatus}
-            label={t(`status.${profile.reviewStatus}`)}
-          />
-        </div>
-        {profile.rejectionReason && (
-          <p className="text-sm text-danger">
-            {t('rejectionReasonLabel')}: {profile.rejectionReason}
-          </p>
-        )}
-      </Card>
+      <MyOfficesCard />
 
       <PhotoUploadCard
         hasPhoto={profile.hasPhoto}
@@ -140,7 +130,7 @@ export default function JobSeekerProfilePage() {
         ))}
       </section>
 
-      {(profile.reviewStatus === 'Draft' || profile.reviewStatus === 'Rejected') && (
+      {hasPendingOffice && (
         <div className="flex flex-col items-start gap-2">
           <Button
             disabled={!canSubmit || submitForReview.isPending}
