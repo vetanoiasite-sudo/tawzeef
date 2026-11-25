@@ -46,7 +46,7 @@ export default function OfficeAccountsPage() {
   }
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-8 sm:px-6">
+    <div className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6">
       <PageHeader title={t('pageTitle')} />
 
       <Card className="flex flex-wrap items-center justify-between gap-3">
@@ -84,31 +84,38 @@ export default function OfficeAccountsPage() {
       {!isLoading && data && data.items.length === 0 && <EmptyState message={t('emptyList')} />}
 
       {!isLoading && data && data.items.length > 0 && (
-        <div className="flex flex-col gap-3">
-          {data.items.map((item) => (
-            <Card key={item.id} className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex flex-col gap-1">
-                <span className="font-semibold text-content-primary">{item.employerDisplayName}</span>
-                <span className="text-sm text-content-secondary">
-                  {t('columnRecordedBy')}: {item.recordedByName || '—'}
-                </span>
-                {item.paidAt && (
-                  <span className="text-sm text-content-tertiary">
-                    {new Date(item.paidAt).toLocaleString('ar')}
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="font-bold text-content-primary">
-                  {item.amount.toLocaleString('ar')} {item.currency}
-                </span>
-                <Button variant="secondary" size="sm" onClick={() => void preview.open(item.receiptUrl)}>
-                  {t('viewReceiptAction')}
-                </Button>
-              </div>
-            </Card>
-          ))}
-        </div>
+        <Card className="overflow-x-auto p-0">
+          <table className="w-full min-w-[640px] border-collapse text-sm">
+            <thead>
+              <tr className="border-b border-border-primary bg-surface-muted text-content-tertiary">
+                <th className="px-4 py-3 text-start font-semibold">{t('columnEmployer')}</th>
+                <th className="px-4 py-3 text-start font-semibold">{t('columnRecordedBy')}</th>
+                <th className="px-4 py-3 text-start font-semibold">{t('columnDate')}</th>
+                <th className="px-4 py-3 text-start font-semibold">{t('columnAmount')}</th>
+                <th className="px-4 py-3 text-start font-semibold">{t('columnReceipt')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.items.map((item) => (
+                <tr key={item.id} className="border-b border-border-primary last:border-b-0">
+                  <td className="px-4 py-3 font-semibold text-content-primary">{item.employerDisplayName}</td>
+                  <td className="px-4 py-3 text-content-secondary">{item.recordedByName || '—'}</td>
+                  <td className="px-4 py-3 text-content-tertiary">
+                    {item.paidAt ? new Date(item.paidAt).toLocaleString('ar') : '—'}
+                  </td>
+                  <td className="px-4 py-3 font-bold text-content-primary">
+                    {item.amount.toLocaleString('ar')} {item.currency}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Button variant="secondary" size="sm" onClick={() => void preview.open(item.receiptUrl)}>
+                      {t('viewReceiptAction')}
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
       )}
 
       {data && (
