@@ -197,8 +197,8 @@ export default function ReviewDetailPage() {
               <PaymentConfirmForm
                 isSubmitting={confirmPayment.isPending}
                 error={errorMessage(confirmPayment.error)}
-                onConfirm={(amount, currency) => {
-                  confirmPayment.mutate({ amount, currency })
+                onConfirm={(amount, currency, file) => {
+                  confirmPayment.mutate({ amount, currency, file })
                   setShowPayment(false)
                 }}
                 onCancel={() => setShowPayment(false)}

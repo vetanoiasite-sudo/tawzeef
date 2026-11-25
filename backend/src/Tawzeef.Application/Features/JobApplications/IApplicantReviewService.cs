@@ -14,4 +14,13 @@ public interface IApplicantReviewService
     /// <summary>Null stream with a non-success result means "refuse" — Forbidden before payment,
     /// NotFound otherwise. Never returns a stream without the gate having passed.</summary>
     Task<ServiceResult<CvFileDto>> GetCvAsync(Guid userId, Guid applicationId, CancellationToken ct = default);
+
+    /// <summary>The "open this applicant's profile" page (2026-11-25) — always available (no
+    /// payment gate on the page itself), but Phone/Email/CvDownloadUrl are omitted until the
+    /// advertisement's payment gate passes.</summary>
+    Task<ServiceResult<ApplicantProfileDto>> GetApplicantProfileAsync(Guid userId, Guid applicationId, CancellationToken ct = default);
+
+    /// <summary>The applicant's profile photo — same visibility as the rest of the profile page,
+    /// never payment-gated.</summary>
+    Task<ServiceResult<CvFileDto>> GetApplicantPhotoAsync(Guid userId, Guid applicationId, CancellationToken ct = default);
 }

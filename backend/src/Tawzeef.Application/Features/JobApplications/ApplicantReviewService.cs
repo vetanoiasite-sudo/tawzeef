@@ -176,6 +176,57 @@ public class ApplicantReviewService(IUnitOfWork uow, IFileStorage fileStorage, I
         });
     }
 
+    public async Task<ServiceResult<ApplicantProfileDto>> GetApplicantProfileAsync(Guid userId, Guid applicationId, CancellationToken ct = default)
+    {
+        var (application, ad, error) = await LoadOwnedByEmployerAsync(userId, applicationId, ct);
+        if (error is not null) return ServiceResult<ApplicantProfileDto>.NotFound(error);
+
+        var profile = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.Id == application!.JobSeekerId, ct: ct);
+        if (profile is null) return ServiceResult<ApplicantProfileDto>.NotFound("Applicant profile not found.");
+
+        var isPaid = await uow.Repository<AdvertisementPayment>().AnyAsync(
+            p => p.JobAdvertisementId == ad!.Id && p.PaymentStatus == PaymentStatus.Paid, ct);
+
+        var dto = new ApplicantProfileDto
+        {
+            ApplicationId = application!.Id,
+            JobSeekerName = profile.FullName,
+            JobTitle = profile.JobTitle,
+            Skills = profile.Skills,
+            CareerSummary = profile.CareerSummary,
+            Education = profile.Education,
+            YearsOfExperience = profile.YearsOfExperience,
+            HasPhoto = profile.PhotoStorageKey != null,
+            EmployerFacingStatus = application.EmployerFacingStatus.ToString(),
+            AppliedAt = application.AppliedAt,
+        };
+        if (isPaid)
+        {
+            dto.Phone = profile.MobileNumber;
+            dto.Email = profile.Email;
+            dto.CvDownloadUrl = $"/api/employer/applications/{application.Id}/cv";
+        }
+
+        return ServiceResult<ApplicantProfileDto>.Success(dto);
+    }
+
+    public async Task<ServiceResult<CvFileDto>> GetApplicantPhotoAsync(Guid userId, Guid applicationId, CancellationToken ct = default)
+    {
+        var (application, _, error) = await LoadOwnedByEmployerAsync(userId, applicationId, ct);
+        if (error is not null) return ServiceResult<CvFileDto>.NotFound(error);
+
+        var profile = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.Id == application!.JobSeekerId, ct: ct);
+        if (profile?.PhotoStorageKey is null) return ServiceResult<CvFileDto>.NotFound("No photo on file.");
+
+        var stream = await fileStorage.OpenReadAsync(profile.PhotoStorageKey, ct);
+        return ServiceResult<CvFileDto>.Success(new CvFileDto
+        {
+            Content = stream,
+            FileName = profile.PhotoOriginalFileName ?? "photo",
+            ContentType = profile.PhotoContentType ?? "application/octet-stream",
+        });
+    }
+
     private async Task<(JobApplication? Application, JobAdvertisement? Ad, string? Error)> LoadOwnedByEmployerAsync(Guid userId, Guid applicationId, CancellationToken ct)
     {
         var employer = await uow.Repository<Employer>().FindAsync(e => e.UserId == userId, ct: ct);

@@ -205,6 +205,26 @@ public class JobSeekerProfileService(IUnitOfWork uow, IFileStorage fileStorage, 
         return ServiceResult<JobSeekerProfileDto>.Success(profile.ToDto(documents));
     }
 
+    /// <summary>Lets the job seeker view/download their own already-uploaded document — the
+    /// upload endpoint only ever returns metadata, never the file itself back.</summary>
+    public async Task<ServiceResult<JobSeekerDocumentFileDto>> GetDocumentFileAsync(Guid userId, Guid documentId, CancellationToken ct = default)
+    {
+        var profile = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.UserId == userId, ct: ct);
+        if (profile is null) return ServiceResult<JobSeekerDocumentFileDto>.NotFound("لا يوجد ملف باحث عن عمل لهذا المستخدم.");
+
+        var document = await uow.Repository<JobSeekerDocument>().FindAsync(
+            d => d.Id == documentId && d.JobSeekerId == profile.Id && d.IsActive, ct: ct);
+        if (document is null) return ServiceResult<JobSeekerDocumentFileDto>.NotFound("المستند غير موجود.");
+
+        var stream = await fileStorage.OpenReadAsync(document.SecureFileReference, ct);
+        return ServiceResult<JobSeekerDocumentFileDto>.Success(new JobSeekerDocumentFileDto
+        {
+            Content = stream,
+            FileName = document.OriginalFileName,
+            ContentType = document.MimeType,
+        });
+    }
+
     public async Task<ServiceResult<JobSeekerDocumentFileDto>> GetPhotoAsync(Guid userId, CancellationToken ct = default)
     {
         var profile = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.UserId == userId, ct: ct);

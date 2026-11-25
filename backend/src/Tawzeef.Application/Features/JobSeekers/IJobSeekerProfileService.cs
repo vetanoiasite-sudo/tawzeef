@@ -45,4 +45,7 @@ public interface IJobSeekerProfileService
         CancellationToken ct = default);
 
     Task<ServiceResult<JobSeekerDocumentFileDto>> GetPhotoAsync(Guid userId, CancellationToken ct = default);
+
+    /// <summary>Lets the job seeker view/download their own already-uploaded document.</summary>
+    Task<ServiceResult<JobSeekerDocumentFileDto>> GetDocumentFileAsync(Guid userId, Guid documentId, CancellationToken ct = default);
 }

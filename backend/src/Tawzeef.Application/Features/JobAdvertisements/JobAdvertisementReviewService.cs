@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Tawzeef.Application.Common;
 using Tawzeef.Application.Features.Notifications;
 using Tawzeef.Application.Features.PlatformSettings;
@@ -10,8 +11,19 @@ using Tawzeef.Domain.Enums;
 namespace Tawzeef.Application.Features.JobAdvertisements;
 
 public class JobAdvertisementReviewService(
-    IUnitOfWork uow, INotificationService notificationService, IPlatformSettingsService platformSettings) : IJobAdvertisementReviewService
+    IUnitOfWork uow, INotificationService notificationService, IPlatformSettingsService platformSettings,
+    IFileStorage fileStorage, IConfiguration configuration) : IJobAdvertisementReviewService
 {
+    // Same shared "what can an office attach" policy as every other upload in this app
+    // (RBAC_PERMISSIONS.md §0 item 24) — a receipt is just as likely to be a photo as a PDF scan.
+    private static readonly string[] ReceiptAllowedMimeTypes =
+    [
+        "application/pdf",
+        "image/jpeg",
+        "image/png",
+    ];
+    private const long DefaultMaxFileSizeBytes = 2 * 1024 * 1024;
+
     public async Task<ServiceResult<PagedResult<JobAdvertisementListItemDto>>> ListQueueAsync(
         Guid officeId, JobAdvertisementQueryDto query, CancellationToken ct = default)
     {
@@ -234,12 +246,23 @@ public class JobAdvertisementReviewService(
     }
 
     public async Task<ServiceResult<JobAdvertisementDto>> ConfirmPaymentAsync(
-        Guid officeId, Guid reviewerId, Guid id, ConfirmAdvertisementPaymentDto dto, CancellationToken ct = default)
+        Guid officeId, Guid reviewerId, Guid id, ConfirmAdvertisementPaymentDto dto,
+        Stream receiptContent, string receiptFileName, string receiptContentType, long receiptFileSizeBytes,
+        CancellationToken ct = default)
     {
         var ad = await uow.Repository<JobAdvertisement>().FindAsync(a => a.Id == id && a.OfficeId == officeId, ct: ct);
         if (ad is null) return ServiceResult<JobAdvertisementDto>.NotFound("Advertisement not found.");
         if (ad.Status != JobAdvertisementStatus.ApprovedAwaitingPayment)
             return ServiceResult<JobAdvertisementDto>.Conflict("This advertisement is not awaiting payment.");
+
+        if (!ReceiptAllowedMimeTypes.Contains(receiptContentType, StringComparer.OrdinalIgnoreCase))
+            return ServiceResult<JobAdvertisementDto>.Invalid("نوع الملف غير مدعوم — يُسمح فقط بـ PDF وJPG وPNG.");
+
+        var maxSizeBytes = configuration.GetValue<long?>("Uploads:MaxFileSizeBytes") ?? DefaultMaxFileSizeBytes;
+        if (receiptFileSizeBytes <= 0 || receiptFileSizeBytes > maxSizeBytes)
+            return ServiceResult<JobAdvertisementDto>.Invalid($"حجم الملف كبير جدًا — الحد الأقصى {maxSizeBytes / (1024 * 1024)} ميجابايت.");
+
+        var receiptStorageKey = await fileStorage.SaveAsync(receiptContent, receiptFileName, receiptContentType, ct);
 
         // Deliberate v1 simplification (no payment gateway exists, no "initiate payment" route is
         // documented either): one manual office action records the payment AND publishes the ad,
@@ -259,6 +282,9 @@ public class JobAdvertisementReviewService(
             PaymentMethod = "Manual",
             PaidAt = DateTime.UtcNow,
             RecordedBy = reviewerId,
+            ReceiptStorageKey = receiptStorageKey,
+            ReceiptOriginalFileName = receiptFileName,
+            ReceiptContentType = receiptContentType,
         };
         await uow.Repository<AdvertisementPayment>().AddAsync(payment, ct);
 

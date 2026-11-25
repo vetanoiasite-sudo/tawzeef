@@ -66,6 +66,14 @@ export function useJobAdApplicants(adId: string, filter: ApplicantsFilter) {
   })
 }
 
+export function useApplicantProfile(applicationId: string) {
+  return useQuery({
+    queryKey: employerJobAdsKeys.applicantProfile(applicationId),
+    queryFn: () => employerJobAdsApi.getApplicantProfile(applicationId),
+    enabled: applicationId.length > 0,
+  })
+}
+
 export function useUpdateApplicationOutcome(adId: string, filter: ApplicantsFilter) {
   const queryClient = useQueryClient()
   return useMutation({

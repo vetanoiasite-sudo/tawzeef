@@ -2,6 +2,7 @@ import { httpClient } from '@/shared/api/httpClient'
 import type { JobAdFormValues } from '../schemas/jobAd.schema'
 import type {
   ApplicantListItem,
+  ApplicantProfile,
   ApplicantsFilter,
   JobAdDetail,
   JobAdListItem,
@@ -66,4 +67,8 @@ export const employerJobAdsApi = {
     }),
   downloadCv: (applicationId: string) =>
     httpClient.getBlob(`/api/employer/applications/${applicationId}/cv`),
+  getApplicantProfile: (applicationId: string) =>
+    httpClient.get<ApplicantProfile>(`/api/employer/applications/${applicationId}/profile`),
+  getApplicantPhoto: (applicationId: string) =>
+    httpClient.getBlob(`/api/employer/applications/${applicationId}/photo`),
 }

@@ -59,8 +59,17 @@ public class OfficeJobAdvertisementsController(
 
     [HttpPost("{id:guid}/payment/confirm")]
     [RequiresPermission("advertisementpayments.record")]
-    public async Task<IActionResult> ConfirmPayment(Guid id, [FromBody] ConfirmAdvertisementPaymentDto dto, CancellationToken ct)
-        => Respond(await service.ConfirmPaymentAsync(RequireOfficeId(), RequireUserId(), id, dto, ct));
+    public async Task<IActionResult> ConfirmPayment(Guid id, [FromForm] ConfirmAdvertisementPaymentRequest request, CancellationToken ct)
+    {
+        if (request.File is null || request.File.Length == 0)
+            return BadRequest(new { message = "صورة إيصال الدفع مطلوبة." });
+
+        var dto = new ConfirmAdvertisementPaymentDto { Amount = request.Amount, Currency = request.Currency };
+        await using var stream = request.File.OpenReadStream();
+        return Respond(await service.ConfirmPaymentAsync(
+            RequireOfficeId(), RequireUserId(), id, dto,
+            stream, request.File.FileName, request.File.ContentType, request.File.Length, ct));
+    }
 
     [HttpGet("{id:guid}/applicants")]
     [RequiresPermission("jobapplications.view")]

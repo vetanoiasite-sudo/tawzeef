@@ -30,5 +30,24 @@ public class EmployerApplicationsController(IApplicantReviewService service, ICu
         return File(file.Content, string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType, file.FileName);
     }
 
+    /// <summary>The "open this applicant's profile" page — always available, no payment gate on
+    /// the page itself (RequireUserId / jobapplications.view, same as every other action here);
+    /// the service omits Phone/Email/CvDownloadUrl until the gate passes.</summary>
+    [HttpGet("{id:guid}/profile")]
+    [RequiresPermission("jobapplications.view")]
+    public async Task<IActionResult> GetApplicantProfile(Guid id, CancellationToken ct)
+        => Respond(await service.GetApplicantProfileAsync(RequireUserId(), id, ct));
+
+    [HttpGet("{id:guid}/photo")]
+    [RequiresPermission("jobapplications.view")]
+    public async Task<IActionResult> GetApplicantPhoto(Guid id, CancellationToken ct)
+    {
+        var result = await service.GetApplicantPhotoAsync(RequireUserId(), id, ct);
+        if (!result.IsSuccess) return Respond(result);
+
+        var file = result.Data!;
+        return File(file.Content, string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType, file.FileName);
+    }
+
     private Guid RequireUserId() => currentUser.Id ?? throw new UnauthorizedAccessException();
 }

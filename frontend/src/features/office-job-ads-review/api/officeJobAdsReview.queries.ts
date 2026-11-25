@@ -74,7 +74,7 @@ export function useResumeJobAd(id: string) {
 export function useConfirmPayment(id: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (vars: { amount: number; currency: string }) =>
+    mutationFn: (vars: { amount: number; currency: string; file: File }) =>
       officeJobAdsReviewApi.confirmPayment({ id, ...vars }),
     onSuccess: (data) => queryClient.setQueryData(officeJobAdsReviewKeys.detail(id), data),
   })

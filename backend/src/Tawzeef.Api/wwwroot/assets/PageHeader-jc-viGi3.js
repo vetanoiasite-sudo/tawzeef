@@ -1,1 +1,0 @@
-import{B as e}from"./clsx-ucJBATip.js";var t=e();function n({title:e,action:n}){return(0,t.jsxs)(`div`,{className:`flex flex-wrap items-center justify-between gap-3`,children:[(0,t.jsx)(`h1`,{className:`text-xl font-bold text-text`,children:e}),n]})}export{n as t};

@@ -93,3 +93,23 @@ export type ApplicantsFilter = {
   pageIndex: number
   pageSize: number
 }
+
+/** The "open this applicant's profile" page — job title/skills/career summary/education/years
+ * of experience/photo always present; phone/email/cvDownloadUrl follow the same payment gate as
+ * ApplicantListItem (undefined, not null, until it passes). Deliberately never includes a
+ * verification document (recommendation letter, national ID) — office-only. */
+export type ApplicantProfile = {
+  applicationId: string
+  jobSeekerName: string
+  jobTitle: string | null
+  skills: string | null
+  careerSummary: string | null
+  education: string | null
+  yearsOfExperience: number | null
+  hasPhoto: boolean
+  employerFacingStatus: EmployerFacingStatusCode
+  appliedAt: string
+  phone?: string | null
+  email?: string | null
+  cvDownloadUrl?: string | null
+}

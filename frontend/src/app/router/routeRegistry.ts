@@ -1,24 +1,26 @@
 import { auditLogRoutes } from '@/features/audit-log'
 import { authRoutes } from '@/features/auth'
 import { complaintsRoutes } from '@/features/complaints'
+import { cooperatingCompaniesRoutes } from '@/features/cooperating-companies'
 import { employerJobAdsRoutes } from '@/features/employer-job-ads'
 import { employerProfileRoutes } from '@/features/employer-profile'
 import { homeRoutes } from '@/features/home'
 import { interviewsAndReportsRoutes } from '@/features/interviews-and-reports'
 import { jobSeekerApplicationsRoutes } from '@/features/job-seeker-applications'
+import { jobSeekerCoursesRoutes } from '@/features/jobseeker-courses'
 import { jobSeekerProfileRoutes } from '@/features/jobseeker-profile'
 import { notificationsRoutes } from '@/features/notifications'
+import { officeAccountsRoutes } from '@/features/office-accounts'
 import { officeBannersRoutes } from '@/features/office-banners'
 import { officeComplaintsReviewRoutes } from '@/features/office-complaints-review'
-import { officeCoursesRoutes } from '@/features/office-courses'
 import { officeDashboardRoutes } from '@/features/office-dashboard'
 import { officeEmployerReviewRoutes } from '@/features/office-employer-review'
 import { officeJobAdsReviewRoutes } from '@/features/office-job-ads-review'
 import { officeJobSeekerReviewRoutes } from '@/features/office-jobseeker-review'
+import { officeProfileRoutes } from '@/features/office-profile'
 import { officeSuggestionsReviewRoutes } from '@/features/office-suggestions-review'
 import { officeUsersRoutes } from '@/features/office-users'
 import { platformSettingsRoutes } from '@/features/platform-settings'
-import { publicCoursesRoutes } from '@/features/public-courses'
 import { publicJobsRoutes } from '@/features/public-jobs'
 import { suggestionsRoutes } from '@/features/suggestions'
 import { superAdminRoutes } from '@/features/super-admin'
@@ -35,6 +37,7 @@ export const routeRegistry: AppRouteDef[] = [
   ...officeDashboardRoutes,
   ...superAdminRoutes,
   ...jobSeekerProfileRoutes,
+  ...jobSeekerCoursesRoutes,
   ...employerProfileRoutes,
   ...officeJobSeekerReviewRoutes,
   ...officeEmployerReviewRoutes,
@@ -51,7 +54,8 @@ export const routeRegistry: AppRouteDef[] = [
   ...notificationsRoutes,
   ...auditLogRoutes,
   ...platformSettingsRoutes,
-  ...publicCoursesRoutes,
-  ...officeCoursesRoutes,
   ...officeBannersRoutes,
+  ...officeProfileRoutes,
+  ...cooperatingCompaniesRoutes,
+  ...officeAccountsRoutes,
 ]

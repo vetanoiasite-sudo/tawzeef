@@ -42,6 +42,7 @@ export default function JobAdApplicantsPage() {
           {data.items.map((applicant) => (
             <ApplicantRow
               key={applicant.applicationId}
+              adId={adId}
               applicant={applicant}
               isUpdating={
                 updateOutcome.isPending &&

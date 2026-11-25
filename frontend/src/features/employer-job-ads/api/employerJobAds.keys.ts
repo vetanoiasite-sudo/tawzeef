@@ -6,4 +6,6 @@ export const employerJobAdsKeys = {
   detail: (id: string) => [...employerJobAdsKeys.all, 'detail', id] as const,
   applicants: (adId: string, filter: ApplicantsFilter) =>
     [...employerJobAdsKeys.all, 'applicants', adId, filter] as const,
+  applicantProfile: (applicationId: string) =>
+    [...employerJobAdsKeys.all, 'applicantProfile', applicationId] as const,
 }

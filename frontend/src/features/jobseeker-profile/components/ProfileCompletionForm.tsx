@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import {
@@ -35,7 +35,8 @@ export function ProfileCompletionForm({
     handleSubmit,
     setValue,
     getValues,
-    formState: { errors },
+    reset,
+    formState: { errors, isDirty },
   } = useForm<JobSeekerProfileFormValues>({
     resolver: zodResolver(jobSeekerProfileFormSchema),
     defaultValues: {
@@ -70,6 +71,17 @@ export function ProfileCompletionForm({
     // Only react to a new cvSuggestions object identity (a fresh upload) — not to getValues/setValue.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cvSuggestions])
+
+  // Re-baseline the form once a save actually lands, so the Save button goes back to disabled
+  // until the next real edit — isSubmitting going true→false with no error is the only signal
+  // available here that the save succeeded (the mutation itself lives in the parent page).
+  const wasSubmittingRef = useRef(isSubmitting)
+  useEffect(() => {
+    if (wasSubmittingRef.current && !isSubmitting && !submitError) {
+      reset(getValues())
+    }
+    wasSubmittingRef.current = isSubmitting
+  }, [isSubmitting, submitError, reset, getValues])
 
   return (
     <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-4">
@@ -190,7 +202,7 @@ export function ProfileCompletionForm({
 
       {submitError && <p className="text-sm text-danger">{submitError}</p>}
 
-      <Button type="submit" disabled={isSubmitting} className="self-start">
+      <Button type="submit" disabled={isSubmitting || !isDirty} className="self-start">
         {t('jobSeekerProfile:save')}
       </Button>
     </form>

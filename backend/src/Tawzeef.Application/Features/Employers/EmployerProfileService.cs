@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Tawzeef.Application.Common;
+using Tawzeef.Domain.Common;
 using Tawzeef.Domain.Contracts;
 using Tawzeef.Domain.Entities.Employers;
 using Tawzeef.Domain.Entities.Offices;
@@ -108,6 +109,26 @@ public class EmployerProfileService(IUnitOfWork uow, IFileStorage fileStorage, I
         return ServiceResult<EmployerDocumentDto>.Success(document.ToDto());
     }
 
+    /// <summary>Lets the employer view/download their own already-uploaded document — the upload
+    /// endpoint only ever returns metadata, never the file itself back.</summary>
+    public async Task<ServiceResult<EmployerDocumentFileDto>> GetDocumentFileAsync(Guid userId, Guid documentId, CancellationToken ct = default)
+    {
+        var employer = await uow.Repository<Employer>().FindAsync(e => e.UserId == userId, ct: ct);
+        if (employer is null) return ServiceResult<EmployerDocumentFileDto>.NotFound("لا يوجد حساب صاحب عمل لهذا المستخدم.");
+
+        var document = await uow.Repository<EmployerDocument>().FindAsync(
+            d => d.Id == documentId && d.EmployerId == employer.Id && d.IsActive, ct: ct);
+        if (document is null) return ServiceResult<EmployerDocumentFileDto>.NotFound("المستند غير موجود.");
+
+        var stream = await fileStorage.OpenReadAsync(document.SecureFileReference, ct);
+        return ServiceResult<EmployerDocumentFileDto>.Success(new EmployerDocumentFileDto
+        {
+            Content = stream,
+            FileName = document.OriginalFileName,
+            ContentType = document.MimeType,
+        });
+    }
+
     public async Task<ServiceResult<EmployerProfileDto>> SubmitForReviewAsync(Guid userId, CancellationToken ct = default)
     {
         var employer = await uow.Repository<Employer>().FindAsync(e => e.UserId == userId, ct: ct);
@@ -203,6 +224,68 @@ public class EmployerProfileService(IUnitOfWork uow, IFileStorage fileStorage, I
             ContentType = employer.LogoContentType ?? "application/octet-stream",
         };
     }
+
+    public async Task<ServiceResult<PagedResult<PublicEmployerListItemDto>>> SearchCooperatingAsync(PublicEmployerQueryDto query, CancellationToken ct = default)
+    {
+        var pageIndex = Math.Max(query.PageIndex, 0);
+        var pageSize = query.PageSize is > 0 and <= 100 ? query.PageSize : 20;
+
+        var cooperatingEmployerIds = await GetCooperatingEmployerIdsAsync(ct);
+        if (cooperatingEmployerIds.Count == 0)
+            return ServiceResult<PagedResult<PublicEmployerListItemDto>>.Success(new PagedResult<PublicEmployerListItemDto>
+            {
+                Items = [],
+                PageIndex = pageIndex,
+                PageSize = pageSize,
+                TotalCount = 0,
+            });
+
+        var page = await uow.Repository<Employer>().PageAsync(
+            pageIndex, pageSize, e => cooperatingEmployerIds.Contains(e.Id),
+            orderBy: e => e.DisplayName, ct: ct);
+
+        return ServiceResult<PagedResult<PublicEmployerListItemDto>>.Success(new PagedResult<PublicEmployerListItemDto>
+        {
+            Items = page.Items.Select(ToPublicListItemDto).ToList(),
+            PageIndex = page.PageIndex,
+            PageSize = page.PageSize,
+            TotalCount = page.TotalCount,
+        });
+    }
+
+    public async Task<ServiceResult<PublicEmployerDetailDto>> GetPublicCooperatingByIdAsync(Guid id, CancellationToken ct = default)
+    {
+        var cooperatingEmployerIds = await GetCooperatingEmployerIdsAsync(ct);
+        if (!cooperatingEmployerIds.Contains(id))
+            return ServiceResult<PublicEmployerDetailDto>.NotFound("Company not found.");
+
+        var employer = await uow.Repository<Employer>().FindAsync(e => e.Id == id, ct: ct);
+        if (employer is null) return ServiceResult<PublicEmployerDetailDto>.NotFound("Company not found.");
+
+        return ServiceResult<PublicEmployerDetailDto>.Success(new PublicEmployerDetailDto
+        {
+            Id = employer.Id,
+            DisplayName = employer.DisplayName,
+            City = employer.City,
+            BusinessActivity = employer.BusinessActivity,
+            LogoUrl = employer.LogoStorageKey is null ? null : $"/api/employers/{employer.Id}/logo",
+        });
+    }
+
+    private async Task<HashSet<Guid>> GetCooperatingEmployerIdsAsync(CancellationToken ct) =>
+        (await uow.Repository<EmployerOfficeApplication>().ListAsync(
+            a => a.VerificationStatus == EmployerVerificationStatus.Approved && a.CooperationStatus == EmployerCooperationStatus.Active,
+            ct: ct))
+            .Select(a => a.EmployerId)
+            .ToHashSet();
+
+    private static PublicEmployerListItemDto ToPublicListItemDto(Employer e) => new()
+    {
+        Id = e.Id,
+        DisplayName = e.DisplayName,
+        City = e.City,
+        LogoUrl = e.LogoStorageKey is null ? null : $"/api/employers/{e.Id}/logo",
+    };
 
     /// <summary>Shared by SubmitToOfficesAsync — the employer's old one-time SelectOfficeAsync, now
     /// repeatable. Silently skips any office already applied to.</summary>

@@ -1,8 +1,10 @@
-import { useRef, type ChangeEvent } from 'react'
+import { useRef, useState, type ChangeEvent } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useFilePreview } from '@/shared/hooks/useFilePreview'
 import { Card } from '@/shared/ui/Card'
 import { Button } from '@/shared/ui/Button'
 import { StatusTag } from '@/shared/ui/StatusTag'
+import { FilePreviewModal } from '@/shared/ui/FilePreviewModal'
 import type { JobSeekerDocument, JobSeekerDocumentTypeCode } from '../types/jobSeekerProfile.types'
 
 export function DocumentUploadCard({
@@ -10,20 +12,32 @@ export function DocumentUploadCard({
   document,
   isUploading,
   error,
+  justSucceeded,
   onUpload,
 }: {
   documentType: JobSeekerDocumentTypeCode
   document?: JobSeekerDocument
   isUploading: boolean
   error?: string
+  /** True once this card's own upload mutation has most recently succeeded (stays true until
+   * another upload of this type starts) — drives the "replaced, pending review" confirmation. */
+  justSucceeded?: boolean
   onUpload: (file: File) => void
 }) {
   const { t } = useTranslation('jobSeekerProfile')
   const inputRef = useRef<HTMLInputElement>(null)
+  const { preview, isLoading: isLoadingPreview, open: openPreview, close: closePreview } = useFilePreview()
+  // Whether a document was already sitting in this slot right when the file picker opened — set
+  // before onUpload fires, so it still reflects "replace vs first upload" after the mutation
+  // refetches and `document` becomes the new one.
+  const [wasReplace, setWasReplace] = useState(false)
 
   function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
-    if (file) onUpload(file)
+    if (file) {
+      setWasReplace(Boolean(document))
+      onUpload(file)
+    }
     e.target.value = ''
   }
 
@@ -56,16 +70,37 @@ export function DocumentUploadCard({
         className="hidden"
         onChange={handleFileChange}
       />
-      <Button
-        variant="secondary"
-        disabled={isUploading}
-        onClick={() => inputRef.current?.click()}
-        className="self-start"
-      >
-        {document ? t('replace') : t('upload')}
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant="secondary"
+          disabled={isUploading}
+          onClick={() => inputRef.current?.click()}
+          className="self-start"
+        >
+          {document ? t('replace') : t('upload')}
+        </Button>
+        {document && (
+          <Button
+            variant="secondary"
+            disabled={isLoadingPreview}
+            onClick={() => void openPreview(`/api/jobseekers/me/documents/${document.id}`)}
+          >
+            {t('viewFile')}
+          </Button>
+        )}
+      </div>
       <p className="text-xs text-text-muted">{t('uploadHint')}</p>
       {error && <p className="text-sm text-danger">{error}</p>}
+      {justSucceeded && !isUploading && !error && (
+        <div className="rounded-md border border-warning/30 bg-warning/10 px-3 py-2">
+          <p className="text-sm font-medium text-warning">
+            {wasReplace ? t('replacementPendingBadge') : t('uploadPendingBadge')}
+          </p>
+          <p className="mt-1 text-xs text-text-muted">{t('replacementBlocksApplyNote')}</p>
+        </div>
+      )}
+
+      {preview && <FilePreviewModal preview={preview} onClose={closePreview} />}
     </Card>
   )
 }

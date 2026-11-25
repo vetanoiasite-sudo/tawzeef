@@ -51,7 +51,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityUser
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<PlatformSetting> PlatformSettings => Set<PlatformSetting>();
     public DbSet<Governorate> Governorates => Set<Governorate>();
-    public DbSet<Course> Courses => Set<Course>();
+    public DbSet<JobSeekerCourse> JobSeekerCourses => Set<JobSeekerCourse>();
     public DbSet<OfficeBanner> OfficeBanners => Set<OfficeBanner>();
 
     protected override void OnModelCreating(ModelBuilder builder)

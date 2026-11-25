@@ -2,11 +2,11 @@ import clsx from 'clsx'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
-import { useJobSearch, usePublicCities } from '@/features/public-jobs'
+import { useJobSearch } from '@/features/public-jobs'
 import type { JobListItem } from '@/features/public-jobs'
 import { useJobCategories } from '@/features/job-categories'
 import { useGovernorates } from '@/features/governorates'
-import { useCourseSearch, CourseCard } from '@/features/public-courses'
+import { CompanyCard, useCooperatingCompanies } from '@/features/cooperating-companies'
 import { useSessionStore } from '@/shared/auth/sessionStore'
 import { Button } from '@/shared/ui/Button'
 import { Reveal } from '@/shared/ui/Reveal'
@@ -17,12 +17,11 @@ export default function HomePage() {
     <div className="flex flex-col">
       <HeroSearch />
       <LatestJobs />
-      <BrowseByCourses />
       {/* Office-authored promotional banners — a plain in-page block between sections, never a
        *  popup, so a visitor scrolling past it is never interrupted (renders nothing if empty). */}
       <BannerSlider />
+      <BrowseByCooperatingCompanies />
       <BrowseByCategory />
-      <BrowseByCity />
       <JoinTawzeefCTA />
     </div>
   )
@@ -306,51 +305,6 @@ function JobCard({ job }: { job: JobListItem }) {
   )
 }
 
-/* -------------------------------------------------------------------------- */
-/* Courses                                                                    */
-/* -------------------------------------------------------------------------- */
-
-/** Mirrors LatestJobs exactly — a visitor who isn't signed in has nowhere else to discover
- * courses from now (AppLayout's drawer only exists for a signed-in user), so this section is
- * the one place that gets them to /courses. Renders nothing while every office's courses are
- * paused (no "section" with an empty grid underneath it). */
-function BrowseByCourses() {
-  const { data, isLoading, isError } = useCourseSearch({ pageIndex: 0, pageSize: 8 })
-  const courses = data?.items ?? []
-
-  if (!isLoading && !isError && courses.length === 0) return null
-
-  return (
-    <section className="w-full px-4 py-16 sm:px-8 xl:px-16 2xl:px-24">
-      <Reveal>
-        <SectionHeader
-          title="الكورسات"
-          action={
-            <Link
-              to="/courses"
-              className="text-[14px] font-bold text-brand underline underline-offset-4 decoration-2 hover:text-brand-hover hover:decoration-brand-hover"
-            >
-              عرض كل الكورسات
-            </Link>
-          }
-        />
-      </Reveal>
-
-      {isLoading && <GridSkeleton />}
-      {isError && (
-        <p className="text-[14px] text-danger">تعذّر تحميل الكورسات. جرّب مرة أخرى بعد قليل.</p>
-      )}
-      {!isLoading && courses.length > 0 && (
-        <Reveal delayMs={100} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {courses.map((course) => (
-            <CourseCard key={course.id} course={course} />
-          ))}
-        </Reveal>
-      )}
-    </section>
-  )
-}
-
 function employmentTypeLabel(t: JobListItem['employmentType']) {
   switch (t) {
     case 'FullTime':
@@ -451,39 +405,51 @@ function BrowseByCategory() {
   )
 }
 
-function BrowseByCity() {
-  // Real cities carried by a live ad (public-jobs feature's /api/jobs/cities) — not a static
-  // governorate list, so this reflects where jobs actually are, ordered by how many.
-  const { data: cities } = usePublicCities()
-  const [expanded, setExpanded] = useState(false)
-  const all = cities ?? []
+/** The home page's "partner companies" showcase (2026-11-25 product decision) — takes the
+ * governorates section's old place, above Browse by Category, since which specific employers
+ * trust this platform matters more to a first-time visitor than a flat city list. Approved +
+ * Active-cooperation employers only (PublicEmployerListItemDto's doc comment); renders nothing
+ * while none exist yet, same "no empty section" rule as every other home-page block here. */
+function BrowseByCooperatingCompanies() {
+  const { data, isLoading } = useCooperatingCompanies({ pageIndex: 0, pageSize: 12 })
+  const all = data?.items ?? []
 
-  if (all.length === 0) return null
-  const shown = expanded ? all : all.slice(0, COLLAPSED_COUNT)
+  if (!isLoading && all.length === 0) return null
 
   return (
     <section className="w-full px-4 py-16 sm:px-8 xl:px-16 2xl:px-24">
       <Reveal>
         <SectionHeader
-          title="تصفّح حسب المحافظة"
+          title="الشركات المتعاونة معنا"
           action={
-            all.length > COLLAPSED_COUNT && (
-              <ExpandToggle expanded={expanded} onToggle={() => setExpanded((e) => !e)} />
-            )
+            <Link
+              to="/companies"
+              className="text-[14px] font-bold text-brand underline underline-offset-4 decoration-2 hover:text-brand-hover hover:decoration-brand-hover"
+            >
+              عرض الكل
+            </Link>
           }
         />
       </Reveal>
-      <Reveal delayMs={100} className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
-        {shown.map((c) => (
-          <Link
-            key={c.city}
-            to={`/jobs?city=${encodeURIComponent(c.city)}`}
-            className="flex h-16 items-center justify-center rounded-200 border border-border-primary bg-surface px-3 text-[14px] font-bold text-content-primary transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-brand hover:text-brand hover:shadow-100"
-          >
-            {c.city}
-          </Link>
-        ))}
-      </Reveal>
+
+      {isLoading && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-28 animate-pulse rounded-300 border border-border-primary bg-surface"
+            />
+          ))}
+        </div>
+      )}
+
+      {!isLoading && (
+        <Reveal delayMs={100} className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {all.map((company) => (
+            <CompanyCard key={company.id} company={company} />
+          ))}
+        </Reveal>
+      )}
     </section>
   )
 }

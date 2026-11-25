@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Tawzeef.Application.Features.JobAdvertisements;
 using Tawzeef.Domain.Entities.JobAdvertisements;
 using Tawzeef.Domain.Enums;
@@ -29,7 +30,9 @@ public class TenantIsolationTests
         await uow.Repository<JobAdvertisement>().AddAsync(adInOfficeB);
         await uow.SaveChangesAsync();
 
-        var service = new JobAdvertisementReviewService(uow, new RecordingNotificationService(), new FakePlatformSettingsService());
+        var service = new JobAdvertisementReviewService(
+            uow, new RecordingNotificationService(), new FakePlatformSettingsService(),
+            new FakeFileStorage(), new ConfigurationBuilder().Build());
 
         var result = await service.GetByIdAsync(officeA, adInOfficeB.Id);
 
@@ -55,7 +58,9 @@ public class TenantIsolationTests
         await uow.Repository<JobAdvertisement>().AddAsync(ad);
         await uow.SaveChangesAsync();
 
-        var service = new JobAdvertisementReviewService(uow, new RecordingNotificationService(), new FakePlatformSettingsService());
+        var service = new JobAdvertisementReviewService(
+            uow, new RecordingNotificationService(), new FakePlatformSettingsService(),
+            new FakeFileStorage(), new ConfigurationBuilder().Build());
 
         var result = await service.GetByIdAsync(officeA, ad.Id);
 

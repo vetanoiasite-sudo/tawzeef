@@ -31,7 +31,10 @@ public static class PermissionCatalogue
         ("auditlogs", ["view"]),
         ("dashboards", ["view"]),
         ("platformsettings", ["view", "edit"]),
-        ("courses", ["view", "create", "edit", "pause"]),
+        // Job seeker's own course history — self-service only, never a StaffPermissionGrant
+        // (PermissionChecker.JobSeekerOwnPermissions grants it directly, same as jobseekers.*'s
+        // own-verbs). Replaces the earlier office-authored "courses" concept entirely (2026-11-25).
+        ("jobseekercourses", ["view", "create", "edit", "delete"]),
         ("banners", ["view", "create", "pause"]),
     ];
 
@@ -47,9 +50,9 @@ public static class PermissionCatalogue
         "complaints.decide",
         "jobseekers.suspend", "jobseekers.reinstate",
         "employers.suspend", "employers.reinstate",
-        // Courses and banners (2026-11-24): explicitly OfficeAdmin-only, never a StaffPermissionGrant
-        // — the office owner publishes these personally, same reasoning as officeusers.*.
-        "courses.view", "courses.create", "courses.edit", "courses.pause",
+        // Banners (2026-11-24): explicitly OfficeAdmin-only, never a StaffPermissionGrant — the
+        // office owner publishes these personally, same reasoning as officeusers.*. (Courses used
+        // to be here too, before 2026-11-25's rework into a job-seeker self-service feature.)
         "banners.view", "banners.create", "banners.pause",
     ];
 }

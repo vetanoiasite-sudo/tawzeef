@@ -61,9 +61,9 @@ function AppLayoutChrome() {
     'notifications',
     'auditLog',
     'platformSettings',
-    'publicCourses',
-    'officeCourses',
+    'jobSeekerCourses',
     'officeBanners',
+    'officeProfile',
   ])
   const { isAuthenticated, hasPermission } = useAccess()
   const user = useSessionStore((s) => s.user)
@@ -148,12 +148,14 @@ function AppLayoutChrome() {
         <Link to="/jobs" className={linkClassName}>
           الوظائف
         </Link>
-        <Link to="/courses" className={linkClassName}>
-          {t('publicCourses:pageTitle')}
-        </Link>
         {user?.role === 'JobSeeker' && (
           <Link to="/profile" className={linkClassName}>
             {t('jobSeekerProfile:pageTitle')}
+          </Link>
+        )}
+        {user?.role === 'JobSeeker' && (
+          <Link to="/my-courses" className={linkClassName}>
+            {t('jobSeekerCourses:pageTitle')}
           </Link>
         )}
         {user?.role === 'JobSeeker' && hasPermission('jobapplications.viewown') && (
@@ -222,9 +224,9 @@ function AppLayoutChrome() {
             {t('officeUsers:pageTitle')}
           </Link>
         )}
-        {hasPermission('courses.view') && (
-          <Link to="/office/courses" className={linkClassName}>
-            {t('officeCourses:pageTitle')}
+        {hasPermission('offices.view') && (
+          <Link to="/office/profile" className={linkClassName}>
+            {t('officeProfile:pageTitle')}
           </Link>
         )}
         {hasPermission('banners.view') && (

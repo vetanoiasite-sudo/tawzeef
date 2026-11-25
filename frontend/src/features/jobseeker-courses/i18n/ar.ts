@@ -1,0 +1,17 @@
+export const jobSeekerCoursesAr = {
+  pageTitle: 'كورساتي',
+  addNew: 'إضافة كورس جديد',
+  emptyList: 'لسه مضفتش أي كورس. دوس "إضافة كورس جديد" عشان تبدأ.',
+  titleLabel: 'اسم الكورس',
+  institutionLabel: 'المكان اللي اخدت فيه الكورس',
+  whatLearnedLabel: 'إيه اللي اتعلمته (اختياري)',
+  certificateLabel: 'شهادة الكورس (اختياري)',
+  save: 'حفظ',
+  cancel: 'إلغاء',
+  delete: 'حذف',
+  deleteConfirm: 'متأكد إنك عايز تمسح الكورس ده؟',
+  noCertificateUploaded: 'لسه مفيش شهادة مرفوعة',
+  uploadCertificate: 'رفع الشهادة',
+  replaceCertificate: 'استبدال الشهادة',
+  viewCertificate: 'عرض الشهادة',
+}

@@ -14,6 +14,38 @@ public class EmployerDocumentDto
 
 /// <summary>Mirrors JobSeekers/JobSeekerProfileDtos.cs's JobSeekerDocumentFileDto — same "stream
 /// straight through IFileStorage, no signed URL" pattern (RBAC_PERMISSIONS.md §4.4/§5).</summary>
+/// <summary>The home page's "cooperating companies" showcase, and its "view all" list — Approved
+/// + Active cooperation with at least one office (2026-11-25 product decision, replaces the home
+/// page's governorates section). Never contact info, same rule as every other public employer
+/// surface.</summary>
+public class PublicEmployerListItemDto
+{
+    public Guid Id { get; set; }
+    public string DisplayName { get; set; } = string.Empty;
+    public string? City { get; set; }
+    public string? LogoUrl { get; set; }
+}
+
+public class PublicEmployerQueryDto
+{
+    public int PageIndex { get; set; }
+    public int PageSize { get; set; } = 20;
+}
+
+/// <summary>The "open this company's profile" public page — same fields as the list item plus
+/// BusinessActivity (a harmless "about the company" line). Deliberately never CompanyEmail,
+/// CompanyPhone, RepresentativeName/Role, or any verification document — confirmed 2026-11-25:
+/// an anonymous visitor sees enough to recognize/trust the brand, nothing an office hasn't
+/// already vetted for contact purposes.</summary>
+public class PublicEmployerDetailDto
+{
+    public Guid Id { get; set; }
+    public string DisplayName { get; set; } = string.Empty;
+    public string? City { get; set; }
+    public string? BusinessActivity { get; set; }
+    public string? LogoUrl { get; set; }
+}
+
 public class EmployerDocumentFileDto
 {
     public Stream Content { get; set; } = Stream.Null;

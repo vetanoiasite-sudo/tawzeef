@@ -28,6 +28,15 @@ public class AdvertisementPayment : IEntity
 
     public Guid RecordedBy { get; set; }
 
+    /// <summary>The proof photo the office uploads when confirming a payment (invoice, InstaPay
+    /// screenshot, bank transfer receipt — whatever the payer sent, 2026-11-25 product decision).
+    /// Opaque storage key from IFileStorage — never a public URL, same as every other private
+    /// upload in this app. Required by the confirm-payment flow, so these are always set once a
+    /// payment row exists at all.</summary>
+    public string ReceiptStorageKey { get; set; } = string.Empty;
+    public string ReceiptOriginalFileName { get; set; } = string.Empty;
+    public string ReceiptContentType { get; set; } = string.Empty;
+
     public Guid? CreatedBy { get; set; }
     public DateTime CreationDate { get; set; } = DateTime.UtcNow;
     public Guid? ModifiedBy { get; set; }

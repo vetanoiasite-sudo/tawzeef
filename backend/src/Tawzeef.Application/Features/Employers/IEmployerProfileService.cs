@@ -1,4 +1,5 @@
 using Tawzeef.Application.Common;
+using Tawzeef.Domain.Common;
 using Tawzeef.Domain.Enums;
 
 namespace Tawzeef.Application.Features.Employers;
@@ -17,6 +18,9 @@ public interface IEmployerProfileService
         string contentType,
         long fileSizeBytes,
         CancellationToken ct = default);
+
+    /// <summary>Lets the employer view/download their own already-uploaded document.</summary>
+    Task<ServiceResult<EmployerDocumentFileDto>> GetDocumentFileAsync(Guid userId, Guid documentId, CancellationToken ct = default);
 
     /// <summary>Requires every required document type to already be uploaded, and at least one
     /// office chosen (SubmitToOfficesAsync) — advances every one of this employer's currently
@@ -40,4 +44,13 @@ public interface IEmployerProfileService
     /// <summary>Public, no auth — the one file this app serves to an anonymous caller. Null if the
     /// employer has no logo, or doesn't exist.</summary>
     Task<EmployerDocumentFileDto?> GetLogoFileAsync(Guid employerId, CancellationToken ct = default);
+
+    /// <summary>The home page's "cooperating companies" showcase, and its "view all" page —
+    /// public, no auth. Approved + Active cooperation with at least one office only
+    /// (2026-11-25).</summary>
+    Task<ServiceResult<PagedResult<PublicEmployerListItemDto>>> SearchCooperatingAsync(PublicEmployerQueryDto query, CancellationToken ct = default);
+
+    /// <summary>The public "view this company's profile" page — public, no auth. Same anonymity
+    /// rule as a paused job ad: a non-cooperating employer's id confirms nothing (2026-11-25).</summary>
+    Task<ServiceResult<PublicEmployerDetailDto>> GetPublicCooperatingByIdAsync(Guid id, CancellationToken ct = default);
 }

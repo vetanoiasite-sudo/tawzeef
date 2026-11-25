@@ -33,5 +33,10 @@ public interface IJobAdvertisementReviewService
     Task<ServiceResult<JobAdvertisementDto>> RejectAsync(Guid officeId, Guid reviewerId, Guid id, string reason, CancellationToken ct = default);
     Task<ServiceResult<JobAdvertisementDto>> PauseAsync(Guid officeId, Guid id, CancellationToken ct = default);
     Task<ServiceResult<JobAdvertisementDto>> ResumeAsync(Guid officeId, Guid id, CancellationToken ct = default);
-    Task<ServiceResult<JobAdvertisementDto>> ConfirmPaymentAsync(Guid officeId, Guid reviewerId, Guid id, ConfirmAdvertisementPaymentDto dto, CancellationToken ct = default);
+    /// <summary>The receipt photo is required (2026-11-25 product decision) — a payment can't be
+    /// confirmed without one.</summary>
+    Task<ServiceResult<JobAdvertisementDto>> ConfirmPaymentAsync(
+        Guid officeId, Guid reviewerId, Guid id, ConfirmAdvertisementPaymentDto dto,
+        Stream receiptContent, string receiptFileName, string receiptContentType, long receiptFileSizeBytes,
+        CancellationToken ct = default);
 }

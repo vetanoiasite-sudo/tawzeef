@@ -15,6 +15,8 @@ public class AdvertisementPaymentConfiguration : IEntityTypeConfiguration<Advert
         b.Property(x => x.Currency).IsRequired().HasMaxLength(3);
         b.Property(x => x.PaymentMethod).IsRequired().HasMaxLength(50);
         b.Property(x => x.TransactionReference).HasMaxLength(200);
+        b.Property(x => x.ReceiptOriginalFileName).HasMaxLength(260);
+        b.Property(x => x.ReceiptContentType).HasMaxLength(100);
 
         b.HasIndex(x => new { x.JobAdvertisementId, x.PaymentStatus });
     }

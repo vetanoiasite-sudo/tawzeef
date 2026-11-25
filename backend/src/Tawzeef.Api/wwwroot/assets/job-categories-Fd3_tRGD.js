@@ -1,0 +1,1 @@
+import{g as e,r as t}from"./clsx-DkL_3y1-.js";var n={list:()=>t.get(`/api/jobs/categories`)},r={all:[`jobCategories`],list:()=>[...r.all,`list`]};function i(){return e({queryKey:r.list(),queryFn:n.list,staleTime:6e4})}export{i as t};

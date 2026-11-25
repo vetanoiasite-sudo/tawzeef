@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Tawzeef.Application.Features.Accounts;
 using Tawzeef.Application.Features.AuditLog;
 using Tawzeef.Application.Features.Auth;
 using Tawzeef.Application.Features.Complaints;
@@ -25,6 +26,7 @@ public static class ApplicationDI
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IOfficeService, OfficeService>();
         services.AddScoped<IJobSeekerProfileService, JobSeekerProfileService>();
+        services.AddScoped<IJobSeekerCourseService, JobSeekerCourseService>();
         services.AddScoped<IJobSeekerReviewService, JobSeekerReviewService>();
         services.AddScoped<IEmployerProfileService, EmployerProfileService>();
         services.AddScoped<IEmployerReviewService, EmployerReviewService>();
@@ -45,8 +47,8 @@ public static class ApplicationDI
         services.AddScoped<IAuditLogService, AuditLogService>();
         services.AddScoped<IPlatformSettingsService, PlatformSettingsService>();
         services.AddScoped<IGovernorateService, GovernorateService>();
-        services.AddScoped<ICourseService, CourseService>();
         services.AddScoped<IBannerService, BannerService>();
+        services.AddScoped<IAccountsService, AccountsService>();
         return services;
     }
 }

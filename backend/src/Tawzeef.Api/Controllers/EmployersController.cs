@@ -54,6 +54,19 @@ public class EmployersController(IEmployerProfileService service, ICurrentUser c
     public async Task<IActionResult> SubmitForReview(CancellationToken ct)
         => Respond(await service.SubmitForReviewAsync(RequireUserId(), ct));
 
+    /// <summary>Lets the employer view/download their own already-uploaded document — the upload
+    /// response never carries the file itself back.</summary>
+    [HttpGet("me/documents/{id:guid}")]
+    [RequiresPermission("employers.viewown")]
+    public async Task<IActionResult> GetDocument(Guid id, CancellationToken ct)
+    {
+        var result = await service.GetDocumentFileAsync(RequireUserId(), id, ct);
+        if (!result.IsSuccess) return Respond(result);
+
+        var file = result.Data!;
+        return File(file.Content, string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType, file.FileName);
+    }
+
     /// <summary>No review workflow — a logo upload just replaces the previous one. Reuses
     /// employers.editown, same as every other self-service profile edit.</summary>
     [HttpPost("me/logo")]
@@ -79,6 +92,22 @@ public class EmployersController(IEmployerProfileService service, ICurrentUser c
 
         return File(logo.Content, logo.ContentType);
     }
+
+    /// <summary>The home page's "cooperating companies" showcase, and its "view all" page
+    /// (2026-11-25) — public, no auth, Approved + Active cooperation with at least one office
+    /// only.</summary>
+    [HttpGet("public")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetCooperatingEmployers([FromQuery] PublicEmployerQueryDto query, CancellationToken ct)
+        => RespondPaged(await service.SearchCooperatingAsync(query, ct));
+
+    /// <summary>The public "view this company's profile" page (2026-11-25) — public, no auth.
+    /// Same anonymity rule as a paused job ad: a non-cooperating employer's id confirms
+    /// nothing.</summary>
+    [HttpGet("{id:guid}/public")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetPublicEmployer(Guid id, CancellationToken ct)
+        => Respond(await service.GetPublicCooperatingByIdAsync(id, ct));
 
     private Guid RequireUserId() => currentUser.Id ?? throw new UnauthorizedAccessException();
 }

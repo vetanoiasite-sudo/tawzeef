@@ -3,7 +3,8 @@ using Tawzeef.Application.Common;
 namespace Tawzeef.Application.Features.Courses;
 
 /// <summary>Office-authored home-page banners — image only, no review workflow, same gatekeeping
-/// model as ICourseService.</summary>
+/// model the earlier office-authored Course concept used (replaced 2026-11-25 by the job seeker's
+/// own course history, which has no office-facing surface at all).</summary>
 public interface IBannerService
 {
     Task<ServiceResult<List<OfficeBannerDto>>> ListForOfficeAsync(Guid officeId, CancellationToken ct = default);

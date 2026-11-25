@@ -12,6 +12,10 @@ const JOB_SEEKER_OWN_PERMISSIONS = [
   'jobapplications.viewown',
   'jobapplications.withdraw',
   'interviews.view',
+  'jobseekercourses.view',
+  'jobseekercourses.create',
+  'jobseekercourses.edit',
+  'jobseekercourses.delete',
 ]
 
 // Mirrors PermissionChecker's EmployerOwnPermissions.

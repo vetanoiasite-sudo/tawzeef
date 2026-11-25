@@ -67,3 +67,27 @@ public class CvFileDto
     public string FileName { get; set; } = string.Empty;
     public string ContentType { get; set; } = string.Empty;
 }
+
+/// <summary>The employer's read-only view of one applicant's profile (2026-11-25 product
+/// decision) — name/photo/job title/skills/career summary/education/years of experience are
+/// always visible; Phone/Email/CvDownloadUrl follow the same payment gate as the applicant list
+/// (RBAC_PERMISSIONS.md §5), omitted entirely until it passes. Deliberately never includes a
+/// verification document (recommendation letter, national ID) — those stay office-only, same as
+/// every other role's own documents never leaking sideways to another role.</summary>
+public class ApplicantProfileDto
+{
+    public Guid ApplicationId { get; set; }
+    public string JobSeekerName { get; set; } = string.Empty;
+    public string? JobTitle { get; set; }
+    public string? Skills { get; set; }
+    public string? CareerSummary { get; set; }
+    public string? Education { get; set; }
+    public byte? YearsOfExperience { get; set; }
+    public bool HasPhoto { get; set; }
+    public string EmployerFacingStatus { get; set; } = string.Empty;
+    public DateTime AppliedAt { get; set; }
+
+    public string? Phone { get; set; }
+    public string? Email { get; set; }
+    public string? CvDownloadUrl { get; set; }
+}

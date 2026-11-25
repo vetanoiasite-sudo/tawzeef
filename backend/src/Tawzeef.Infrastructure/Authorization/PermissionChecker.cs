@@ -20,6 +20,7 @@ public class PermissionChecker(AppDbContext context) : IPermissionChecker
             "jobseekers.viewown", "jobseekers.editown", "jobseekers.uploaddocuments", "jobseekers.submit",
             "jobapplications.create", "jobapplications.viewown", "jobapplications.withdraw",
             "interviews.view",
+            "jobseekercourses.view", "jobseekercourses.create", "jobseekercourses.edit", "jobseekercourses.delete",
         ];
 
     /// <summary>Same idea, for an Employer holding an Employer row — mirrors JobSeekerOwnPermissions.

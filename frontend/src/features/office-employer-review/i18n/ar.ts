@@ -40,7 +40,7 @@ export const officeEmployerReviewAr = {
   },
   approve: 'موافقة',
   reject: 'رفض',
-  downloadAction: 'تحميل الملف',
+  viewDocumentAction: 'عرض الملف',
   cancel: 'إلغاء',
   reasonPlaceholder: 'اكتب السبب...',
   approveProfile: 'الموافقة على الملف',

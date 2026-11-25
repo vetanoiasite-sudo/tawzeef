@@ -4,11 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 using Tawzeef.Api.Authorization;
 using Tawzeef.Api.Common;
 using Tawzeef.Application.Features.Offices;
+using Tawzeef.Domain.Contracts;
 
 namespace Tawzeef.Api.Controllers;
 
 [Route("api/[controller]")]
-public class OfficesController(IOfficeService service) : ApiControllerBase
+public class OfficesController(IOfficeService service, ICurrentUser currentUser) : ApiControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetOffices(CancellationToken ct)
@@ -43,6 +44,39 @@ public class OfficesController(IOfficeService service) : ApiControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetPublicOffices(CancellationToken ct)
         => Respond(await service.ListPublicAsync(ct));
+
+    /// <summary>The office's own self-service "my office" profile page (2026-11-25) — mirrors
+    /// JobSeekersController/EmployersController's "me" pattern. OfficeAdmin gets every permission
+    /// for their own office automatically (PermissionChecker); OfficeStaff needs an explicit
+    /// offices.view/offices.edit StaffPermissionGrant, same as any other staff-grantable action.</summary>
+    [HttpGet("me")]
+    [RequiresPermission("offices.view")]
+    public async Task<IActionResult> GetMyOffice(CancellationToken ct)
+        => Respond(await service.GetByIdAsync(RequireOfficeId(), ct));
+
+    [HttpPut("me")]
+    [RequiresPermission("offices.edit")]
+    public async Task<IActionResult> UpdateMyOffice([FromBody] UpdateOfficeDto dto, CancellationToken ct)
+        => Respond(await service.UpdateAsync(RequireOfficeId(), dto, ct));
+
+    [HttpPost("me/logo")]
+    [RequiresPermission("offices.edit")]
+    public async Task<IActionResult> UploadMyLogo(IFormFile file, CancellationToken ct)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { message = "الملف مطلوب." });
+
+        await using var stream = file.OpenReadStream();
+        return Respond(await service.UploadLogoAsync(RequireOfficeId(), stream, file.FileName, file.ContentType, file.Length, ct));
+    }
+
+    /// <summary>The public "view this office's profile" page — job seekers/employers browsing
+    /// offices before (or instead of) the registration dropdown. Same anonymity rule as a paused
+    /// job ad: an Inactive office's id confirms nothing (API_DOCUMENTATION.md §3.7).</summary>
+    [HttpGet("{id:guid}/public")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetPublicOffice(Guid id, CancellationToken ct)
+        => Respond(await service.GetPublicByIdAsync(id, ct));
 
     /// <summary>The one PDF/Excel-style report this app needed concretely scoped: a CSV (opens
     /// directly in Excel) of the office directory, for SuperAdmin to hand off or archive. A
@@ -102,4 +136,6 @@ public class OfficesController(IOfficeService service) : ApiControllerBase
 
         return File(logo.Content, logo.ContentType);
     }
+
+    private Guid RequireOfficeId() => currentUser.OfficeId ?? throw new UnauthorizedAccessException();
 }

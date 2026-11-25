@@ -71,10 +71,12 @@ internal static class JobAdvertisementMapping
 
     public static AdvertisementPaymentDto ToDto(this AdvertisementPayment p) => new()
     {
+        Id = p.Id,
         PaymentStatus = p.PaymentStatus.ToString(),
         Amount = p.Amount,
         Currency = p.Currency,
         PaymentMethod = p.PaymentMethod,
         PaidAt = p.PaidAt,
+        ReceiptUrl = $"/api/office/accounts/payments/{p.Id}/receipt",
     };
 }

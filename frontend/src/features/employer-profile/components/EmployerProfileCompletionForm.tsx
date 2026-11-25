@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import {
@@ -27,7 +28,9 @@ export function EmployerProfileCompletionForm({
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    getValues,
+    reset,
+    formState: { errors, isDirty },
   } = useForm<EmployerProfileFormValues>({
     resolver: zodResolver(employerProfileFormSchema),
     // Full-replace PUT semantics on the backend — every field must be pre-populated with the
@@ -43,6 +46,17 @@ export function EmployerProfileCompletionForm({
       representativeRole: profile.representativeRole ?? '',
     },
   })
+
+  // Re-baseline the form once a save actually lands, so the Save button goes back to disabled
+  // until the next real edit — isSubmitting going true→false with no error is the only signal
+  // available here that the save succeeded (the mutation itself lives in the parent page).
+  const wasSubmittingRef = useRef(isSubmitting)
+  useEffect(() => {
+    if (wasSubmittingRef.current && !isSubmitting && !submitError) {
+      reset(getValues())
+    }
+    wasSubmittingRef.current = isSubmitting
+  }, [isSubmitting, submitError, reset, getValues])
 
   return (
     <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-4">
@@ -118,7 +132,7 @@ export function EmployerProfileCompletionForm({
 
       {submitError && <p className="text-sm text-danger">{submitError}</p>}
 
-      <Button type="submit" disabled={isSubmitting} className="self-start">
+      <Button type="submit" disabled={isSubmitting || !isDirty} className="self-start">
         {t('employerProfile:save')}
       </Button>
     </form>

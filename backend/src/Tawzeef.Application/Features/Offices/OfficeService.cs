@@ -38,6 +38,22 @@ public class OfficeService(IUnitOfWork uow, IFileStorage fileStorage, IConfigura
         return ServiceResult<OfficeDto>.Success(office.ToDto());
     }
 
+    public async Task<ServiceResult<OfficeDto>> GetByIdAsync(Guid id, CancellationToken ct = default)
+    {
+        var office = await uow.Repository<EmploymentOffice>().GetByIdAsync(id, ct);
+        if (office is null) return ServiceResult<OfficeDto>.NotFound("Office not found.");
+
+        return ServiceResult<OfficeDto>.Success(office.ToDto());
+    }
+
+    public async Task<ServiceResult<OfficeDto>> GetPublicByIdAsync(Guid id, CancellationToken ct = default)
+    {
+        var office = await uow.Repository<EmploymentOffice>().FindAsync(o => o.Id == id && o.Status == OfficeStatus.Active, ct: ct);
+        if (office is null) return ServiceResult<OfficeDto>.NotFound("Office not found.");
+
+        return ServiceResult<OfficeDto>.Success(office.ToDto());
+    }
+
     public async Task<ServiceResult<OfficeDto>> UpdateAsync(Guid id, UpdateOfficeDto dto, CancellationToken ct = default)
     {
         var office = await uow.Repository<EmploymentOffice>().GetByIdAsync(id, ct);

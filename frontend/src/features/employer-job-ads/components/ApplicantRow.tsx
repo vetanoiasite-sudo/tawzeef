@@ -1,11 +1,11 @@
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { httpClient } from '@/shared/api/httpClient'
+import { useFilePreview } from '@/shared/hooks/useFilePreview'
 import { Card } from '@/shared/ui/Card'
 import { Button } from '@/shared/ui/Button'
 import { Select } from '@/shared/ui/Select'
 import { GatedField } from '@/shared/ui/GatedField'
+import { FilePreviewModal } from '@/shared/ui/FilePreviewModal'
 import type { ApplicantListItem, EmployerFacingStatusCode } from '../types/employerJobAds.types'
 
 const OUTCOMES: EmployerFacingStatusCode[] = [
@@ -16,33 +16,19 @@ const OUTCOMES: EmployerFacingStatusCode[] = [
 ]
 
 export function ApplicantRow({
+  adId,
   applicant,
   isUpdating,
   onUpdateOutcome,
 }: {
+  adId: string
   applicant: ApplicantListItem
   isUpdating: boolean
   onUpdateOutcome: (outcome: EmployerFacingStatusCode) => void
 }) {
   const { t } = useTranslation('employerJobAds')
-  const [downloading, setDownloading] = useState(false)
+  const { preview, isLoading: isLoadingPreview, open: openPreview, close: closePreview } = useFilePreview()
   const isGated = applicant.cvDownloadUrl !== undefined && applicant.cvDownloadUrl !== null
-
-  async function handleDownloadCv() {
-    if (!applicant.cvDownloadUrl) return
-    setDownloading(true)
-    try {
-      const { blob, fileName } = await httpClient.getBlob(applicant.cvDownloadUrl)
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = fileName
-      link.click()
-      URL.revokeObjectURL(url)
-    } finally {
-      setDownloading(false)
-    }
-  }
 
   return (
     <Card className="flex flex-col gap-4">
@@ -89,19 +75,24 @@ export function ApplicantRow({
       </div>
 
       <div className="flex flex-wrap items-center gap-3 border-t border-surface-muted pt-3">
+        <Link to={`/employer/job-advertisements/${adId}/applicants/${applicant.applicationId}`}>
+          <Button variant="secondary">{t('viewProfile')}</Button>
+        </Link>
         {isGated && (
           <Button
             variant="secondary"
-            disabled={downloading}
-            onClick={() => void handleDownloadCv()}
+            disabled={isLoadingPreview}
+            onClick={() => applicant.cvDownloadUrl && void openPreview(applicant.cvDownloadUrl)}
           >
-            {t('downloadCv')}
+            {t('viewCv')}
           </Button>
         )}
         <Link to={`/employer/applications/${applicant.applicationId}`}>
           <Button variant="ghost">{t('interviewAndReports')}</Button>
         </Link>
       </div>
+
+      {preview && <FilePreviewModal preview={preview} onClose={closePreview} />}
     </Card>
   )
 }

@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ReasonForm } from './ReasonForm'
 import type { OfficeJobSeekerDocument } from '../types/officeJobSeekerReview.types'
-import { httpClient } from '@/shared/api/httpClient'
+import { useFilePreview } from '@/shared/hooks/useFilePreview'
 import { Card } from '@/shared/ui/Card'
 import { Button } from '@/shared/ui/Button'
 import { StatusTag } from '@/shared/ui/StatusTag'
+import { FilePreviewModal } from '@/shared/ui/FilePreviewModal'
 
 export function DocumentReviewRow({
   document,
@@ -26,24 +27,7 @@ export function DocumentReviewRow({
 }) {
   const { t } = useTranslation('officeJobSeekerReview')
   const [showReject, setShowReject] = useState(false)
-  const [downloading, setDownloading] = useState(false)
-
-  async function handleDownload() {
-    setDownloading(true)
-    try {
-      const { blob, fileName } = await httpClient.getBlob(
-        `/api/office/job-seekers/${profileId}/documents/${document.id}/download`,
-      )
-      const url = URL.createObjectURL(blob)
-      const link = window.document.createElement('a')
-      link.href = url
-      link.download = fileName
-      link.click()
-      URL.revokeObjectURL(url)
-    } finally {
-      setDownloading(false)
-    }
-  }
+  const { preview, isLoading: isLoadingPreview, open: openPreview, close: closePreview } = useFilePreview()
 
   return (
     <Card className="flex flex-col gap-2">
@@ -65,11 +49,13 @@ export function DocumentReviewRow({
 
       <Button
         variant="secondary"
-        disabled={downloading}
-        onClick={() => void handleDownload()}
+        disabled={isLoadingPreview}
+        onClick={() =>
+          void openPreview(`/api/office/job-seekers/${profileId}/documents/${document.id}/download`)
+        }
         className="self-start"
       >
-        {t('downloadAction')}
+        {t('viewDocumentAction')}
       </Button>
 
       {!showReject && (
@@ -103,6 +89,8 @@ export function DocumentReviewRow({
           onCancel={() => setShowReject(false)}
         />
       )}
+
+      {preview && <FilePreviewModal preview={preview} onClose={closePreview} />}
     </Card>
   )
 }

@@ -40,11 +40,23 @@ export const officeJobAdsReviewApi = {
     httpClient.post<OfficeJobAdDetail>(`/api/office/job-advertisements/${id}/pause`),
   resume: (id: string) =>
     httpClient.post<OfficeJobAdDetail>(`/api/office/job-advertisements/${id}/resume`),
-  confirmPayment: ({ id, amount, currency }: { id: string; amount: number; currency: string }) =>
-    httpClient.post<OfficeJobAdDetail>(`/api/office/job-advertisements/${id}/payment/confirm`, {
-      amount,
-      currency,
-    }),
+  confirmPayment: ({
+    id,
+    amount,
+    currency,
+    file,
+  }: {
+    id: string
+    amount: number
+    currency: string
+    file: File
+  }) => {
+    const form = new FormData()
+    form.append('Amount', String(amount))
+    form.append('Currency', currency)
+    form.append('File', file)
+    return httpClient.post<OfficeJobAdDetail>(`/api/office/job-advertisements/${id}/payment/confirm`, form)
+  },
   listApplicants: (adId: string, filter: ApplicantsFilter) =>
     httpClient.getPaged<OfficeApplicantListItem[]>(
       `/api/office/job-advertisements/${adId}/applicants`,

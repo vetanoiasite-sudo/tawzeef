@@ -60,11 +60,17 @@ public class ConfirmAdvertisementPaymentDto
 
 public class AdvertisementPaymentDto
 {
+    public Guid Id { get; set; }
     public string PaymentStatus { get; set; } = string.Empty;
     public decimal Amount { get; set; }
     public string Currency { get; set; } = string.Empty;
     public string PaymentMethod { get; set; } = string.Empty;
     public DateTime? PaidAt { get; set; }
+
+    /// <summary>A relative, authenticated API path (GET /api/office/accounts/payments/{id}/receipt)
+    /// — the same "ordinary authenticated GET, re-checked every call" pattern as every other
+    /// private file in this app. Always set once a payment exists (the receipt is required).</summary>
+    public string ReceiptUrl { get; set; } = string.Empty;
 }
 
 public class JobAdvertisementListItemDto

@@ -24,4 +24,9 @@ export const employerJobAdsRoutes: AppRouteDef[] = [
     Component: lazy(() => import('./pages/JobAdApplicantsPage')),
     access: { permission: 'jobapplications.view' },
   },
+  {
+    path: '/employer/job-advertisements/:adId/applicants/:applicationId',
+    Component: lazy(() => import('./pages/ApplicantProfilePage')),
+    access: { permission: 'jobapplications.view' },
+  },
 ]
