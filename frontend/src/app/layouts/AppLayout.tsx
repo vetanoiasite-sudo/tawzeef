@@ -64,6 +64,7 @@ function AppLayoutChrome() {
     'jobSeekerCourses',
     'officeBanners',
     'officeProfile',
+    'officeAccounts',
   ])
   const { isAuthenticated, hasPermission } = useAccess()
   const user = useSessionStore((s) => s.user)
@@ -232,6 +233,11 @@ function AppLayoutChrome() {
         {hasPermission('banners.view') && (
           <Link to="/office/banners" className={linkClassName}>
             {t('officeBanners:pageTitle')}
+          </Link>
+        )}
+        {hasPermission('advertisementpayments.view') && (
+          <Link to="/office/accounts" className={linkClassName}>
+            {t('officeAccounts:pageTitle')}
           </Link>
         )}
         {hasPermission('auditlogs.view') && (
