@@ -50,11 +50,11 @@ export default function OfficeAccountsPage() {
       <PageHeader title={t('pageTitle')} />
 
       <Card className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button variant="secondary" size="sm" onClick={() => shiftMonth(-1)}>
             {t('previousMonth')}
           </Button>
-          <span className="min-w-[140px] text-center font-semibold text-content-primary">
+          <span className="text-center font-semibold text-content-primary">
             {MONTH_NAMES_AR[month - 1]} {year}
           </span>
           <Button variant="secondary" size="sm" onClick={() => shiftMonth(1)}>
@@ -84,38 +84,72 @@ export default function OfficeAccountsPage() {
       {!isLoading && data && data.items.length === 0 && <EmptyState message={t('emptyList')} />}
 
       {!isLoading && data && data.items.length > 0 && (
-        <Card className="overflow-x-auto p-0">
-          <table className="w-full min-w-[640px] border-collapse text-sm">
-            <thead>
-              <tr className="border-b border-border-primary bg-surface-muted text-content-tertiary">
-                <th className="px-4 py-3 text-start font-semibold">{t('columnEmployer')}</th>
-                <th className="px-4 py-3 text-start font-semibold">{t('columnRecordedBy')}</th>
-                <th className="px-4 py-3 text-start font-semibold">{t('columnDate')}</th>
-                <th className="px-4 py-3 text-start font-semibold">{t('columnAmount')}</th>
-                <th className="px-4 py-3 text-start font-semibold">{t('columnReceipt')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.items.map((item) => (
-                <tr key={item.id} className="border-b border-border-primary last:border-b-0">
-                  <td className="px-4 py-3 font-semibold text-content-primary">{item.employerDisplayName}</td>
-                  <td className="px-4 py-3 text-content-secondary">{item.recordedByName || '—'}</td>
-                  <td className="px-4 py-3 text-content-tertiary">
-                    {item.paidAt ? new Date(item.paidAt).toLocaleString('ar') : '—'}
-                  </td>
-                  <td className="px-4 py-3 font-bold text-content-primary">
-                    {item.amount.toLocaleString('ar')} {item.currency}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Button variant="secondary" size="sm" onClick={() => void preview.open(item.receiptUrl)}>
-                      {t('viewReceiptAction')}
-                    </Button>
-                  </td>
+        <>
+          {/* Real table from sm (640px) up — below that it reflows into one card per row,
+           * each card listing that row's fields (2026-11-25 product decision), instead of a
+           * horizontally-scrolling table on a phone screen. */}
+          <Card className="hidden overflow-x-auto p-0 sm:block">
+            <table className="w-full border-collapse text-sm">
+              <thead>
+                <tr className="border-b border-border-primary bg-surface-muted text-content-tertiary">
+                  <th className="px-4 py-3 text-start font-semibold">{t('columnEmployer')}</th>
+                  <th className="px-4 py-3 text-start font-semibold">{t('columnRecordedBy')}</th>
+                  <th className="px-4 py-3 text-start font-semibold">{t('columnDate')}</th>
+                  <th className="px-4 py-3 text-start font-semibold">{t('columnAmount')}</th>
+                  <th className="px-4 py-3 text-start font-semibold">{t('columnReceipt')}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </Card>
+              </thead>
+              <tbody>
+                {data.items.map((item) => (
+                  <tr key={item.id} className="border-b border-border-primary last:border-b-0">
+                    <td className="px-4 py-3 font-semibold text-content-primary">{item.employerDisplayName}</td>
+                    <td className="px-4 py-3 text-content-secondary">{item.recordedByName || '—'}</td>
+                    <td className="px-4 py-3 text-content-tertiary">
+                      {item.paidAt ? new Date(item.paidAt).toLocaleString('ar') : '—'}
+                    </td>
+                    <td className="px-4 py-3 font-bold text-content-primary">
+                      {item.amount.toLocaleString('ar')} {item.currency}
+                    </td>
+                    <td className="px-4 py-3">
+                      <Button variant="secondary" size="sm" onClick={() => void preview.open(item.receiptUrl)}>
+                        {t('viewReceiptAction')}
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Card>
+
+          <div className="flex flex-col gap-3 sm:hidden">
+            {data.items.map((item) => (
+              <Card key={item.id} className="flex flex-col gap-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-semibold text-content-primary">{item.employerDisplayName}</span>
+                  <span className="font-bold text-content-primary">
+                    {item.amount.toLocaleString('ar')} {item.currency}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm text-content-secondary">
+                  <span>{t('columnRecordedBy')}</span>
+                  <span>{item.recordedByName || '—'}</span>
+                </div>
+                <div className="flex justify-between text-sm text-content-tertiary">
+                  <span>{t('columnDate')}</span>
+                  <span>{item.paidAt ? new Date(item.paidAt).toLocaleString('ar') : '—'}</span>
+                </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="self-start"
+                  onClick={() => void preview.open(item.receiptUrl)}
+                >
+                  {t('viewReceiptAction')}
+                </Button>
+              </Card>
+            ))}
+          </div>
+        </>
       )}
 
       {data && (
