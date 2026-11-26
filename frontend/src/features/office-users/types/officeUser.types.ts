@@ -1,6 +1,7 @@
 /** Mirrors backend/src/Tawzeef.Application/Features/OfficeUsers/OfficeUserDtos.cs. */
 
-export type OfficeUserRoleCode = 'OfficeAdmin' | 'OfficeStaff'
+export type OfficeUserRoleCode =
+  'OfficeAdmin' | 'OfficeStaff' | 'Viewer' | 'FinanceAccounts' | 'RecruitmentOfficer'
 export type MembershipStatusCode = 'Invited' | 'Active' | 'Revoked'
 
 export type OfficeUser = {

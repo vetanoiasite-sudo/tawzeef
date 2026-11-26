@@ -68,8 +68,11 @@ export function InviteOfficeUserForm({
           value={role}
           onChange={(e) => setRole(e.target.value as OfficeUserRoleCode)}
         >
-          <option value="OfficeStaff">{t('role.OfficeStaff')}</option>
           <option value="OfficeAdmin">{t('role.OfficeAdmin')}</option>
+          <option value="Viewer">{t('role.Viewer')}</option>
+          <option value="FinanceAccounts">{t('role.FinanceAccounts')}</option>
+          <option value="RecruitmentOfficer">{t('role.RecruitmentOfficer')}</option>
+          <option value="OfficeStaff">{t('role.OfficeStaff')}</option>
         </Select>
 
         {role === 'OfficeStaff' && (

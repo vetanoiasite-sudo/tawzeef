@@ -8,6 +8,9 @@ export const officeUsersAr = {
   role: {
     OfficeAdmin: 'مدير المكتب',
     OfficeStaff: 'موظف المكتب',
+    Viewer: 'مشاهد',
+    FinanceAccounts: 'حسابات مالية',
+    RecruitmentOfficer: 'مسؤول توظيف',
   },
   permissionsLabel: 'الصلاحيات',
   permission: {
