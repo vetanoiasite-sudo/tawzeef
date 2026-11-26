@@ -67,6 +67,11 @@ export type JobAdDetail = {
   officeId: string
   officeName: string | null
   payment: AdvertisementPayment | null
+
+  /** Snapshotted from the package the office chose at payment time — null means either not yet
+   * paid, or paid against a package with no CV cap (unlimited). */
+  cvViewLimit: number | null
+  cvViewsUsed: number
 }
 
 export type JobAdQueryFilter = {

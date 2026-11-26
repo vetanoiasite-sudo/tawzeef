@@ -135,6 +135,10 @@ export default function ReviewDetailPage() {
             <p className="text-sm text-text">
               {t('paymentStatus')}: {ad.payment.paymentStatus}
             </p>
+            <p className="text-sm text-text">
+              {t('cvQuotaLabel')}: {ad.cvViewsUsed}
+              {ad.cvViewLimit !== null ? ` / ${ad.cvViewLimit}` : ` (${t('cvQuotaUnlimited')})`}
+            </p>
           </section>
         )}
 
@@ -197,8 +201,8 @@ export default function ReviewDetailPage() {
               <PaymentConfirmForm
                 isSubmitting={confirmPayment.isPending}
                 error={errorMessage(confirmPayment.error)}
-                onConfirm={(amount, currency, file) => {
-                  confirmPayment.mutate({ amount, currency, file })
+                onConfirm={(jobAdvertisementPackageId, file) => {
+                  confirmPayment.mutate({ jobAdvertisementPackageId, file })
                   setShowPayment(false)
                 }}
                 onCancel={() => setShowPayment(false)}

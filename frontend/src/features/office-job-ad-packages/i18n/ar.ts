@@ -1,0 +1,21 @@
+export const officeJobAdPackagesAr = {
+  pageTitle: 'باقات الإعلانات الوظيفية',
+  pageSubtitle: 'حدد سعر ومدة وعدد الـCVs المتاحة لكل باقة — هذه الباقات خاصة بمكتبك فقط.',
+  emptyList: 'لا توجد باقات بعد.',
+  nameLabel: 'اسم الباقة',
+  priceLabel: 'السعر',
+  currencyLabel: 'العملة',
+  cvViewLimitLabel: 'عدد الـCVs المتاحة',
+  unlimitedCv: 'غير محدود',
+  durationDaysLabel: 'مدة النشر (أيام)',
+  days: 'يوم',
+  editAction: 'تعديل',
+  saveChanges: 'حفظ التعديلات',
+  cancel: 'إلغاء',
+  activateAction: 'تفعيل',
+  deactivateAction: 'إيقاف',
+  status: {
+    active: 'مفعّلة',
+    inactive: 'متوقفة',
+  },
+}

@@ -1,9 +1,8 @@
 import { useRef, useState, type ChangeEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { TextInput } from '@/shared/ui/TextInput'
 import { Select } from '@/shared/ui/Select'
 import { Button } from '@/shared/ui/Button'
-import { useSupportedCurrencies } from '@/features/platform-settings'
+import { useOfficeJobAdPackages } from '@/features/office-job-ad-packages'
 
 export function PaymentConfirmForm({
   isSubmitting,
@@ -14,49 +13,44 @@ export function PaymentConfirmForm({
   isSubmitting: boolean
   error?: string
   /** A receipt photo (invoice, InstaPay screenshot, whatever the payer sent) is required
-   * alongside the amount/currency — confirmed 2026-11-25 product decision. */
-  onConfirm: (amount: number, currency: string, receiptFile: File) => void
+   * alongside the chosen package — confirmed 2026-11-25 product decision, package replaced the
+   * free-typed amount/currency per peppy-greeting-lighthouse.md's plan. */
+  onConfirm: (jobAdvertisementPackageId: string, receiptFile: File) => void
   onCancel: () => void
 }) {
   const { t } = useTranslation('officeJobAdsReview')
-  const [amount, setAmount] = useState('')
-  const [currency, setCurrency] = useState('')
+  const { data: packages } = useOfficeJobAdPackages()
+  const activePackages = (packages ?? []).filter((p) => p.isActive)
+  const [packageId, setPackageId] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [receiptFile, setReceiptFile] = useState<File | null>(null)
 
   function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     setReceiptFile(e.target.files?.[0] ?? null)
   }
-  // A dropdown (not free text) so the value is always one of the real platform.supported_currencies
-  // setting, never whatever an office types by hand. No selection yet (still loading, or the
-  // office hasn't touched it) falls back to the first real currency, computed at render time
-  // rather than synced into state via an effect.
-  const { data: currencies } = useSupportedCurrencies()
-  const effectiveCurrency = currency || currencies?.[0] || ''
+  // No selection yet falls back to the first active package, computed at render time rather
+  // than synced into state via an effect — same pattern this form used for currency before.
+  const effectivePackageId = packageId || activePackages[0]?.id || ''
 
   return (
     <div className="flex flex-col gap-3 rounded-md border border-primary/40 p-3">
-      <TextInput
-        id="paymentAmount"
-        label={t('paymentAmountLabel')}
-        type="number"
-        min={0}
-        step="0.01"
-        value={amount}
-        onChange={(e) => setAmount(e.target.value)}
-      />
-      <Select
-        id="paymentCurrency"
-        label={t('paymentCurrencyLabel')}
-        value={effectiveCurrency}
-        onChange={(e) => setCurrency(e.target.value)}
-      >
-        {(currencies ?? []).map((code) => (
-          <option key={code} value={code}>
-            {code}
-          </option>
-        ))}
-      </Select>
+      {activePackages.length === 0 ? (
+        <p className="text-sm text-danger">{t('noActivePackages')}</p>
+      ) : (
+        <Select
+          id="paymentPackage"
+          label={t('paymentPackageLabel')}
+          value={effectivePackageId}
+          onChange={(e) => setPackageId(e.target.value)}
+        >
+          {activePackages.map((pkg) => (
+            <option key={pkg.id} value={pkg.id}>
+              {pkg.name} — {pkg.price} {pkg.currency} / {pkg.durationDays} يوم /{' '}
+              {pkg.cvViewLimit ?? 'غير محدود'} CV
+            </option>
+          ))}
+        </Select>
+      )}
       <div className="flex flex-col gap-1.5">
         <span className="text-[14px] font-bold text-content-primary">{t('paymentReceiptLabel')}</span>
         <input
@@ -80,8 +74,8 @@ export function PaymentConfirmForm({
       <div className="flex gap-2">
         <Button
           variant="primary"
-          disabled={isSubmitting || !amount || Number(amount) <= 0 || !receiptFile}
-          onClick={() => receiptFile && onConfirm(Number(amount), effectiveCurrency, receiptFile)}
+          disabled={isSubmitting || !effectivePackageId || !receiptFile}
+          onClick={() => receiptFile && onConfirm(effectivePackageId, receiptFile)}
         >
           {t('confirmPaymentAction')}
         </Button>

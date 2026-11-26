@@ -67,6 +67,11 @@ export type OfficeJobAdDetail = {
   closedAt: string | null
   employerDisplayName: string | null
   payment: AdvertisementPayment | null
+
+  /** Snapshotted from the package chosen at payment time — null means either not yet paid, or
+   * paid against a package with no CV cap (unlimited). */
+  cvViewLimit: number | null
+  cvViewsUsed: number
 }
 
 /** Mirrors backend's UpdateJobAdvertisementDto (same shape the employer's own edit form posts) —

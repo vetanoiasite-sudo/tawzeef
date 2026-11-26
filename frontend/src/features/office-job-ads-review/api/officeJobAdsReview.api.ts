@@ -42,18 +42,15 @@ export const officeJobAdsReviewApi = {
     httpClient.post<OfficeJobAdDetail>(`/api/office/job-advertisements/${id}/resume`),
   confirmPayment: ({
     id,
-    amount,
-    currency,
+    jobAdvertisementPackageId,
     file,
   }: {
     id: string
-    amount: number
-    currency: string
+    jobAdvertisementPackageId: string
     file: File
   }) => {
     const form = new FormData()
-    form.append('Amount', String(amount))
-    form.append('Currency', currency)
+    form.append('JobAdvertisementPackageId', jobAdvertisementPackageId)
     form.append('File', file)
     return httpClient.post<OfficeJobAdDetail>(`/api/office/job-advertisements/${id}/payment/confirm`, form)
   },

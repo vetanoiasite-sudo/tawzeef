@@ -55,6 +55,8 @@ export const employerJobAdsAr = {
   paymentAmount: 'المبلغ',
   paymentStatus: 'حالة السداد',
   paymentPaidAt: 'تاريخ السداد',
+  cvQuotaLabel: 'الـCVs المستخدمة',
+  cvQuotaUnlimited: 'غير محدود',
   applicantsAction: 'عرض المتقدمين',
   viewProfile: 'عرض الملف الشخصي',
   applicantsTitle: 'المتقدمون على الوظيفة',

@@ -127,6 +127,10 @@ export default function JobAdDetailPage() {
                   {t('paymentPaidAt')}: {new Date(ad.payment.paidAt).toLocaleDateString('ar')}
                 </p>
               )}
+              <p className="text-sm text-text">
+                {t('cvQuotaLabel')}: {ad.cvViewsUsed}
+                {ad.cvViewLimit !== null ? ` / ${ad.cvViewLimit}` : ` (${t('cvQuotaUnlimited')})`}
+              </p>
             </section>
           )}
 
