@@ -1,8 +1,0 @@
-namespace Tawzeef.Application.Features.Governorates;
-
-public class GovernorateDto
-{
-    public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public int DisplayOrder { get; set; }
-}

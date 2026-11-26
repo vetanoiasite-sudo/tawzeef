@@ -1,1 +1,0 @@
-import{L as e}from"./clsx-DkL_3y1-.js";var t=e();function n({message:e,action:n}){return(0,t.jsxs)(`div`,{className:`flex flex-col items-center gap-3 rounded-lg border border-dashed border-surface-muted bg-surface px-6 py-10 text-center`,children:[(0,t.jsx)(`p`,{className:`text-sm text-text-muted`,children:e}),n]})}export{n as t};
