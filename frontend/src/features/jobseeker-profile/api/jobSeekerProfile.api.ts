@@ -5,6 +5,7 @@ import type {
   JobSeekerOfficeStatus,
   JobSeekerProfile,
   SubmitJobSeekerOfficesPayload,
+  UpdateDesiredCategoryPayload,
   UpdateJobSeekerProfilePayload,
 } from '../types/jobSeekerProfile.types'
 
@@ -12,6 +13,8 @@ export const jobSeekerProfileApi = {
   getMyProfile: () => httpClient.get<JobSeekerProfile>('/api/jobseekers/me'),
   updateMyProfile: (payload: UpdateJobSeekerProfilePayload) =>
     httpClient.put<JobSeekerProfile>('/api/jobseekers/me', payload),
+  updateDesiredCategory: (payload: UpdateDesiredCategoryPayload) =>
+    httpClient.put<JobSeekerProfile>('/api/jobseekers/me/desired-category', payload),
   uploadDocument: ({
     documentType,
     file,

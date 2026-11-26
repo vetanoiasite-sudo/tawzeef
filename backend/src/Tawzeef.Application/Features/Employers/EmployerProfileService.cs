@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Tawzeef.Application.Common;
+using Tawzeef.Application.Features.Notifications;
 using Tawzeef.Domain.Common;
 using Tawzeef.Domain.Contracts;
 using Tawzeef.Domain.Entities.Employers;
@@ -8,7 +9,8 @@ using Tawzeef.Domain.Enums;
 
 namespace Tawzeef.Application.Features.Employers;
 
-public class EmployerProfileService(IUnitOfWork uow, IFileStorage fileStorage, IConfiguration configuration) : IEmployerProfileService
+public class EmployerProfileService(
+    IUnitOfWork uow, IFileStorage fileStorage, IConfiguration configuration, INotificationService notificationService) : IEmployerProfileService
 {
     // Same confirmed decision as the job seeker's documents (RBAC_PERMISSIONS.md §0 item 24):
     // PDF/JPG/PNG, 2 MB, configurable. Excel added 2026-11-23, Word added 2026-11-24.
@@ -50,7 +52,7 @@ public class EmployerProfileService(IUnitOfWork uow, IFileStorage fileStorage, I
         // reverts it to UnderReview — same rule as §1 for the job seeker. Documents are shared
         // across every office applied to (confirmed 2026-11-24), so this reverts every one of this
         // employer's Approved office applications, not just one.
-        await RevertApprovalIfNeededAsync(employer.Id, ct);
+        await RevertApprovalIfNeededAsync(employer, ct);
 
         uow.Repository<Employer>().Update(employer);
         await uow.SaveChangesAsync(ct);
@@ -102,7 +104,7 @@ public class EmployerProfileService(IUnitOfWork uow, IFileStorage fileStorage, I
         await uow.Repository<EmployerDocument>().AddAsync(document, ct);
 
         // Same automatic revert as a profile edit (WORKFLOWS_AND_STATE_MACHINES.md §3).
-        await RevertApprovalIfNeededAsync(employer.Id, ct);
+        await RevertApprovalIfNeededAsync(employer, ct);
 
         await uow.SaveChangesAsync(ct);
 
@@ -153,6 +155,11 @@ public class EmployerProfileService(IUnitOfWork uow, IFileStorage fileStorage, I
             application.VerificationStatus = EmployerVerificationStatus.Submitted;
             application.RejectionReason = null; // Rejected -> Submitted clears the reason, same as §1.
             uow.Repository<EmployerOfficeApplication>().Update(application);
+
+            await notificationService.CreateForAllOfficeStaffAsync(
+                application.OfficeId, "Employer.Submitted",
+                $"صاحب عمل جديد قدّم ملفه للمراجعة: \"{employer.DisplayName}\".",
+                nameof(Employer), employer.Id, ct);
         }
         await uow.SaveChangesAsync(ct);
 
@@ -338,14 +345,19 @@ public class EmployerProfileService(IUnitOfWork uow, IFileStorage fileStorage, I
             .ToList();
     }
 
-    private async Task RevertApprovalIfNeededAsync(Guid employerId, CancellationToken ct)
+    private async Task RevertApprovalIfNeededAsync(Employer employer, CancellationToken ct)
     {
         var approved = await uow.Repository<EmployerOfficeApplication>().ListAsync(
-            a => a.EmployerId == employerId && a.VerificationStatus == EmployerVerificationStatus.Approved, ct: ct);
+            a => a.EmployerId == employer.Id && a.VerificationStatus == EmployerVerificationStatus.Approved, ct: ct);
         foreach (var application in approved)
         {
             application.VerificationStatus = EmployerVerificationStatus.UnderReview;
             uow.Repository<EmployerOfficeApplication>().Update(application);
+
+            await notificationService.CreateForAllOfficeStaffAsync(
+                application.OfficeId, "Employer.ReSubmitted",
+                $"صاحب العمل \"{employer.DisplayName}\" عدّل ملفه/مستنداته — محتاج مراجعة تاني.",
+                nameof(Employer), employer.Id, ct);
         }
     }
 }

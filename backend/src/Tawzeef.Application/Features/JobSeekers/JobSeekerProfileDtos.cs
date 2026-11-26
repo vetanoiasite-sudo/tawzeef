@@ -45,6 +45,10 @@ public class JobSeekerProfileDto
     public string? CareerSummary { get; set; }
     public string? JobTitle { get; set; }
 
+    /// <summary>The job seeker's own single preferred JobCategory — drives the "new ad in your
+    /// field" notification once an office publishes a matching advertisement.</summary>
+    public Guid? DesiredCategoryId { get; set; }
+
     /// <summary>Whether a profile photo is set — never a raw URL (the photo is private, not
     /// public like a company logo); the frontend fetches it through the authenticated
     /// GET /api/jobseekers/me/photo (or the office's GET /api/office/job-seekers/{id}/photo).</summary>
@@ -93,4 +97,12 @@ public class UpdateJobSeekerProfileDto
 
     [MaxLength(150)]
     public string? JobTitle { get; set; }
+}
+
+/// <summary>Separate from UpdateJobSeekerProfileDto on purpose — a notification preference, not
+/// reviewable profile content, so setting it must never trigger
+/// JobSeekerProfileService.RevertApprovalIfNeededAsync.</summary>
+public class UpdateDesiredCategoryDto
+{
+    public Guid? DesiredCategoryId { get; set; }
 }

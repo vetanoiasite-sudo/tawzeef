@@ -171,6 +171,7 @@ public class JobSeekerReviewService(IUnitOfWork uow, IFileStorage fileStorage, I
                 application.ApprovedBy = reviewerId;
                 application.ApprovedAt = DateTime.UtcNow;
                 application.RejectionReason = null;
+                application.NextEmploymentCheckDueAt = application.ApprovedAt.Value.AddMonths(1);
                 uow.Repository<JobSeekerOfficeApplication>().Update(application);
 
                 await notificationService.CreateAsync(
@@ -234,6 +235,7 @@ public class JobSeekerReviewService(IUnitOfWork uow, IFileStorage fileStorage, I
         application.ApprovedBy = reviewerId;
         application.ApprovedAt = DateTime.UtcNow;
         application.RejectionReason = null;
+        application.NextEmploymentCheckDueAt = application.ApprovedAt.Value.AddMonths(1);
         uow.Repository<JobSeekerOfficeApplication>().Update(application);
 
         await notificationService.CreateAsync(
@@ -295,6 +297,11 @@ public class JobSeekerReviewService(IUnitOfWork uow, IFileStorage fileStorage, I
             DecidedBy = reviewerId,
         }, ct);
 
+        await notificationService.CreateAsync(
+            officeId, profile.UserId, "JobSeekerProfile.Suspended",
+            $"تم تجميد ملفك في هذا المكتب — السبب: {application.SuspensionReason}",
+            nameof(JobSeekerProfile), profile.Id, ct);
+
         await uow.SaveChangesAsync(ct);
 
         var documents = await uow.Repository<JobSeekerDocument>().ListAsync(d => d.JobSeekerId == profile.Id && d.IsActive, ct: ct);
@@ -327,10 +334,57 @@ public class JobSeekerReviewService(IUnitOfWork uow, IFileStorage fileStorage, I
             DecidedBy = reviewerId,
         }, ct);
 
+        await notificationService.CreateAsync(
+            officeId, profile.UserId, "JobSeekerProfile.Reinstated",
+            "تم إعادة تفعيل ملفك في هذا المكتب.", nameof(JobSeekerProfile), profile.Id, ct);
+
         await uow.SaveChangesAsync(ct);
 
         var documents = await uow.Repository<JobSeekerDocument>().ListAsync(d => d.JobSeekerId == profile.Id && d.IsActive, ct: ct);
         return ServiceResult<JobSeekerProfileDto>.Success(profile.ToDto(documents, await CountValidComplaintsAsync(profile.Id, ct), application));
+    }
+
+    public async Task<ServiceResult<PagedResult<EmployedJobSeekerListItemDto>>> ListEmployedAsync(
+        Guid officeId, EmployedJobSeekersQueryDto query, CancellationToken ct = default)
+    {
+        var pageIndex = Math.Max(query.PageIndex, 0);
+        var pageSize = query.PageSize is > 0 and <= 100 ? query.PageSize : 20;
+
+        var applications = await uow.Repository<JobSeekerOfficeApplication>().ListAsync(
+            a => a.OfficeId == officeId && a.EmployedAt != null, ct: ct);
+        if (applications.Count == 0)
+            return ServiceResult<PagedResult<EmployedJobSeekerListItemDto>>.Success(new PagedResult<EmployedJobSeekerListItemDto>
+            { Items = [], PageIndex = pageIndex, PageSize = pageSize, TotalCount = 0 });
+
+        var profileIds = applications.Select(a => a.JobSeekerId).ToList();
+        var profiles = await uow.Repository<JobSeekerProfile>().ListAsync(p => profileIds.Contains(p.Id), ct: ct);
+        var profilesById = profiles.ToDictionary(p => p.Id);
+
+        var ordered = applications
+            .OrderByDescending(a => a.EmployedAt)
+            .Where(a => profilesById.ContainsKey(a.JobSeekerId))
+            .ToList();
+
+        var page = ordered.Skip(pageIndex * pageSize).Take(pageSize).ToList();
+
+        return ServiceResult<PagedResult<EmployedJobSeekerListItemDto>>.Success(new PagedResult<EmployedJobSeekerListItemDto>
+        {
+            Items = page.Select(a =>
+            {
+                var profile = profilesById[a.JobSeekerId];
+                return new EmployedJobSeekerListItemDto
+                {
+                    JobSeekerId = profile.Id,
+                    FullName = profile.FullName,
+                    MobileNumber = profile.MobileNumber,
+                    EmployedAt = a.EmployedAt!.Value,
+                    LeftJobAt = a.LeftJobAt,
+                };
+            }).ToList(),
+            PageIndex = pageIndex,
+            PageSize = pageSize,
+            TotalCount = ordered.Count,
+        });
     }
 
     private async Task<(JobSeekerProfile? Profile, string? Error)> LoadReviewableProfileAsync(Guid officeId, Guid profileId, CancellationToken ct)

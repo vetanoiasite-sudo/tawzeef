@@ -32,6 +32,8 @@ export type JobSeekerOfficeStatus = {
   rejectionReason: string | null
   suspendedAt: string | null
   suspensionReason: string | null
+  employedAt: string | null
+  leftJobAt: string | null
 }
 
 export type JobSeekerProfile = {
@@ -47,11 +49,19 @@ export type JobSeekerProfile = {
   skills: string | null
   careerSummary: string | null
   jobTitle: string | null
+  /** The job seeker's own single preferred category — drives the "new ad in your field"
+   * notification, set separately via useUpdateDesiredCategory (never through UpdateMyProfile, so
+   * it never reverts an Approved office application). */
+  desiredCategoryId: string | null
   /** No raw URL — the photo is private, fetched through the authenticated
    * GET /api/jobseekers/me/photo (see photoApi). */
   hasPhoto: boolean
   officeApplication: JobSeekerOfficeStatus | null
   documents: JobSeekerDocument[]
+}
+
+export type UpdateDesiredCategoryPayload = {
+  desiredCategoryId?: string
 }
 
 export type SubmitJobSeekerOfficesPayload = {

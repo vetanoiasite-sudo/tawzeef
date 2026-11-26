@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Tawzeef.Application.Common;
+using Tawzeef.Application.Features.Notifications;
 using Tawzeef.Domain.Contracts;
 using Tawzeef.Domain.Entities.JobSeekers;
 using Tawzeef.Domain.Entities.Offices;
@@ -7,7 +8,8 @@ using Tawzeef.Domain.Enums;
 
 namespace Tawzeef.Application.Features.JobSeekers;
 
-public class JobSeekerProfileService(IUnitOfWork uow, IFileStorage fileStorage, IConfiguration configuration, ICvParser cvParser) : IJobSeekerProfileService
+public class JobSeekerProfileService(
+    IUnitOfWork uow, IFileStorage fileStorage, IConfiguration configuration, ICvParser cvParser, INotificationService notificationService) : IJobSeekerProfileService
 {
     // BUSINESS_REQUIREMENTS.md §5.1 Step 4 — PDF/JPG/PNG, confirmed 2026-11-18, size limit lowered
     // to 2 MB 2026-11-23, configurable either way. Excel added 2026-11-23, Word added 2026-11-24.
@@ -51,13 +53,26 @@ public class JobSeekerProfileService(IUnitOfWork uow, IFileStorage fileStorage, 
         // to UnderReview — not a client choice. Documents are shared across every office the job
         // seeker applied to (confirmed 2026-11-24), so this reverts every one of their Approved
         // office applications, not just one.
-        await RevertApprovalIfNeededAsync(profile.Id, ct);
+        await RevertApprovalIfNeededAsync(profile, ct);
 
         uow.Repository<JobSeekerProfile>().Update(profile);
         await uow.SaveChangesAsync(ct);
 
         var documents = await uow.Repository<JobSeekerDocument>().ListAsync(d => d.JobSeekerId == profile.Id && d.IsActive, ct: ct);
         return ServiceResult<JobSeekerProfileDto>.Success(profile.ToDto(documents));
+    }
+
+    public async Task<ServiceResult<JobSeekerProfileDto>> UpdateDesiredCategoryAsync(Guid userId, UpdateDesiredCategoryDto dto, CancellationToken ct = default)
+    {
+        var profile = await uow.Repository<JobSeekerProfile>().FindAsync(p => p.UserId == userId, ct: ct);
+        if (profile is null) return ServiceResult<JobSeekerProfileDto>.NotFound("لا يوجد ملف باحث عن عمل لهذا المستخدم.");
+
+        profile.DesiredCategoryId = dto.DesiredCategoryId;
+        uow.Repository<JobSeekerProfile>().Update(profile);
+        await uow.SaveChangesAsync(ct);
+
+        var updatedDocuments = await uow.Repository<JobSeekerDocument>().ListAsync(d => d.JobSeekerId == profile.Id && d.IsActive, ct: ct);
+        return ServiceResult<JobSeekerProfileDto>.Success(profile.ToDto(updatedDocuments));
     }
 
     public async Task<ServiceResult<JobSeekerDocumentDto>> UploadDocumentAsync(
@@ -109,7 +124,7 @@ public class JobSeekerProfileService(IUnitOfWork uow, IFileStorage fileStorage, 
         await uow.Repository<JobSeekerDocument>().AddAsync(document, ct);
 
         // Same automatic revert as a profile edit (WORKFLOWS_AND_STATE_MACHINES.md §1).
-        await RevertApprovalIfNeededAsync(profile.Id, ct);
+        await RevertApprovalIfNeededAsync(profile, ct);
 
         await uow.SaveChangesAsync(ct);
 
@@ -149,6 +164,11 @@ public class JobSeekerProfileService(IUnitOfWork uow, IFileStorage fileStorage, 
             application.ReviewStatus = JobSeekerReviewStatus.Submitted;
             application.RejectionReason = null; // WORKFLOWS_AND_STATE_MACHINES.md §1: Rejected -> Submitted clears the reason.
             uow.Repository<JobSeekerOfficeApplication>().Update(application);
+
+            await notificationService.CreateForAllOfficeStaffAsync(
+                application.OfficeId, "JobSeeker.Submitted",
+                $"باحث عن عمل جديد قدّم ملفه للمراجعة: \"{profile.FullName}\".",
+                nameof(JobSeekerProfile), profile.Id, ct);
         }
         await uow.SaveChangesAsync(ct);
 
@@ -295,14 +315,19 @@ public class JobSeekerProfileService(IUnitOfWork uow, IFileStorage fileStorage, 
             .ToList();
     }
 
-    private async Task RevertApprovalIfNeededAsync(Guid jobSeekerId, CancellationToken ct)
+    private async Task RevertApprovalIfNeededAsync(JobSeekerProfile profile, CancellationToken ct)
     {
         var approved = await uow.Repository<JobSeekerOfficeApplication>().ListAsync(
-            a => a.JobSeekerId == jobSeekerId && a.ReviewStatus == JobSeekerReviewStatus.Approved, ct: ct);
+            a => a.JobSeekerId == profile.Id && a.ReviewStatus == JobSeekerReviewStatus.Approved, ct: ct);
         foreach (var application in approved)
         {
             application.ReviewStatus = JobSeekerReviewStatus.UnderReview;
             uow.Repository<JobSeekerOfficeApplication>().Update(application);
+
+            await notificationService.CreateForAllOfficeStaffAsync(
+                application.OfficeId, "JobSeeker.ReSubmitted",
+                $"الباحث \"{profile.FullName}\" عدّل ملفه/مستنداته — محتاج مراجعة تاني.",
+                nameof(JobSeekerProfile), profile.Id, ct);
         }
     }
 }

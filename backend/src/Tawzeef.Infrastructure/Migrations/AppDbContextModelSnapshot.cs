@@ -535,6 +535,16 @@ namespace Tawzeef.Infrastructure.Migrations
                     b.Property<DateTime>("DueAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("EmployerLastNotifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EmployerNotes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime?>("EmployerRespondedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool?>("EmployerSatisfied")
                         .HasColumnType("bit");
 
@@ -544,11 +554,17 @@ namespace Tawzeef.Infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<Guid>("JobApplicationId")
+                    b.Property<Guid?>("JobApplicationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("JobSeekerOfficeApplicationId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<bool?>("JobSeekerSatisfied")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastNotifiedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<Guid?>("ModifiedBy")
                         .HasColumnType("uniqueidentifier");
@@ -560,8 +576,14 @@ namespace Tawzeef.Infrastructure.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
+                    b.Property<DateTime?>("OfficeEscalatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<Guid>("OfficeId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("SelfReported")
+                        .HasColumnType("bit");
 
                     b.Property<byte>("Status")
                         .HasColumnType("tinyint");
@@ -572,7 +594,12 @@ namespace Tawzeef.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("JobApplicationId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[JobApplicationId] IS NOT NULL");
+
+                    b.HasIndex("JobSeekerOfficeApplicationId")
+                        .IsUnique()
+                        .HasFilter("[JobSeekerOfficeApplicationId] IS NOT NULL");
 
                     b.HasIndex("OfficeId", "Status", "DueAt");
 
@@ -597,6 +624,19 @@ namespace Tawzeef.Infrastructure.Migrations
                     b.Property<Guid>("JobApplicationId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime?>("JobSeekerFeedbackAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("JobSeekerFeedbackLastNotifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("JobSeekerFeedbackNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<byte>("JobSeekerFeedbackOutcome")
+                        .HasColumnType("tinyint");
+
                     b.Property<string>("LocationOrMeetingDetails")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -610,6 +650,9 @@ namespace Tawzeef.Infrastructure.Migrations
                     b.Property<Guid>("OfficeId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime?>("ReminderSentAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("ScheduledAt")
                         .HasColumnType("datetime2");
 
@@ -619,6 +662,10 @@ namespace Tawzeef.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("JobApplicationId");
+
+                    b.HasIndex("JobSeekerFeedbackOutcome", "ScheduledAt");
+
+                    b.HasIndex("Status", "ReminderSentAt", "ScheduledAt");
 
                     b.ToTable("Interviews", (string)null);
                 });
@@ -818,6 +865,9 @@ namespace Tawzeef.Infrastructure.Migrations
                     b.Property<DateTime?>("ExpiresAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("ExpiryReminderSentAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -829,6 +879,9 @@ namespace Tawzeef.Infrastructure.Migrations
 
                     b.Property<Guid>("OfficeId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("PendingApplicantsLastNotifiedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("PublishedAt")
                         .HasColumnType("datetime2");
@@ -870,7 +923,11 @@ namespace Tawzeef.Infrastructure.Migrations
 
                     b.HasIndex("EmployerId", "Status");
 
+                    b.HasIndex("Status", "PendingApplicantsLastNotifiedAt");
+
                     b.HasIndex("OfficeId", "Status", "ExpiresAt");
+
+                    b.HasIndex("Status", "ExpiryReminderSentAt", "ExpiresAt");
 
                     b.ToTable("JobAdvertisements", (string)null);
                 });
@@ -1153,16 +1210,32 @@ namespace Tawzeef.Infrastructure.Migrations
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("EmployedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EmploymentCheckLastNotifiedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
                     b.Property<Guid>("JobSeekerId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime?>("LeftJobAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LeftJobNotes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<Guid?>("ModifiedBy")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("NextEmploymentCheckDueAt")
                         .HasColumnType("datetime2");
 
                     b.Property<Guid>("OfficeId")
@@ -1184,8 +1257,12 @@ namespace Tawzeef.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("NextEmploymentCheckDueAt");
+
                     b.HasIndex("JobSeekerId", "OfficeId")
                         .IsUnique();
+
+                    b.HasIndex("OfficeId", "EmployedAt");
 
                     b.HasIndex("OfficeId", "ReviewStatus");
 
@@ -1218,6 +1295,9 @@ namespace Tawzeef.Infrastructure.Migrations
 
                     b.Property<DateOnly?>("DateOfBirth")
                         .HasColumnType("date");
+
+                    b.Property<Guid?>("DesiredCategoryId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Education")
                         .HasMaxLength(200)
@@ -1279,6 +1359,8 @@ namespace Tawzeef.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("DesiredCategoryId");
+
                     b.HasIndex("NationalId")
                         .IsUnique();
 
@@ -1339,6 +1421,9 @@ namespace Tawzeef.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime?>("AccountsReviewLastNotifiedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Address")
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
@@ -1391,6 +1476,9 @@ namespace Tawzeef.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("PendingReviewLastNotifiedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Phone")
                         .HasMaxLength(30)

@@ -22,4 +22,7 @@ public class FakeNotificationService : INotificationService
 
     public Task CreateForOfficeAdminsAsync(Guid officeId, string eventType, string message, string? relatedType = null, Guid? relatedId = null, CancellationToken ct = default) =>
         Task.CompletedTask;
+
+    public Task CreateForAllOfficeStaffAsync(Guid officeId, string eventType, string message, string? relatedType = null, Guid? relatedId = null, CancellationToken ct = default) =>
+        Task.CompletedTask;
 }

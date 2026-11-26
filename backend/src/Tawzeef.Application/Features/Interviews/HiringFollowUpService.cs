@@ -16,6 +16,7 @@ public class HiringFollowUpService(IUnitOfWork uow) : IHiringFollowUpService
     {
         Id = r.Id,
         JobApplicationId = r.JobApplicationId,
+        SelfReported = r.SelfReported,
         HiredAt = r.HiredAt,
         DueAt = r.DueAt,
         Status = EffectiveStatus(r).ToString(),
@@ -116,7 +117,7 @@ public class HiringFollowUpService(IUnitOfWork uow) : IHiringFollowUpService
             r => r.OfficeId == officeId && r.Status == FollowUpReportStatus.PendingDue,
             orderBy: r => r.DueAt, ct: ct);
 
-        var applicationIds = page.Items.Select(r => r.JobApplicationId).ToList();
+        var applicationIds = page.Items.Where(r => r.JobApplicationId is not null).Select(r => r.JobApplicationId!.Value).ToList();
         var applications = applicationIds.Count == 0 ? [] : await uow.Repository<JobApplication>().ListAsync(a => applicationIds.Contains(a.Id), ct: ct);
         var applicationsById = applications.ToDictionary(a => a.Id);
 
@@ -128,7 +129,17 @@ public class HiringFollowUpService(IUnitOfWork uow) : IHiringFollowUpService
         var employers = employerIds.Count == 0 ? [] : await uow.Repository<Employer>().ListAsync(e => employerIds.Contains(e.Id), ct: ct);
         var employersById = employers.ToDictionary(e => e.Id);
 
-        var jobSeekerIds = applications.Select(a => a.JobSeekerId).Distinct().ToList();
+        // Self-reported rows (no JobApplicationId) reach their job seeker through
+        // JobSeekerOfficeApplicationId instead.
+        var officeApplicationIds = page.Items.Where(r => r.JobSeekerOfficeApplicationId is not null)
+            .Select(r => r.JobSeekerOfficeApplicationId!.Value).ToList();
+        var officeApplications = officeApplicationIds.Count == 0 ? [] : await uow.Repository<JobSeekerOfficeApplication>().ListAsync(
+            a => officeApplicationIds.Contains(a.Id), ct: ct);
+        var officeApplicationsById = officeApplications.ToDictionary(a => a.Id);
+
+        var jobSeekerIds = applications.Select(a => a.JobSeekerId)
+            .Concat(officeApplications.Select(a => a.JobSeekerId))
+            .Distinct().ToList();
         var profiles = jobSeekerIds.Count == 0 ? [] : await uow.Repository<JobSeekerProfile>().ListAsync(p => jobSeekerIds.Contains(p.Id), ct: ct);
         var profilesById = profiles.ToDictionary(p => p.Id);
 
@@ -136,13 +147,16 @@ public class HiringFollowUpService(IUnitOfWork uow) : IHiringFollowUpService
         {
             Items = page.Items.Select(r =>
             {
-                var application = applicationsById.GetValueOrDefault(r.JobApplicationId);
+                var application = r.JobApplicationId is null ? null : applicationsById.GetValueOrDefault(r.JobApplicationId.Value);
                 var ad = application is null ? null : adsById.GetValueOrDefault(application.JobAdvertisementId);
+                var officeApplication = r.JobSeekerOfficeApplicationId is null ? null : officeApplicationsById.GetValueOrDefault(r.JobSeekerOfficeApplicationId.Value);
+                var jobSeekerId = application?.JobSeekerId ?? officeApplication?.JobSeekerId;
                 return new HiringFollowUpListItemDto
                 {
                     Id = r.Id,
                     JobApplicationId = r.JobApplicationId,
-                    JobSeekerName = application is null ? string.Empty : profilesById.GetValueOrDefault(application.JobSeekerId)?.FullName ?? string.Empty,
+                    SelfReported = r.SelfReported,
+                    JobSeekerName = jobSeekerId is null ? string.Empty : profilesById.GetValueOrDefault(jobSeekerId.Value)?.FullName ?? string.Empty,
                     EmployerDisplayName = ad is null ? string.Empty : employersById.GetValueOrDefault(ad.EmployerId)?.DisplayName ?? string.Empty,
                     JobTitle = ad?.Title ?? string.Empty,
                     HiredAt = r.HiredAt,

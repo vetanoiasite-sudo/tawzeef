@@ -5,6 +5,7 @@ import {
   useMarkNotificationRead,
   useMyNotifications,
 } from '../api/notifications.queries'
+import { NotificationResponseActions } from '../components/NotificationResponseActions'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
@@ -24,6 +25,9 @@ export default function NotificationsPage() {
   const { data, isLoading } = useMyNotifications({ unreadOnly, pageIndex, pageSize: PAGE_SIZE })
   const markRead = useMarkNotificationRead()
   const markAllRead = useMarkAllNotificationsRead()
+  // No persisted "answered" flag on the Notification row — this just hides the buttons for the
+  // rest of this page visit, see NotificationResponseActions's own doc comment.
+  const [respondedIds, setRespondedIds] = useState<Set<string>>(new Set())
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8">
@@ -66,11 +70,21 @@ export default function NotificationsPage() {
                 !n.readAt && 'border-primary bg-primary/5',
               )}
             >
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-2">
                 <p className="text-sm text-text">{n.message}</p>
                 <p className="text-xs text-text-muted">
                   {new Date(n.createdAt).toLocaleString('ar')}
                 </p>
+                {!respondedIds.has(n.id) && (
+                  <NotificationResponseActions
+                    eventType={n.eventType}
+                    relatedId={n.relatedId}
+                    onResponded={() => {
+                      setRespondedIds((prev) => new Set(prev).add(n.id))
+                      if (!n.readAt) markRead.mutate(n.id)
+                    }}
+                  />
+                )}
               </div>
               {!n.readAt && (
                 <Button

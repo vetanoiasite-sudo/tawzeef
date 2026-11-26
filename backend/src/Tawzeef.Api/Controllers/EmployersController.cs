@@ -10,7 +10,10 @@ namespace Tawzeef.Api.Controllers;
 /// <summary>Self-service, mirrors JobSeekersController exactly — RBAC_PERMISSIONS.md's
 /// employers.*own verbs, not the office review surface (OfficeEmployersController).</summary>
 [Route("api/employers")]
-public class EmployersController(IEmployerProfileService service, ICurrentUser currentUser) : ApiControllerBase
+public class EmployersController(
+    IEmployerProfileService service,
+    IEmployerFollowUpService followUpService,
+    ICurrentUser currentUser) : ApiControllerBase
 {
     [HttpGet("me")]
     [RequiresPermission("employers.viewown")]
@@ -108,6 +111,13 @@ public class EmployersController(IEmployerProfileService service, ICurrentUser c
     [AllowAnonymous]
     public async Task<IActionResult> GetPublicEmployer(Guid id, CancellationToken ct)
         => Respond(await service.GetPublicCooperatingByIdAsync(id, ct));
+
+    /// <summary>The employer's own reply to "are you satisfied with this hire?" — {id} is the
+    /// Notification row's RelatedId, naming the HiringFollowUpReport it answers.</summary>
+    [HttpPost("me/follow-up/hiring-follow-up/{id:guid}/respond")]
+    [RequiresPermission("hiringfollowupreports.respondemployer")]
+    public async Task<IActionResult> RespondToHiringFollowUp(Guid id, [FromBody] RespondEmployerHiringFollowUpDto dto, CancellationToken ct)
+        => Respond(await followUpService.RespondToHiringFollowUpAsync(RequireUserId(), id, dto, ct));
 
     private Guid RequireUserId() => currentUser.Id ?? throw new UnauthorizedAccessException();
 }

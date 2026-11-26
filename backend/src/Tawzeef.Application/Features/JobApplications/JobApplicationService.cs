@@ -29,6 +29,14 @@ public class JobApplicationService(IUnitOfWork uow, INotificationService notific
         if (officeApplication is null || officeApplication.ReviewStatus != JobSeekerReviewStatus.Approved)
             return ServiceResult<JobApplicationIdDto>.Forbidden("Your profile must be approved by this advertisement's office before you can apply.");
 
+        // Added 2026-11-26: once employed (self-reported or office-recorded, through any office)
+        // this job seeker is off the market everywhere, not just the office that heard about it —
+        // peppy-greeting-lighthouse.md's plan.
+        var isEmployed = await uow.Repository<JobSeekerOfficeApplication>().AnyAsync(
+            a => a.JobSeekerId == profile.Id && a.EmployedAt != null && a.LeftJobAt == null, ct);
+        if (isEmployed)
+            return ServiceResult<JobApplicationIdDto>.Forbidden("You are currently marked as employed — you can't apply to a new job until you report leaving your job.");
+
         var hasActiveApplication = await uow.Repository<JobApplication>().AnyAsync(
             a => a.JobAdvertisementId == ad.Id && a.JobSeekerId == profile.Id && a.WithdrawnAt == null, ct);
         if (hasActiveApplication)

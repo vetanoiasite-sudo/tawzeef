@@ -19,4 +19,10 @@ public interface INotificationService
     /// <summary>One notification per active OfficeAdmin of the office — OfficeStaff are never
     /// included, since they may not even have been granted the relevant action.</summary>
     Task CreateForOfficeAdminsAsync(Guid officeId, string eventType, string message, string? relatedType = null, Guid? relatedId = null, CancellationToken ct = default);
+
+    /// <summary>One notification per active member of the office — OfficeAdmin and OfficeStaff
+    /// alike. Added 2026-11-26 for the new "something landed in the office's queue" notifications,
+    /// deliberately unfiltered by role for now (confirmed: role-based targeting, e.g. an "accounts"
+    /// role, is a later pass — don't narrow this on your own).</summary>
+    Task CreateForAllOfficeStaffAsync(Guid officeId, string eventType, string message, string? relatedType = null, Guid? relatedId = null, CancellationToken ct = default);
 }

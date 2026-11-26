@@ -14,6 +14,8 @@ public class JobSeekerOfficeStatusDto
     public string? RejectionReason { get; set; }
     public DateTime? SuspendedAt { get; set; }
     public string? SuspensionReason { get; set; }
+    public DateTime? EmployedAt { get; set; }
+    public DateTime? LeftJobAt { get; set; }
 }
 
 /// <summary>Submit to specific offices, or every currently-active office — used both right after

@@ -21,6 +21,20 @@ public class JobSeekerOfficeApplication : IEntity
     public DateTime? SuspendedAt { get; set; }
     public string? SuspensionReason { get; set; }
 
+    /// <summary>Self-reported by the job seeker from the monthly "did you find a job?" notification,
+    /// or stamped by HiringFollowUpService when the office marks a JobApplication hired — either
+    /// path means this job seeker is off the market for every office, not just this one
+    /// (JobApplicationService.CreateAsync's gating checks across all of this job seeker's rows).</summary>
+    public DateTime? EmployedAt { get; set; }
+    public DateTime? LeftJobAt { get; set; }
+    public string? LeftJobNotes { get; set; }
+
+    /// <summary>Next time the monthly "did you find a job?" notification is due — set to
+    /// ApprovedAt.AddMonths(1) on approval, pushed a month on a "still searching" reply or a week on
+    /// no reply at all, and cleared once EmployedAt is set.</summary>
+    public DateTime? NextEmploymentCheckDueAt { get; set; }
+    public DateTime? EmploymentCheckLastNotifiedAt { get; set; }
+
     public Guid? CreatedBy { get; set; }
     public DateTime CreationDate { get; set; } = DateTime.UtcNow;
     public Guid? ModifiedBy { get; set; }

@@ -25,6 +25,7 @@ internal static class JobSeekerProfileMapping
         Skills = p.Skills,
         CareerSummary = p.CareerSummary,
         JobTitle = p.JobTitle,
+        DesiredCategoryId = p.DesiredCategoryId,
         HasPhoto = p.PhotoStorageKey != null,
         ValidComplaintCount = validComplaintCount,
         OfficeApplication = officeApplication?.ToDto(office),
@@ -50,5 +51,7 @@ internal static class JobSeekerProfileMapping
         RejectionReason = a.RejectionReason,
         SuspendedAt = a.SuspendedAt,
         SuspensionReason = a.SuspensionReason,
+        EmployedAt = a.EmployedAt,
+        LeftJobAt = a.LeftJobAt,
     };
 }

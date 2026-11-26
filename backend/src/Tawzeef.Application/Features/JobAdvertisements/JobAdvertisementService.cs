@@ -1,4 +1,5 @@
 using Tawzeef.Application.Common;
+using Tawzeef.Application.Features.Notifications;
 using Tawzeef.Domain.Common;
 using Tawzeef.Domain.Contracts;
 using Tawzeef.Domain.Entities.Employers;
@@ -8,7 +9,7 @@ using Tawzeef.Domain.Enums;
 
 namespace Tawzeef.Application.Features.JobAdvertisements;
 
-public class JobAdvertisementService(IUnitOfWork uow) : IJobAdvertisementService
+public class JobAdvertisementService(IUnitOfWork uow, INotificationService notificationService) : IJobAdvertisementService
 {
     public async Task<ServiceResult<PagedResult<JobAdvertisementListItemDto>>> ListMineAsync(
         Guid userId, JobAdvertisementQueryDto query, CancellationToken ct = default)
@@ -92,7 +93,12 @@ public class JobAdvertisementService(IUnitOfWork uow) : IJobAdvertisementService
         // returns it to Draft (the diagram's "Rejected -> Draft: Employer edits" edge) so the
         // normal Draft -> SubmittedForReview submit action applies next.
         if (ad.Status == JobAdvertisementStatus.Published)
+        {
             ad.Status = JobAdvertisementStatus.UnderReview;
+            await notificationService.CreateForAllOfficeStaffAsync(
+                ad.OfficeId, "JobAdvertisement.ReSubmitted",
+                $"تم تعديل إعلان منشور \"{ad.Title}\" — محتاج مراجعة تاني.", nameof(JobAdvertisement), ad.Id, ct);
+        }
         else if (ad.Status == JobAdvertisementStatus.Rejected)
         {
             ad.Status = JobAdvertisementStatus.Draft;
@@ -130,6 +136,11 @@ public class JobAdvertisementService(IUnitOfWork uow) : IJobAdvertisementService
         ad.Status = JobAdvertisementStatus.SubmittedForReview;
         ad.SubmittedAt = DateTime.UtcNow;
         uow.Repository<JobAdvertisement>().Update(ad);
+
+        await notificationService.CreateForAllOfficeStaffAsync(
+            ad.OfficeId, "JobAdvertisement.Submitted",
+            $"إعلان وظيفي جديد قُدّم للمراجعة: \"{ad.Title}\".", nameof(JobAdvertisement), ad.Id, ct);
+
         await uow.SaveChangesAsync(ct);
 
         return ServiceResult<JobAdvertisementDto>.Success(ad.ToDto());

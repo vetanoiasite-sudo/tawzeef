@@ -20,6 +20,13 @@ public class OfficeJobSeekersController(IJobSeekerReviewService service, ICurren
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
         => Respond(await service.GetByIdAsync(RequireOfficeId(), id, ct));
 
+    /// <summary>This office's own record of job seekers who found a job — self-reported or
+    /// office-recorded (peppy-greeting-lighthouse.md's plan).</summary>
+    [HttpGet("employed")]
+    [RequiresPermission("jobseekers.view")]
+    public async Task<IActionResult> ListEmployed([FromQuery] EmployedJobSeekersQueryDto query, CancellationToken ct)
+        => RespondPaged(await service.ListEmployedAsync(RequireOfficeId(), query, ct));
+
     /// <summary>Not a signed, short-lived URL token (no such file-serving infrastructure exists
     /// yet) — an ordinary authenticated GET, re-checking office ownership on every call, streamed
     /// through the existing IFileStorage abstraction. Mirrors

@@ -36,4 +36,9 @@ public interface IJobSeekerReviewService
 
     Task<ServiceResult<JobSeekerProfileDto>> ReinstateAsync(
         Guid officeId, Guid reviewerId, Guid profileId, string reason, CancellationToken ct = default);
+
+    /// <summary>This office's own approved job seekers who have EmployedAt set — self-reported or
+    /// office-recorded, either way (peppy-greeting-lighthouse.md's plan).</summary>
+    Task<ServiceResult<PagedResult<EmployedJobSeekerListItemDto>>> ListEmployedAsync(
+        Guid officeId, EmployedJobSeekersQueryDto query, CancellationToken ct = default);
 }

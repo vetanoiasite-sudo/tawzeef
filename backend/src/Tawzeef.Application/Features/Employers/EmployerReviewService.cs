@@ -300,6 +300,11 @@ public class EmployerReviewService(IUnitOfWork uow, IFileStorage fileStorage, IN
             DecidedBy = reviewerId,
         }, ct);
 
+        await notificationService.CreateAsync(
+            officeId, employer.UserId, "EmployerCooperation.Stopped",
+            $"تم إيقاف التعاون بينك وبين المكتب — السبب: {application.CooperationStoppedReason}",
+            nameof(Employer), employer.Id, ct);
+
         await uow.SaveChangesAsync(ct);
 
         var documents = await uow.Repository<EmployerDocument>().ListAsync(d => d.EmployerId == employer.Id && d.IsActive, ct: ct);
@@ -331,6 +336,10 @@ public class EmployerReviewService(IUnitOfWork uow, IFileStorage fileStorage, IN
             Reason = reason.Trim(),
             DecidedBy = reviewerId,
         }, ct);
+
+        await notificationService.CreateAsync(
+            officeId, employer.UserId, "EmployerCooperation.Resumed",
+            "تم استئناف التعاون بينك وبين المكتب.", nameof(Employer), employer.Id, ct);
 
         await uow.SaveChangesAsync(ct);
 

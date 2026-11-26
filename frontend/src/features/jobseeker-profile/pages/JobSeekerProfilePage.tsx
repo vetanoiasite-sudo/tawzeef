@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ApiError } from '@/shared/api/types'
+import { DesiredCategoryCard } from '../components/DesiredCategoryCard'
 import { DocumentUploadCard } from '../components/DocumentUploadCard'
 import { MyOfficesCard } from '../components/MyOfficesCard'
 import { PhotoUploadCard } from '../components/PhotoUploadCard'
@@ -108,6 +109,8 @@ export default function JobSeekerProfilePage() {
       <PageHeader title={t('pageTitle')} />
 
       <MyOfficesCard />
+
+      <DesiredCategoryCard profile={profile} />
 
       {!isEditing && <ProfileSummaryCard profile={profile} onEdit={() => setIsEditing(true)} />}
 

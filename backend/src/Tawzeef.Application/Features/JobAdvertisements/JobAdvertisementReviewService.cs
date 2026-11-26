@@ -6,6 +6,8 @@ using Tawzeef.Domain.Common;
 using Tawzeef.Domain.Contracts;
 using Tawzeef.Domain.Entities.Employers;
 using Tawzeef.Domain.Entities.JobAdvertisements;
+using Tawzeef.Domain.Entities.JobSeekers;
+using Tawzeef.Domain.Entities.Offices;
 using Tawzeef.Domain.Enums;
 
 namespace Tawzeef.Application.Features.JobAdvertisements;
@@ -217,6 +219,34 @@ public class JobAdvertisementReviewService(
         await notificationService.CreateAsync(ad.OfficeId, employer.UserId, eventType, message, nameof(JobAdvertisement), ad.Id, ct);
     }
 
+    /// <summary>peppy-greeting-lighthouse.md's plan, item 4: every job seeker this office approved
+    /// whose own DesiredCategoryId matches this now-published ad's category gets an FYI — one way,
+    /// no reply expected. Only this office's own approved seekers, same tenant-isolation convention
+    /// as everywhere else (JobApplicationService.CreateAsync's own office-approval gate).</summary>
+    private async Task NotifyMatchingJobSeekersAsync(JobAdvertisement ad, CancellationToken ct)
+    {
+        if (ad.CategoryId is null) return;
+
+        var candidates = await uow.Repository<JobSeekerOfficeApplication>().ListAsync(
+            a => a.OfficeId == ad.OfficeId && a.ReviewStatus == JobSeekerReviewStatus.Approved && a.EmployedAt == null, ct: ct);
+        if (candidates.Count == 0) return;
+
+        var jobSeekerIds = candidates.Select(a => a.JobSeekerId).Distinct().ToList();
+        var profiles = await uow.Repository<JobSeekerProfile>().ListAsync(
+            p => jobSeekerIds.Contains(p.Id) && p.DesiredCategoryId == ad.CategoryId, ct: ct);
+
+        var office = await uow.Repository<EmploymentOffice>().FindAsync(o => o.Id == ad.OfficeId, ct: ct);
+        var officeName = office?.ArName ?? office?.Name ?? string.Empty;
+
+        foreach (var profile in profiles)
+        {
+            await notificationService.CreateAsync(
+                ad.OfficeId, profile.UserId, "JobAdvertisement.NewInCategory",
+                $"في وظيفة جديدة في تخصصك: \"{ad.Title}\" في {officeName}.",
+                nameof(JobAdvertisement), ad.Id, ct);
+        }
+    }
+
     public async Task<ServiceResult<JobAdvertisementDto>> PauseAsync(Guid officeId, Guid id, CancellationToken ct = default)
     {
         var ad = await uow.Repository<JobAdvertisement>().FindAsync(a => a.Id == id && a.OfficeId == officeId, ct: ct);
@@ -296,6 +326,9 @@ public class JobAdvertisementReviewService(
         ad.PublishedAt = DateTime.UtcNow;
         ad.ExpiresAt = ad.PublishedAt.Value.AddDays(durationDays);
         uow.Repository<JobAdvertisement>().Update(ad);
+
+        await NotifyEmployerAsync(ad, "JobAdvertisement.Published", $"تم نشر إعلانك \"{ad.Title}\" بنجاح.", ct);
+        await NotifyMatchingJobSeekersAsync(ad, ct);
 
         await uow.SaveChangesAsync(ct);
 

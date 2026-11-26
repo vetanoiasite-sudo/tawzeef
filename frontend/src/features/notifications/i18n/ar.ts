@@ -8,4 +8,12 @@ export const notificationsAr = {
   prevPage: 'السابق',
   nextPage: 'التالي',
   pageOf: 'صفحة {{current}} من {{total}}',
+  actionFoundJob: 'لقيت شغل',
+  actionStillSearching: 'لسه بدور',
+  actionStillEmployed: 'لسه شغال',
+  actionLeftJob: 'سبت الشغل',
+  actionAccepted: 'اتقبلت',
+  actionRejected: 'اترفضت',
+  actionStillWaiting: 'لسه مستني رد',
+  actionNotesPlaceholder: 'ملاحظات (اختياري)',
 }

@@ -29,4 +29,7 @@ public class RecordingNotificationService : INotificationService
         OfficeAdminCalls.Add((officeId, eventType, message, relatedId));
         return Task.CompletedTask;
     }
+
+    public Task CreateForAllOfficeStaffAsync(Guid officeId, string eventType, string message, string? relatedType = null, Guid? relatedId = null, CancellationToken ct = default) =>
+        Task.CompletedTask;
 }

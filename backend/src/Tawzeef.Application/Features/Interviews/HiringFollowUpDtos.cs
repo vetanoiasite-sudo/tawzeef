@@ -23,7 +23,8 @@ public class CompleteHiringFollowUpDto
 public class HiringFollowUpDto
 {
     public Guid Id { get; set; }
-    public Guid JobApplicationId { get; set; }
+    public Guid? JobApplicationId { get; set; }
+    public bool SelfReported { get; set; }
     public DateTime HiredAt { get; set; }
     public DateTime DueAt { get; set; }
 
@@ -41,7 +42,8 @@ public class HiringFollowUpDto
 public class HiringFollowUpListItemDto
 {
     public Guid Id { get; set; }
-    public Guid JobApplicationId { get; set; }
+    public Guid? JobApplicationId { get; set; }
+    public bool SelfReported { get; set; }
     public string JobSeekerName { get; set; } = string.Empty;
     public string EmployerDisplayName { get; set; } = string.Empty;
     public string JobTitle { get; set; } = string.Empty;

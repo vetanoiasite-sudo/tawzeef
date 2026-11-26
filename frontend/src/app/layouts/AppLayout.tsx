@@ -65,6 +65,7 @@ function AppLayoutChrome() {
     'officeBanners',
     'officeProfile',
     'officeAccounts',
+    'officeEmployedJobSeekers',
   ])
   const { isAuthenticated, hasPermission } = useAccess()
   const user = useSessionStore((s) => s.user)
@@ -193,6 +194,11 @@ function AppLayoutChrome() {
         {hasPermission('jobseekers.view') && (
           <Link to="/office/job-seekers" className={linkClassName}>
             {t('officeJobSeekerReview:queueTitle')}
+          </Link>
+        )}
+        {hasPermission('jobseekers.view') && (
+          <Link to="/office/job-seekers/employed" className={linkClassName}>
+            {t('officeEmployedJobSeekers:pageTitle')}
           </Link>
         )}
         {hasPermission('employers.view') && (

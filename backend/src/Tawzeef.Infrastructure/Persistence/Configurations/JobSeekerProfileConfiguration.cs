@@ -27,5 +27,6 @@ public class JobSeekerProfileConfiguration : IEntityTypeConfiguration<JobSeekerP
 
         b.HasIndex(x => x.UserId).IsUnique();
         b.HasIndex(x => x.NationalId).IsUnique();
+        b.HasIndex(x => x.DesiredCategoryId);
     }
 }

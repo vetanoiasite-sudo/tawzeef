@@ -9,6 +9,10 @@ public interface IJobSeekerProfileService
 
     Task<ServiceResult<JobSeekerProfileDto>> UpdateMyProfileAsync(Guid userId, UpdateJobSeekerProfileDto dto, CancellationToken ct = default);
 
+    /// <summary>A notification preference, not reviewable profile content — never reverts an
+    /// Approved office application the way UpdateMyProfileAsync does.</summary>
+    Task<ServiceResult<JobSeekerProfileDto>> UpdateDesiredCategoryAsync(Guid userId, UpdateDesiredCategoryDto dto, CancellationToken ct = default);
+
     Task<ServiceResult<JobSeekerDocumentDto>> UploadDocumentAsync(
         Guid userId,
         JobSeekerDocumentType documentType,

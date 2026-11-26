@@ -17,6 +17,17 @@ public class Interview : IEntity
     public string? LocationOrMeetingDetails { get; set; }
     public InterviewStatus Status { get; set; } = InterviewStatus.Scheduled;
 
+    /// <summary>A one-time "your interview is tomorrow" FYI to the job seeker, sent once ScheduledAt
+    /// is within a day — never repeated, unlike JobSeekerFeedbackLastNotifiedAt below.</summary>
+    public DateTime? ReminderSentAt { get; set; }
+
+    /// <summary>The job seeker's own account of how it went, requested by notification a day after
+    /// ScheduledAt passes — independent of the employer's InterviewReport.</summary>
+    public InterviewSeekerFeedback JobSeekerFeedbackOutcome { get; set; } = InterviewSeekerFeedback.Pending;
+    public string? JobSeekerFeedbackNotes { get; set; }
+    public DateTime? JobSeekerFeedbackAt { get; set; }
+    public DateTime? JobSeekerFeedbackLastNotifiedAt { get; set; }
+
     public Guid? CreatedBy { get; set; }
     public DateTime CreationDate { get; set; } = DateTime.UtcNow;
     public Guid? ModifiedBy { get; set; }

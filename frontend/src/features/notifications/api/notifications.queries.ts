@@ -36,3 +36,15 @@ export function useMarkAllNotificationsRead() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: notificationsKeys.all }),
   })
 }
+
+export function useRespondToEmploymentCheck() {
+  return useMutation({ mutationFn: notificationsApi.respondToEmploymentCheck })
+}
+
+export function useRespondToHiringFollowUp() {
+  return useMutation({ mutationFn: notificationsApi.respondToHiringFollowUp })
+}
+
+export function useRespondToInterviewFeedback() {
+  return useMutation({ mutationFn: notificationsApi.respondToInterviewFeedback })
+}

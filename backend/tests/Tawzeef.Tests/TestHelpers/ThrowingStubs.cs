@@ -31,6 +31,8 @@ public class ThrowingJobSeekerReviewServiceStub : IJobSeekerReviewService
         throw new NotImplementedException();
     public Task<ServiceResult<JobSeekerProfileDto>> ReinstateAsync(Guid officeId, Guid reviewerId, Guid profileId, string reason, CancellationToken ct = default) =>
         throw new NotImplementedException();
+    public Task<ServiceResult<PagedResult<EmployedJobSeekerListItemDto>>> ListEmployedAsync(Guid officeId, EmployedJobSeekersQueryDto query, CancellationToken ct = default) =>
+        throw new NotImplementedException();
 }
 
 public class ThrowingEmployerReviewServiceStub : IEmployerReviewService

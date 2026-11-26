@@ -14,6 +14,7 @@ import { officeAccountsRoutes } from '@/features/office-accounts'
 import { officeBannersRoutes } from '@/features/office-banners'
 import { officeComplaintsReviewRoutes } from '@/features/office-complaints-review'
 import { officeDashboardRoutes } from '@/features/office-dashboard'
+import { officeEmployedJobSeekersRoutes } from '@/features/office-employed-jobseekers'
 import { officeEmployerReviewRoutes } from '@/features/office-employer-review'
 import { officeJobAdsReviewRoutes } from '@/features/office-job-ads-review'
 import { officeJobSeekerReviewRoutes } from '@/features/office-jobseeker-review'
@@ -40,6 +41,7 @@ export const routeRegistry: AppRouteDef[] = [
   ...jobSeekerCoursesRoutes,
   ...employerProfileRoutes,
   ...officeJobSeekerReviewRoutes,
+  ...officeEmployedJobSeekersRoutes,
   ...officeEmployerReviewRoutes,
   ...complaintsRoutes,
   ...officeComplaintsReviewRoutes,

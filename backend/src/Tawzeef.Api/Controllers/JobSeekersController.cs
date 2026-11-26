@@ -12,6 +12,7 @@ namespace Tawzeef.Api.Controllers;
 public class JobSeekersController(
     IJobSeekerProfileService service,
     IJobSeekerCourseService courseService,
+    IJobSeekerFollowUpService followUpService,
     ICurrentUser currentUser) : ApiControllerBase
 {
     [HttpGet("me")]
@@ -23,6 +24,13 @@ public class JobSeekersController(
     [RequiresPermission("jobseekers.editown")]
     public async Task<IActionResult> UpdateMyProfile([FromBody] UpdateJobSeekerProfileDto dto, CancellationToken ct)
         => Respond(await service.UpdateMyProfileAsync(RequireUserId(), dto, ct));
+
+    /// <summary>A notification preference, not reviewable profile content — kept separate from
+    /// UpdateMyProfile so setting it never reverts an Approved office application.</summary>
+    [HttpPut("me/desired-category")]
+    [RequiresPermission("jobseekers.editown")]
+    public async Task<IActionResult> UpdateDesiredCategory([FromBody] UpdateDesiredCategoryDto dto, CancellationToken ct)
+        => Respond(await service.UpdateDesiredCategoryAsync(RequireUserId(), dto, ct));
 
     [HttpPost("me/documents")]
     [RequiresPermission("jobseekers.uploaddocuments")]
@@ -139,6 +147,24 @@ public class JobSeekersController(
         var file = result.Data!;
         return File(file.Content, string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType, file.FileName);
     }
+
+    /// <summary>The job seeker's own replies to the three self-report notifications
+    /// (peppy-greeting-lighthouse.md) — each {id} is the Notification row's RelatedId, naming the
+    /// JobSeekerOfficeApplication/HiringFollowUpReport/Interview it answers.</summary>
+    [HttpPost("me/follow-up/employment-check/{id:guid}/respond")]
+    [RequiresPermission("jobseekers.respondemployed")]
+    public async Task<IActionResult> RespondToEmploymentCheck(Guid id, [FromBody] RespondEmploymentCheckDto dto, CancellationToken ct)
+        => Respond(await followUpService.RespondToEmploymentCheckAsync(RequireUserId(), id, dto, ct));
+
+    [HttpPost("me/follow-up/hiring-follow-up/{id:guid}/respond")]
+    [RequiresPermission("hiringfollowupreports.respondown")]
+    public async Task<IActionResult> RespondToHiringFollowUp(Guid id, [FromBody] RespondHiringFollowUpDto dto, CancellationToken ct)
+        => Respond(await followUpService.RespondToHiringFollowUpAsync(RequireUserId(), id, dto, ct));
+
+    [HttpPost("me/follow-up/interview/{id:guid}/feedback")]
+    [RequiresPermission("interviews.respondfeedback")]
+    public async Task<IActionResult> RespondToInterviewFeedback(Guid id, [FromBody] RespondInterviewFeedbackDto dto, CancellationToken ct)
+        => Respond(await followUpService.RespondToInterviewFeedbackAsync(RequireUserId(), id, dto, ct));
 
     private Guid RequireUserId() => currentUser.Id ?? throw new UnauthorizedAccessException();
 }

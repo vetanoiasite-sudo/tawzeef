@@ -24,6 +24,10 @@ public class JobSeekerProfile : IEntity
     public string? CareerSummary { get; set; }
     public string? JobTitle { get; set; }
 
+    /// <summary>The job seeker's own single preferred JobCategory — same lookup table a
+    /// JobAdvertisement is assigned to. Drives the "new ad in your field" notification on publish.</summary>
+    public Guid? DesiredCategoryId { get; set; }
+
     /// <summary>Optional profile photo — never required, no office review workflow attached
     /// (unlike JobSeekerDocument). Opaque storage key from IFileStorage, same as a document's
     /// SecureFileReference (BUSINESS_REQUIREMENTS.md §17.3) — never a public URL. Visible only to

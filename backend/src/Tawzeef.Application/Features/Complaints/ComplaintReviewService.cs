@@ -123,6 +123,15 @@ public class ComplaintReviewService(
         complaint.ReviewedBy = reviewerId;
         complaint.ReviewedAt = DateTime.UtcNow;
         uow.Repository<Complaint>().Update(complaint);
+
+        await notificationService.CreateAsync(
+            officeId, complaint.SubmittedByUserId,
+            outcome == ComplaintStatus.Resolved ? "Complaint.Resolved" : "Complaint.Rejected",
+            outcome == ComplaintStatus.Resolved
+                ? "تمت مراجعة شكواك واتخاذ الإجراء اللازم بشأنها."
+                : "تمت مراجعة شكواك ولم تثبت صحتها.",
+            nameof(Complaint), complaint.Id, ct);
+
         await uow.SaveChangesAsync(ct);
 
         var subjectName = await ComplaintSubjectResolver.ResolveOneNameAsync(uow, complaint.SubjectType, complaint.SubjectId, ct);

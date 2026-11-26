@@ -24,6 +24,16 @@ public class EmploymentOffice : IEntity
     public string? LogoOriginalFileName { get; set; }
     public string? LogoContentType { get; set; }
 
+    /// <summary>peppy-greeting-lighthouse.md's plan — last time the office's whole staff was
+    /// nudged about a backlog of unreviewed job seekers/employers/job ads. Combined into one
+    /// reminder across all three instead of three separate notifications.</summary>
+    public DateTime? PendingReviewLastNotifiedAt { get; set; }
+
+    /// <summary>Last time the office's whole staff was reminded to review the month's accounts —
+    /// deliberately all staff for now, not scoped to a future "accounts" role (see
+    /// INotificationService.CreateForAllOfficeStaffAsync's doc comment).</summary>
+    public DateTime? AccountsReviewLastNotifiedAt { get; set; }
+
     public Guid? CreatedBy { get; set; }
     public DateTime CreationDate { get; set; } = DateTime.UtcNow;
     public Guid? ModifiedBy { get; set; }

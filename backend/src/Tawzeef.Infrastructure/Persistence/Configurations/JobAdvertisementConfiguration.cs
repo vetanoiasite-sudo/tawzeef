@@ -30,5 +30,7 @@ public class JobAdvertisementConfiguration : IEntityTypeConfiguration<JobAdverti
         // code, same unconstrained-reference style already used for RenewedFromAdvertisementId
         // above (no HasOne/WithMany, just an indexed Guid column).
         b.HasIndex(x => x.CategoryId);
+        b.HasIndex(x => new { x.Status, x.PendingApplicantsLastNotifiedAt });
+        b.HasIndex(x => new { x.Status, x.ExpiryReminderSentAt, x.ExpiresAt });
     }
 }

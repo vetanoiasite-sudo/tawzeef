@@ -21,6 +21,14 @@ export function useUpdateMyJobSeekerProfile() {
   })
 }
 
+export function useUpdateDesiredCategory() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: jobSeekerProfileApi.updateDesiredCategory,
+    onSuccess: (data) => queryClient.setQueryData(jobSeekerProfileKeys.myProfile(), data),
+  })
+}
+
 export function useUploadJobSeekerDocument() {
   const queryClient = useQueryClient()
   return useMutation({

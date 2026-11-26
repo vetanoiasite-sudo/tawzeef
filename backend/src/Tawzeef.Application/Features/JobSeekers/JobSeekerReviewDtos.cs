@@ -37,3 +37,20 @@ public class ReasonDto
     [Required, MaxLength(1000)]
     public string Reason { get; set; } = string.Empty;
 }
+
+/// <summary>The office's own record of job seekers it approved who later self-reported (or were
+/// office-recorded) finding a job — peppy-greeting-lighthouse.md's plan.</summary>
+public class EmployedJobSeekerListItemDto
+{
+    public Guid JobSeekerId { get; set; }
+    public string FullName { get; set; } = string.Empty;
+    public string MobileNumber { get; set; } = string.Empty;
+    public DateTime EmployedAt { get; set; }
+    public DateTime? LeftJobAt { get; set; }
+}
+
+public class EmployedJobSeekersQueryDto
+{
+    public int PageIndex { get; set; }
+    public int PageSize { get; set; } = 20;
+}

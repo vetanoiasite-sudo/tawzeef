@@ -75,6 +75,16 @@ export function MyOfficesCard() {
                 {t('jobSeekerProfile:suspensionReasonLabel')}: {office.suspensionReason}
               </p>
             )}
+            {office.employedAt && !office.leftJobAt && (
+              <span className="self-start rounded-100 bg-success/10 px-2 py-0.5 text-xs font-semibold text-success">
+                {t('jobSeekerProfile:employedBadge')}
+              </span>
+            )}
+            {office.employedAt && office.leftJobAt && (
+              <span className="self-start rounded-100 bg-warning/10 px-2 py-0.5 text-xs font-semibold text-warning">
+                {t('jobSeekerProfile:leftJobBadge')}
+              </span>
+            )}
           </div>
         ))}
       </div>

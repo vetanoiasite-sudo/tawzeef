@@ -90,4 +90,14 @@ public class NotificationService(
         foreach (var admin in admins)
             await CreateAsync(officeId, admin.UserId, eventType, message, relatedType, relatedId, ct);
     }
+
+    public async Task CreateForAllOfficeStaffAsync(
+        Guid officeId, string eventType, string message, string? relatedType = null, Guid? relatedId = null, CancellationToken ct = default)
+    {
+        var members = await uow.Repository<UserOfficeMembership>().ListAsync(
+            m => m.OfficeId == officeId && m.MembershipStatus == MembershipStatus.Active, ct: ct);
+
+        foreach (var member in members)
+            await CreateAsync(officeId, member.UserId, eventType, message, relatedType, relatedId, ct);
+    }
 }

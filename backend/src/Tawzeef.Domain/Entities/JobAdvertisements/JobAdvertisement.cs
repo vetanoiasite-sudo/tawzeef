@@ -48,6 +48,15 @@ public class JobAdvertisement : IEntity
     public DateTime? ExpiresAt { get; set; }
     public DateTime? ClosedAt { get; set; }
 
+    /// <summary>Last time the employer was reminded about applicants still NotYetContacted on this
+    /// ad — null means never. Only reset by a new reminder tick, never cleared; the reminder simply
+    /// stops firing once no NotYetContacted applicant remains or the ad leaves Published.</summary>
+    public DateTime? PendingApplicantsLastNotifiedAt { get; set; }
+
+    /// <summary>Set once, a few days before ExpiresAt, so the employer gets one "renew before it
+    /// expires" nudge — never repeated, unlike PendingApplicantsLastNotifiedAt above.</summary>
+    public DateTime? ExpiryReminderSentAt { get; set; }
+
     /// <summary>Set only on a renewal's new row — WORKFLOWS_AND_STATE_MACHINES.md §5 confirmed
     /// item 17: renewal always creates a new advertisement, never an extension of the old one.</summary>
     public Guid? RenewedFromAdvertisementId { get; set; }

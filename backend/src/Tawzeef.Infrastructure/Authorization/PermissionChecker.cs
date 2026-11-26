@@ -18,8 +18,10 @@ public class PermissionChecker(AppDbContext context) : IPermissionChecker
     private static readonly HashSet<string> JobSeekerOwnPermissions =
         [
             "jobseekers.viewown", "jobseekers.editown", "jobseekers.uploaddocuments", "jobseekers.submit",
+            "jobseekers.respondemployed",
             "jobapplications.create", "jobapplications.viewown", "jobapplications.withdraw",
-            "interviews.view",
+            "interviews.view", "interviews.respondfeedback",
+            "hiringfollowupreports.respondown",
             "jobseekercourses.view", "jobseekercourses.create", "jobseekercourses.edit", "jobseekercourses.delete",
         ];
 
@@ -36,7 +38,7 @@ public class PermissionChecker(AppDbContext context) : IPermissionChecker
             "jobapplications.view", "jobapplications.updateoutcome",
             "interviews.view", "interviews.schedule", "interviews.edit",
             "interviewreports.create", "interviewreports.view",
-            "hiringfollowupreports.view",
+            "hiringfollowupreports.view", "hiringfollowupreports.respondemployer",
             "applicantevaluationreports.create", "applicantevaluationreports.view",
         ];
 

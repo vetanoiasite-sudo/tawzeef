@@ -63,4 +63,9 @@ export const jobSeekerProfileAr = {
   submitForReview: 'إرسال للمراجعة',
   submitSuccess: 'تم إرسال الملف للمراجعة',
   submitMissingDocs: 'ارفع كل المستندات المطلوبة أولًا',
+  desiredCategoryTitle: 'التخصص المرغوب',
+  desiredCategoryHint: 'لما مكتب توظيف ينشر وظيفة في هذا التخصص، هيوصلك إشعار بيها.',
+  desiredCategoryPlaceholder: 'اختر تخصصًا',
+  employedBadge: 'تم التوظيف',
+  leftJobBadge: 'يدور على عمل مجددًا',
 }
