@@ -1,10 +1,8 @@
-# .NET
-backend/**/bin/
-backend/**/obj/
-backend/**/App_Data/
-backend/publish/
-backend/*.zip
-backend/backups/
+# The backend now lives in the sibling Tawzeef-Api repo (git subtree split, 2026-11-26) — this
+# repo is frontend-only. A leftover backend/ folder may still sit on disk here on a machine that
+# had the old combined repo (LocalDB files, uploaded documents, build output) — never track it,
+# even by accident (App_Data/secure-files holds real uploaded CVs/IDs — see Tawzeef-Api's README).
+backend/
 *.user
 *.suo
 

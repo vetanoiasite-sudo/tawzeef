@@ -14,7 +14,10 @@ export default defineConfig({
   build: {
     // `npm run build` writes straight into the .NET API's wwwroot, so `dotnet run`
     // (after a build) serves the SPA itself — no separate Vite server needed in production.
-    outDir: path.resolve(import.meta.dirname, '../backend/src/Tawzeef.Api/wwwroot'),
+    // The backend lives in a sibling repo/folder (Tawzeef-Api) since the git split
+    // (2026-11-26) — this path reaches across to it, same "one process serves both" setup
+    // as before, just git-separated now.
+    outDir: path.resolve(import.meta.dirname, '../../Tawzeef-Api/src/Tawzeef.Api/wwwroot'),
     emptyOutDir: true,
   },
 })

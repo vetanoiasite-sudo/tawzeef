@@ -15,78 +15,16 @@ exists today — a real gap, not a deferred decision).
 
 ## Repository layout
 
+This repo is the **frontend only** — split from a combined repo on 2026-11-26 (full git history
+for each side was preserved independently via `git subtree split`). The backend lives in a sibling
+repo/folder, `Tawzeef-Api` (.NET 9), cloned next to this one — see
+[its README](../Tawzeef-Api/README.md) for backend setup.
+
 ```
-backend/    .NET 9 solution — Api / Application / Domain / Infrastructure (+ tests)
 frontend/   React + Vite + TypeScript app
 assets/     Brand assets (logo SVGs, see assets/brand/README.md)
-docs/       Planning documentation — read docs/README.md first
+docs/       Planning documentation — read docs/README.md first (covers both repos for now)
 ```
-
-## Backend
-
-### First-time setup (every machine, not just the first one)
-
-1. **SQL Server LocalDB** — install it (ships with Visual Studio, or standalone via the
-   [SQL Server Express LocalDB installer](https://learn.microsoft.com/sql/database-engine/configure-windows/sql-server-express-localdb)).
-   Windows/LocalDB only; swap `ConnectionStrings:DefaultConnection` in
-   `appsettings.Development.json` for a real SQL Server/Docker instance on macOS/Linux.
-2. **Create/update the database:**
-   ```bash
-   cd backend/src/Tawzeef.Api
-   dotnet ef database update --project ../Tawzeef.Infrastructure --startup-project .
-   ```
-3. **Seed the first Super Admin** (the database starts empty — no office, no users; the test
-   accounts used during development live only in the original dev machine's LocalDB file, never
-   committed to git):
-   ```bash
-   dotnet run -- seed-superadmin 01000000000 "SomeStrongPassword123!" "Your Name"
-   ```
-   From there: log in as that Super Admin → create an office (`POST /api/offices`) → invite
-   yourself as that office's `OfficeAdmin` (`POST /api/office-users/invite`) → accept the invite
-   via OTP (logged to the console by the dev-only `DevLogOtpSender` — search the terminal output
-   for `[DEV OTP]`) to get a real OfficeAdmin login.
-
-**JWT signing key:** `appsettings.Development.json` ships a committed dev-only key (requested
-explicitly, to remove the per-machine setup step) so every clone works identically with zero
-config. This is intentionally **not** how a real deployment is configured — a production
-environment must still set `JWT__Key` via an environment variable or secret store, never read it
-from a committed file; the app's own startup guard in `Program.cs` already refuses to boot outside
-Development with no key configured, so this shortcut can't leak into production by accident.
-
-Then the usual:
-```bash
-cd backend
-dotnet build
-dotnet test
-dotnet run --project src/Tawzeef.Api
-```
-
-**Uploaded documents** (CVs, IDs, legal docs) are written to disk at `App_Data/secure-files`
-relative to `Tawzeef.Api`'s own project folder by default — never inside `wwwroot` (that folder now
-*is* served publicly by static-file middleware, since it hosts the built frontend SPA — see "Serving
-the built frontend from the backend" below; see `BUSINESS_REQUIREMENTS.md §17.3` on why secure
-documents must never sit in a publicly-reachable folder), and never inside `bin/`, which
-`dotnet clean` wipes. Override the location for a real deployment with `FileStorage:LocalPath` in
-configuration (an absolute path outside the repo/deploy tree — a mounted volume, a network share).
-
-Conventions: [docs/BACKEND_GUIDELINES.md](docs/BACKEND_GUIDELINES.md). `Api → Application →
-Domain`, `Infrastructure → Domain`; `Application` never references `Infrastructure` or EF Core.
-
-### Where the built code deviates from `docs/BACKEND_GUIDELINES.md`
-
-That document is a reusable baseline (its own closing line says to update it "when the baseline
-changes — not when a single project needs an exception"), so project-specific resolutions belong
-here instead, not edited into it.
-
-| The guide's literal sample | What's actually built | Why |
-|---|---|---|
-| `Application/Abstractions/ICurrentUser.cs` | `Domain/Contracts/ICurrentUser.cs` | `Infrastructure`'s `AuditStampingInterceptor` needs it, and the guide's own non-negotiable #1 ("`Infrastructure → Domain`", nothing points up) means `Infrastructure` can't reference `Application`. `Domain` is the one layer both may depend on. |
-| `Application/Abstractions/IFileStorage.cs` | `Domain/Contracts/IFileStorage.cs` | Same reason — `Infrastructure`'s `LocalFileStorage` implements it. |
-| `Application/Common/PagedResult.cs` | `Domain/Common/PagedResult.cs` | `IBaseRepository<T>.PageAsync` (in `Domain/Contracts`, per the guide's own tree) returns it, so it can't live one layer up. |
-| `AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>` | `AppDbContext : IdentityUserContext<ApplicationUser, Guid>` (no Identity role tables) | RBAC here is a custom, data-driven permission model (`UserOfficeMembership.Role` + `StaffPermissionGrant`), not ASP.NET Identity's Role/UserRole/RoleClaims tables — those would just sit empty. |
-
-Everything else (controllers, `ServiceResult`, the permission filter + startup audit, the audit
-interceptor, naming) follows the guide as written.
 
 ## Frontend
 
@@ -109,22 +47,24 @@ Conventions: [docs/PROJECT_ARCHITECTURE_FRONTEND.md](docs/PROJECT_ARCHITECTURE_F
 
 ### Serving the built frontend from the backend (single process)
 
-`npm run build` writes straight into `backend/src/Tawzeef.Api/wwwroot` (see `vite.config.ts`), and
-`Program.cs` serves it with `UseStaticFiles()` + a `MapFallbackToFile("index.html")` SPA fallback
-(so a direct hit on e.g. `/jobs/123` still works, not just in-app navigation). So instead of running
-two servers for a production-style check:
+`npm run build` writes straight into the sibling `Tawzeef-Api` repo's `src/Tawzeef.Api/wwwroot`
+(see `vite.config.ts` — `../../Tawzeef-Api/...`, so `Tawzeef-Api` must be cloned next to this repo,
+both under the same parent folder), and `Program.cs` there serves it with `UseStaticFiles()` + a
+`MapFallbackToFile("index.html")` SPA fallback (so a direct hit on e.g. `/jobs/123` still works, not
+just in-app navigation). So instead of running two servers for a production-style check:
 
 ```bash
 cd frontend && npm run build
-cd ../backend && dotnet run --project src/Tawzeef.Api
+cd ../../Tawzeef-Api && dotnet run --project src/Tawzeef.Api
 ```
 
 then open `http://localhost:5280` — both the UI and the API come from that one process. The build
 targets `VITE_API_BASE_URL=same-origin` (`.env.production`), which resolves to
 `window.location.origin` at runtime instead of a fixed URL, so this works on whatever host/port the
-app is actually deployed to. `wwwroot` is git-ignored (generated output); local dev with hot reload
-still uses the separate `npm run dev` Vite server on `:5173` against the backend on `:5280` (CORS,
-`.env.development`), exactly as before.
+app is actually deployed to. `wwwroot` is committed in the `Tawzeef-Api` repo on purpose (not
+git-ignored there), so a fresh clone of it runs immediately without a frontend build step; local dev
+with hot reload still uses the separate `npm run dev` Vite server on `:5173` against the backend on
+`:5280` (CORS, `.env.development`), exactly as before the split.
 
 **Known tooling constraint:** `eslint-plugin-jsx-a11y` and `typescript-eslint` have not yet caught
 up to the latest major versions of ESLint (10) and TypeScript (7 / "tsgo") at time of scaffolding.
